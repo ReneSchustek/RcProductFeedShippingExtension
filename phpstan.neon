@@ -1,0 +1,11 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        - vendor
+    # Shopware-spezifische Typen erlauben
+    bootstrapFiles:
+        - vendor/autoload.php
+    ignoreErrors: []
+    checkMissingIterableValueType: true

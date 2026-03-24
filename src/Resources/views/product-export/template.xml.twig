@@ -1,0 +1,49 @@
+<item>
+    <g:id>{{ product.id }}</g:id>
+    <g:title>{{ product.name | e }}</g:title>
+    <g:description>{{ product.description | striptags | e }}</g:description>
+    <g:link>{{ seoUrl('frontend.detail.page', {productId: product.id}) }}</g:link>
+    <g:image_link>{{ product.cover.media.url }}</g:image_link>
+    <g:availability>{{ product.availableStock > 0 ? 'in stock' : 'out of stock' }}</g:availability>
+    <g:price>{{ product.calculatedPrice.unitPrice | number_format(2, '.', '') }} EUR</g:price>
+    <g:brand>{{ product.manufacturer.name ?? '' }}</g:brand>
+    {% if product.shippingFree %}
+    <g:shipping>
+        <g:country>DE</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    {% elseif rcShipping.get(product.id, 'DE') is not null %}
+    <g:shipping>
+        <g:country>DE</g:country>
+        <g:service>Standard</g:service>
+        <g:price>{{ rcShipping.get(product.id, 'DE') | number_format(2, '.', '') }} EUR</g:price>
+    </g:shipping>
+    {% endif %}
+    {% if product.shippingFree %}
+    <g:shipping>
+        <g:country>AT</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    {% elseif rcShipping.get(product.id, 'AT') is not null %}
+    <g:shipping>
+        <g:country>AT</g:country>
+        <g:service>Standard</g:service>
+        <g:price>{{ rcShipping.get(product.id, 'AT') | number_format(2, '.', '') }} EUR</g:price>
+    </g:shipping>
+    {% endif %}
+    {% if product.shippingFree %}
+    <g:shipping>
+        <g:country>CH</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    {% elseif rcShipping.get(product.id, 'CH') is not null %}
+    <g:shipping>
+        <g:country>CH</g:country>
+        <g:service>Standard</g:service>
+        <g:price>{{ rcShipping.get(product.id, 'CH') | number_format(2, '.', '') }} EUR</g:price>
+    </g:shipping>
+    {% endif %}
+</item>

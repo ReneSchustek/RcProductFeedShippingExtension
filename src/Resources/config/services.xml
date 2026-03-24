@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults autowire="true" autoconfigure="true" public="false"/>
+
+        <prototype namespace="RuhrCoder\RcProductFeedShippingExtension\"
+                   resource="../../*"
+                   exclude="../../{Resources,Tests}"/>
+
+        <service id="RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService">
+            <argument type="service" id="cache.object"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService">
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
+            <argument type="service" id="country.repository"/>
+            <argument type="service" id="shipping_method.repository"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="RuhrCoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="product.repository"/>
+            <tag name="console.command"/>
+        </service>
+
+        <service id="RuhrCoder\RcProductFeedShippingExtension\Command\ShippingWarmupCommand">
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="product.repository"/>
+            <tag name="console.command"/>
+        </service>
+    </services>
+</container>
