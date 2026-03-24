@@ -90,8 +90,9 @@ class ShippingCostCalculatorService
             $excluded = $this->configurationService->getExcludedShippingMethods($salesChannelId);
             $shippingCost = $this->findCheapestApplicableShippingCost($salesChannelId, $context, $excluded);
 
-            // Keine Versandmethode verfügbar — Fallback verwenden statt 0,00 € in den Feed zu schreiben.
-            if ($shippingCost === null) {
+            // Kein positiver Preis gefunden — Fallback verwenden.
+            // 0,00 € gilt nur als kostenloser Versand wenn der Fallback selbst 0,00 € ist (bewusst konfiguriert).
+            if ($shippingCost === null || $shippingCost <= 0.0) {
                 $fallback = $this->fallbackService->getFallbackResult($productId, $countryIso, $salesChannelId, $currencyIso);
                 $this->cacheService->set($productId, $countryIso, $salesChannelId, $fallback);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
 
 use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
 
 /**
  * Wird einmalig in den Feed-Template-Kontext injiziert und berechnet Versandkosten
@@ -18,6 +19,7 @@ class ShippingContextProvider
 {
     public function __construct(
         private readonly ShippingCostCalculatorService $calculator,
+        private readonly ShippingFallbackService $fallbackService,
         private readonly array $countries,
         private readonly string $salesChannelId,
         private readonly string $currencyIso,
@@ -27,8 +29,9 @@ class ShippingContextProvider
     /**
      * Gibt die Versandkosten für ein Produkt in das angegebene Land zurück.
      *
-     * Gibt null zurück wenn das Land nicht konfiguriert ist oder die Berechnung
-     * fehlschlägt. Das Template prüft auf null vor der Ausgabe.
+     * Gibt null zurück wenn das Land nicht konfiguriert ist.
+     * Für konfigurierte Länder wird immer ein Preis zurückgegeben —
+     * entweder berechnet oder der konfigurierte Fallback-Preis.
      */
     public function get(string $productId, string $countryIso): ?float
     {
@@ -39,7 +42,8 @@ class ShippingContextProvider
         try {
             return $this->calculator->calculate($productId, $countryIso, $this->salesChannelId, $this->currencyIso)->shippingCost;
         } catch (\Throwable) {
-            return null;
+            // Calculator hat intern selbst eine Fehlerbehandlung — dieser Pfad ist ein letzter Schutz.
+            return $this->fallbackService->getFallbackResult($productId, $countryIso, $this->salesChannelId, $this->currencyIso)->shippingCost;
         }
     }
 

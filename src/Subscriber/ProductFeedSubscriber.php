@@ -6,6 +6,7 @@ namespace RuhrCoder\RcProductFeedShippingExtension\Subscriber;
 
 use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
 use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingContextProvider;
 use Shopware\Core\Content\ProductExport\Event\ProductExportRenderBodyContextEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -25,6 +26,7 @@ class ProductFeedSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private readonly ShippingCostCalculatorService $calculator,
+        private readonly ShippingFallbackService $fallbackService,
         private readonly ConfigurationService $configurationService,
     ) {
     }
@@ -71,6 +73,7 @@ class ProductFeedSubscriber implements EventSubscriberInterface
 
         $context['rcShipping'] = new ShippingContextProvider(
             $this->calculator,
+            $this->fallbackService,
             $countries,
             $calcChannelId,
             $currencyIso,
