@@ -53,8 +53,8 @@
             <name>excludedShippingMethods</name>
             <label lang="de-DE">Ausgeschlossene Versandarten (Name enthält)</label>
             <label lang="en-GB">Excluded shipping methods (name contains)</label>
-            <helpText lang="de-DE">Das Plugin wählt immer die günstigste Versandart. Ohne dieses Feld würde Selbstabholung (0,00 €) gewinnen und Google sperrt den Feed. Schlüsselwörter kommasepariert eingeben — Versandarten deren Name eines dieser Wörter enthält werden ignoriert. Groß-/Kleinschreibung egal.</helpText>
-            <helpText lang="en-GB">Comma-separated keywords. Shipping methods whose name contains any of these words are excluded. Important: exclude self-pickup methods to prevent 0.00 EUR values that cause Google to reject the feed.</helpText>
+            <helpText lang="de-DE">Das Plugin wählt immer die günstigste Versandart. Selbstabholung (0,00 €) würde sonst gewinnen — auch wenn 0,00 € intern durch den Fallback ersetzt wird, verfälscht sie die Auswahl der günstigsten Methode. Schlüsselwörter kommasepariert eingeben — Versandarten deren Name eines dieser Wörter enthält werden ignoriert. Groß-/Kleinschreibung egal.</helpText>
+            <helpText lang="en-GB">Comma-separated keywords. Shipping methods whose name contains any of these words are excluded. Self-pickup (0.00 EUR) would otherwise win as the cheapest method and skew the result — even though 0.00 EUR is replaced by the fallback price internally.</helpText>
             <defaultValue>Selbstabholung,Abholung,Pickup</defaultValue>
         </input-field>
     </card>
@@ -66,8 +66,8 @@
         <component name="sw-alert">
             <name>templateHint</name>
             <variant>info</variant>
-            <label lang="de-DE">Für jedes konfigurierte Land muss im Feed-Template ein g:shipping-Block eingefügt werden. Beispiel für Deutschland: {% set shippingDE = rcShipping is defined ? rcShipping.get(product.id, 'DE') : null %}{% if shippingDE is not null %}&lt;g:shipping&gt;&lt;g:country&gt;DE&lt;/g:country&gt;&lt;g:service&gt;Standard&lt;/g:service&gt;&lt;g:price&gt;{{ shippingDE | number_format(2, '.', '') }} EUR&lt;/g:price&gt;&lt;/g:shipping&gt;{% endif %}. Das fertige Referenz-Template liegt im Plugin unter: src/Resources/views/product-export/template.xml.twig</label>
-            <label lang="en-GB">For each configured country, add a g:shipping block to the feed template. A ready-made reference template is included at: src/Resources/views/product-export/template.xml.twig</label>
+            <label lang="de-DE">Für jedes konfigurierte Land muss im Feed-Template ein g:shipping-Block eingefügt werden. rcShipping.get() gibt immer den berechneten oder konfigurierten Fallback-Preis zurück — niemals 0,00 €. Beispiel für Deutschland: {% if rcShipping.get(product.id, 'DE') is not null %}&lt;g:shipping&gt;&lt;g:country&gt;DE&lt;/g:country&gt;&lt;g:service&gt;Standard&lt;/g:service&gt;&lt;g:price&gt;{{ rcShipping.get(product.id, 'DE') | number_format(2, '.', '') }} EUR&lt;/g:price&gt;&lt;/g:shipping&gt;{% endif %}. Das fertige Referenz-Template liegt im Plugin unter: src/Resources/views/product-export/template.xml.twig</label>
+            <label lang="en-GB">For each configured country, add a g:shipping block to the feed template. rcShipping.get() always returns the calculated or configured fallback price — never 0.00 EUR. A ready-made reference template is included at: src/Resources/views/product-export/template.xml.twig</label>
         </component>
     </card>
 
