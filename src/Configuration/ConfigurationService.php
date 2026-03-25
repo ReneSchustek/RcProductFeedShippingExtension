@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Configuration;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Configuration;
 
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
@@ -12,7 +12,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
  * Alle Werte sind pro Verkaufskanal überschreibbar. Ist kein verkanalspezifischer
  * Wert gesetzt, greift Shopware automatisch auf die globale Konfiguration zurück.
  */
-class ConfigurationService
+final class ConfigurationService
 {
     private const CONFIG_PREFIX = 'RcProductFeedShippingExtension.config.';
     private const DEFAULT_EXCLUDED_METHODS = ['Selbstabholung', 'Abholung', 'Pickup'];

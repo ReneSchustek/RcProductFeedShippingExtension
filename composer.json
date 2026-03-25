@@ -19,12 +19,12 @@
     },
     "autoload": {
         "psr-4": {
-            "RuhrCoder\\RcProductFeedShippingExtension\\": "src/"
+            "Ruhrcoder\\RcProductFeedShippingExtension\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "RuhrCoder\\RcProductFeedShippingExtension\\Tests\\": "Tests/"
+            "Ruhrcoder\\RcProductFeedShippingExtension\\Tests\\": "Tests/"
         }
     },
     "scripts": {
@@ -39,7 +39,7 @@
         ]
     },
     "extra": {
-        "shopware-plugin-class": "RuhrCoder\\RcProductFeedShippingExtension\\RcProductFeedShippingExtension",
+        "shopware-plugin-class": "Ruhrcoder\\RcProductFeedShippingExtension\\RcProductFeedShippingExtension",
         "label": {
             "de-DE": "Ruhrcoder - Produktfeed Versandkostenerweiterung",
             "en-GB": "Ruhrcoder - Product Feed Shipping Extension"

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Subscriber;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Subscriber;
 
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingContextProvider;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingContextProvider;
 use Shopware\Core\Content\ProductExport\Event\ProductExportRenderBodyContextEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -22,7 +22,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * Greift ausschließlich in den Feed-Export ein — niemals in den normalen Shop-Betrieb.
  */
-class ProductFeedSubscriber implements EventSubscriberInterface
+final class ProductFeedSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private readonly ShippingCostCalculatorService $calculator,

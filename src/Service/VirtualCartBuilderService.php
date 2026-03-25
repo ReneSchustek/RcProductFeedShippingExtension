@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\CartCalculator;
@@ -15,7 +15,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  *
  * Der Warenkorb wird ausschließlich im Arbeitsspeicher berechnet und nie persistiert.
  */
-class VirtualCartBuilderService
+final class VirtualCartBuilderService
 {
     public function __construct(private readonly CartCalculator $calculator)
     {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\TestCase;
-use RuhrCoder\RcProductFeedShippingExtension\Exception\CountryNotFoundException;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Exception\CountryNotFoundException;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService;
 
 class ShippingAddressProviderServiceTest extends TestCase
 {

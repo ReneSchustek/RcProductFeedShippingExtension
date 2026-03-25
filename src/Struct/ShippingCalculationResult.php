@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
 
 /**
  * Ergebnis einer Versandkostenberechnung für ein Produkt in ein bestimmtes Land.
@@ -11,7 +11,7 @@ namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
  * aus dem konfigurierten Fallback stammt. Fallback-Ergebnisse werden ebenfalls
  * gecacht, damit fehlerhafte Berechnungen nicht bei jedem Export wiederholt werden.
  */
-class ShippingCalculationResult
+final class ShippingCalculationResult
 {
     public function __construct(
         public readonly string $productId,

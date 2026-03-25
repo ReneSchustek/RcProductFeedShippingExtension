@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
 
 /**
  * Referenzadresse eines Landes für die Versandkostenberechnung.
@@ -10,7 +10,7 @@ namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
  * Kein echter Empfänger — die Adresse dient ausschließlich dazu, Shopware eine
  * gültige Lieferadresse zu geben, damit die Versandzonenregeln greifen.
  */
-class ShippingAddress
+final class ShippingAddress
 {
     public function __construct(
         public readonly string $countryIso,

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Cache;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Cache;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
+use Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 

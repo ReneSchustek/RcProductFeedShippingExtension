@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Struct;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
 
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
 
 /**
  * Wird einmalig in den Feed-Template-Kontext injiziert und berechnet Versandkosten
@@ -15,7 +15,7 @@ use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
  * Der Cache des Calculators stellt sicher, dass jede Kombination nur einmal
  * berechnet wird, auch wenn das Template den Wert mehrfach abfragt.
  */
-class ShippingContextProvider
+final class ShippingContextProvider
 {
     public function __construct(
         private readonly ShippingCostCalculatorService $calculator,

@@ -2,17 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Command;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Command;
 
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -24,18 +17,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Hilfreich um Konfigurationslücken in Versandregeln oder -methoden zu erkennen.
  */
 #[AsCommand(name: 'rc:shipping:check', description: 'Produkte mit Fallback-Versandkosten auflisten')]
-class ShippingCheckCommand extends Command
+final class ShippingCheckCommand extends AbstractShippingCommand
 {
-    public function __construct(
-        private readonly ShippingCostCalculatorService $calculator,
-        private readonly ConfigurationService $configurationService,
-        private readonly AbstractSalesChannelContextFactory $contextFactory,
-        private readonly EntityRepository $salesChannelRepository,
-        private readonly EntityRepository $productRepository,
-    ) {
-        parent::__construct();
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -108,38 +91,11 @@ class ShippingCheckCommand extends Command
                 $totalFallbacks,
             ));
 
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         $io->success('Alle Produkte haben reguläre Versandkosten.');
 
-        return Command::SUCCESS;
-    }
-
-    private function canCreateContext(string $salesChannelId): bool
-    {
-        try {
-            $this->contextFactory->create(\Shopware\Core\Framework\Uuid\Uuid::randomHex(), $salesChannelId, []);
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    private function loadActiveSalesChannels(Context $context): array
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('active', true));
-
-        return $this->salesChannelRepository->search($criteria, $context)->getElements();
-    }
-
-    private function loadActiveProductIds(Context $context): array
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('active', true));
-
-        return $this->productRepository->searchIds($criteria, $context)->getIds();
+        return self::SUCCESS;
     }
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension;
+namespace Ruhrcoder\RcProductFeedShippingExtension;
 
 use Shopware\Core\Framework\Plugin;
 
-class RcProductFeedShippingExtension extends Plugin
+final class RcProductFeedShippingExtension extends Plugin
 {
 }

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 use Psr\Log\LoggerInterface;
-use RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
+use Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Shopware\Core\Checkout\Cart\Delivery\Struct\ShippingLocation;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
@@ -34,7 +34,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * dieses Produkt nicht gelten (z.B. Paketdienst wenn nur Spedition erlaubt ist),
  * korrekt herausgefiltert.
  */
-class ShippingCostCalculatorService
+final class ShippingCostCalculatorService
 {
     public function __construct(
         private readonly VirtualCartBuilderService $cartBuilder,

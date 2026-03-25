@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
-use RuhrCoder\RcProductFeedShippingExtension\Exception\CountryNotFoundException;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingAddress;
+use Ruhrcoder\RcProductFeedShippingExtension\Exception\CountryNotFoundException;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingAddress;
 
 /**
  * Liefert feste Referenzadressen pro Land für die Versandkostenberechnung.
@@ -15,7 +15,7 @@ use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingAddress;
  * statt Berlin, weil Berlin in Versandzone 1 liegt und damit günstigere Preise
  * liefern würde als die meisten anderen deutschen Postleitzahlen.
  */
-class ShippingAddressProviderService
+final class ShippingAddressProviderService
 {
     private const ADDRESSES = [
         // Kernmärkte

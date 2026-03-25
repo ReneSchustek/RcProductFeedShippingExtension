@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 /**
  * Formatiert Versandkosten als Google Shopping Feed-String.
@@ -11,7 +11,7 @@ namespace RuhrCoder\RcProductFeedShippingExtension\Service;
  * Diese Klasse deckt den Fall ab, wenn Versandkosten programmatisch
  * als fertiger String benötigt werden — z.B. für alternative Export-Formate.
  */
-class GoogleShippingFormatterService
+final class GoogleShippingFormatterService
 {
     /**
      * Gibt die Versandkosten als kommaseparierten Google-Shopping-String zurück.

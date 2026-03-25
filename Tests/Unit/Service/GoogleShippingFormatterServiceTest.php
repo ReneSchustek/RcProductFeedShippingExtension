@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\TestCase;
-use RuhrCoder\RcProductFeedShippingExtension\Service\GoogleShippingFormatterService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\GoogleShippingFormatterService;
 
 class GoogleShippingFormatterServiceTest extends TestCase
 {

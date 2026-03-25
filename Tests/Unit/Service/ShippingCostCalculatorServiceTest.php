@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
+use Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\Delivery\Struct\Delivery;
 use Shopware\Core\Checkout\Cart\Delivery\Struct\DeliveryCollection;

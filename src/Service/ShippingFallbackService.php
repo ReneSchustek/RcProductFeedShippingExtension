@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 
 /**
  * Liefert einen konfigurierten Fallback-Preis wenn die Versandkostenberechnung fehlschlägt.
  */
-class ShippingFallbackService
+final class ShippingFallbackService
 {
     public function __construct(private readonly ConfigurationService $configurationService)
     {

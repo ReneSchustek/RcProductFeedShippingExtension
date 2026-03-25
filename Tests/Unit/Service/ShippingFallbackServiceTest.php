@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
 
 class ShippingFallbackServiceTest extends TestCase
 {

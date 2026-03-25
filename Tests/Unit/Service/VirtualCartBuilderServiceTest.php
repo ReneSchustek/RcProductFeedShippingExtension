@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Service;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use RuhrCoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\CartCalculator;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Tests\Unit\Subscriber;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Subscriber;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
-use RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingContextProvider;
-use RuhrCoder\RcProductFeedShippingExtension\Subscriber\ProductFeedSubscriber;
+use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingContextProvider;
+use Ruhrcoder\RcProductFeedShippingExtension\Subscriber\ProductFeedSubscriber;
 use Shopware\Core\Content\ProductExport\Event\ProductExportRenderBodyContext;
 use Shopware\Core\System\Currency\CurrencyEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;

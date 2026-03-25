@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace RuhrCoder\RcProductFeedShippingExtension\Cache;
+namespace Ruhrcoder\RcProductFeedShippingExtension\Cache;
 
 use Psr\Log\LoggerInterface;
-use RuhrCoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -15,7 +15,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
  * Alle Einträge werden mit dem Tag `rc_shipping` versehen, was eine gezielte
  * Invalidierung ohne vollständigen Cache-Clear ermöglicht.
  */
-class ShippingCacheService
+final class ShippingCacheService
 {
     public const CACHE_TTL = 86400;
     public const CACHE_TAG = 'rc_shipping';
@@ -90,6 +90,10 @@ class ShippingCacheService
 
     private function buildCacheKey(string $productId, string $countryIso, string $salesChannelId): string
     {
-        return sprintf('rc_shipping_%s_%s_%s', $productId, strtoupper($countryIso), $salesChannelId);
+        // Hyphens aus UUIDs entfernen — PSR-6 erlaubt nur A-Za-z0-9_.
+        $pid = str_replace('-', '', $productId);
+        $scid = str_replace('-', '', $salesChannelId);
+
+        return sprintf('rc_shipping_%s_%s_%s', $pid, strtoupper($countryIso), $scid);
     }
 }
