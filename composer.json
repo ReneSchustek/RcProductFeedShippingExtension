@@ -41,8 +41,8 @@
     "extra": {
         "shopware-plugin-class": "Ruhrcoder\\RcProductFeedShippingExtension\\RcProductFeedShippingExtension",
         "label": {
-            "de-DE": "Ruhrcoder - Produktfeed Versandkostenerweiterung",
-            "en-GB": "Ruhrcoder - Product Feed Shipping Extension"
+            "de-DE": "Produktfeed Versandkosten",
+            "en-GB": "Product Feed Shipping Costs"
         },
         "description": {
             "de-DE": "Erweitert Produktfeeds um länderspezifisch berechnete Versandkosten im Google Shopping Format.",
