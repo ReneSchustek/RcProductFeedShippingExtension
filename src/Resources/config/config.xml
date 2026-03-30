@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title lang="de-DE">Einstellungen</title>
+        <title lang="en-GB">Settings</title>
+
+        <input-field type="text">
+            <name>calculationSalesChannelId</name>
+            <label lang="de-DE">Verkaufskanal für Versandberechnung (UUID)</label>
+            <label lang="en-GB">Sales channel for shipping calculation (UUID)</label>
+            <helpText lang="de-DE">UUID des Storefront-Verkaufskanals der für die Versandkostenberechnung genutzt wird. Pflichtfeld wenn der Feed über einen Produktvergleichs-Kanal (z.B. Google Shopping) läuft, da diese Kanäle keine Versandmethoden besitzen. UUID ermitteln: Einstellungen → Verkaufskanäle → Storefront-Kanal öffnen → UUID aus der Browser-URL kopieren (Teil zwischen /detail/ und /base).</helpText>
+            <helpText lang="en-GB">UUID of the storefront sales channel used for shipping cost calculation. Required when the feed runs under a product comparison channel (e.g. Google Shopping). To find the UUID: Settings → Sales Channels → open the storefront channel → copy the UUID from the browser URL (part between /detail/ and /base).</helpText>
+        </input-field>
+
+        <input-field type="bool">
+            <name>enabled</name>
+            <label lang="de-DE">Plugin aktivieren</label>
+            <label lang="en-GB">Enable plugin</label>
+            <helpText lang="de-DE">Schaltet das Plugin für diesen Verkaufskanal ein oder aus. Wenn deaktiviert, werden keine Versandkosten berechnet und im Feed erscheinen keine g:shipping-Blöcke.</helpText>
+            <helpText lang="en-GB">Enables or disables the plugin for this sales channel.</helpText>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>countries</name>
+            <label lang="de-DE">Versandländer (ISO-Codes)</label>
+            <label lang="en-GB">Shipping countries (ISO codes)</label>
+            <helpText lang="de-DE">Länderkürzel kommasepariert ohne Leerzeichen, z.B. DE,AT,CH. Für jedes eingetragene Land muss im Feed-Template ein g:shipping-Block vorhanden sein. Verfügbare Kürzel: DE, AT, CH, BE, BG, CY, CZ, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK, GB, NO, IS, LI, US, CA, AU</helpText>
+            <helpText lang="en-GB">Comma-separated ISO codes without spaces, e.g. DE,AT,CH. Each country needs a matching g:shipping block in the feed template.</helpText>
+            <defaultValue>DE,AT,CH</defaultValue>
+        </input-field>
+
+        <input-field type="float">
+            <name>fallbackShippingCost</name>
+            <label lang="de-DE">Fallback-Versandkosten (global)</label>
+            <label lang="en-GB">Fallback shipping cost (global)</label>
+            <helpText lang="de-DE">Wird verwendet wenn keine Versandkosten berechnet werden können. Tipp: Lieber etwas höher ansetzen — Google sperrt den Feed wenn der tatsächliche Preis höher ist als der im Feed angegebene. Gilt für alle Länder, sofern unten keine länderspezifischen Werte eingetragen sind.</helpText>
+            <helpText lang="en-GB">Shown when shipping costs cannot be calculated. Applied to all countries unless overridden by per-country values below.</helpText>
+            <defaultValue>4.95</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>fallbackShippingCostsPerCountry</name>
+            <label lang="de-DE">Fallback-Versandkosten pro Land</label>
+            <label lang="en-GB">Fallback shipping costs per country</label>
+            <helpText lang="de-DE">Länderspezifische Fallback-Preise im Format ISO:Preis, kommasepariert. Beispiel: DE:4.95,AT:9.90,CH:14.90. Hat Vorrang vor dem globalen Fallback-Wert. Für Länder ohne eigenen Eintrag gilt der globale Wert.</helpText>
+            <helpText lang="en-GB">Per-country fallback prices. Format: ISO:Price, comma-separated. Example: DE:4.95,AT:9.90,CH:14.90. Overrides the global fallback for the specified countries.</helpText>
+        </input-field>
+
+        <input-field type="text">
+            <name>excludedShippingMethods</name>
+            <label lang="de-DE">Ausgeschlossene Versandarten (Name enthält)</label>
+            <label lang="en-GB">Excluded shipping methods (name contains)</label>
+            <helpText lang="de-DE">Das Plugin wählt immer die günstigste Versandart. Selbstabholung (0,00 €) würde sonst gewinnen — auch wenn 0,00 € intern durch den Fallback ersetzt wird, verfälscht sie die Auswahl der günstigsten Methode. Schlüsselwörter kommasepariert eingeben — Versandarten deren Name eines dieser Wörter enthält werden ignoriert. Groß-/Kleinschreibung egal.</helpText>
+            <helpText lang="en-GB">Comma-separated keywords. Shipping methods whose name contains any of these words are excluded. Self-pickup (0.00 EUR) would otherwise win as the cheapest method and skew the result — even though 0.00 EUR is replaced by the fallback price internally.</helpText>
+            <defaultValue>Selbstabholung,Abholung,Pickup</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title lang="de-DE">Feed-Template</title>
+        <title lang="en-GB">Feed Template</title>
+
+        <component name="sw-alert">
+            <name>templateHint</name>
+            <variant>info</variant>
+            <label lang="de-DE">Für jedes konfigurierte Land muss im Feed-Template ein g:shipping-Block eingefügt werden. rcShipping.get() gibt immer den berechneten oder konfigurierten Fallback-Preis zurück — niemals 0,00 €. Beispiel für Deutschland: {% if rcShipping.get(product.id, 'DE') is not null %}&lt;g:shipping&gt;&lt;g:country&gt;DE&lt;/g:country&gt;&lt;g:service&gt;Standard&lt;/g:service&gt;&lt;g:price&gt;{{ rcShipping.get(product.id, 'DE') | number_format(2, '.', '') }} EUR&lt;/g:price&gt;&lt;/g:shipping&gt;{% endif %}. Das fertige Referenz-Template liegt im Plugin unter: src/Resources/views/product-export/template.xml.twig</label>
+            <label lang="en-GB">For each configured country, add a g:shipping block to the feed template. rcShipping.get() always returns the calculated or configured fallback price — never 0.00 EUR. A ready-made reference template is included at: src/Resources/views/product-export/template.xml.twig</label>
+        </component>
+    </card>
+
+</config>
