@@ -19,7 +19,7 @@
             <label lang="de-DE">Plugin aktivieren</label>
             <label lang="en-GB">Enable plugin</label>
             <helpText lang="de-DE">Schaltet das Plugin für diesen Verkaufskanal ein oder aus. Wenn deaktiviert, werden keine Versandkosten berechnet und im Feed erscheinen keine g:shipping-Blöcke.</helpText>
-            <helpText lang="en-2GB">Enables or disables the plugin for this sales channel.</helpText>
+            <helpText lang="en-GB">Enables or disables the plugin for this sales channel.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
 
