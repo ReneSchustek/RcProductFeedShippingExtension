@@ -5,39 +5,39 @@
     <services>
         <defaults autowire="true" autoconfigure="true" public="false"/>
 
-        <prototype namespace="RuhrCoder\RcProductFeedShippingExtension\"
+        <prototype namespace="Ruhrcoder\RcProductFeedShippingExtension\"
                    resource="../../*"
                    exclude="../../{Resources,Tests}"/>
 
-        <service id="RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService">
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService">
             <argument type="service" id="cache.object"/>
             <argument type="service" id="logger"/>
         </service>
 
-        <service id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService">
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Cache\ShippingCacheService"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
             <argument type="service" id="country.repository"/>
             <argument type="service" id="shipping_method.repository"/>
             <argument type="service" id="logger"/>
         </service>
 
-        <service id="RuhrCoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="product.repository"/>
             <tag name="console.command"/>
         </service>
 
-        <service id="RuhrCoder\RcProductFeedShippingExtension\Command\ShippingWarmupCommand">
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
-            <argument type="service" id="RuhrCoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingWarmupCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="product.repository"/>

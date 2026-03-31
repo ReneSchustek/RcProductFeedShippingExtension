@@ -20,7 +20,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Sinnvoll nach der Erstinstallation, nach Änderungen an Versandmethoden oder
  * Versandregeln sowie nach einem vollständigen Cache-Clear.
  */
-#[AsCommand(name: 'rc:shipping:warmup', description: 'Versandkosten für alle Produkte vorberechnen und cachen')]
+#[AsCommand(name: 'rc:shipping:warmup', description: 'Pre-calculate and cache shipping costs for all products')]
 final class ShippingWarmupCommand extends AbstractShippingCommand
 {
     protected function execute(InputInterface $input, OutputInterface $output): int

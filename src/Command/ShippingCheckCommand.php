@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * Hilfreich um Konfigurationslücken in Versandregeln oder -methoden zu erkennen.
  */
-#[AsCommand(name: 'rc:shipping:check', description: 'Produkte mit Fallback-Versandkosten auflisten')]
+#[AsCommand(name: 'rc:shipping:check', description: 'List products using fallback shipping costs')]
 final class ShippingCheckCommand extends AbstractShippingCommand
 {
     protected function execute(InputInterface $input, OutputInterface $output): int
