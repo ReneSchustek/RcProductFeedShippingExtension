@@ -146,7 +146,7 @@ final class ShippingCostCalculatorService
 
         foreach ($methods as $method) {
             /** @var ShippingMethodEntity $method */
-            $methodName = $method->getTranslated()['name'] ?? $method->getName() ?? '';
+            $methodName = ($method->getTranslated() ?? [])['name'] ?? $method->getName() ?? '';
 
             if ($this->isExcluded($methodName, $excludedKeywords)) {
                 continue;

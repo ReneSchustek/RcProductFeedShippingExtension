@@ -33,6 +33,7 @@ abstract class AbstractShippingCommand extends Command
 
             return true;
         } catch (\Throwable) {
+            // Context-Erstellung kann bei fehlender Sprachkonfiguration fehlschlagen — erwartetes Verhalten
             return false;
         }
     }
