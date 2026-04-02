@@ -35,7 +35,7 @@ final class ShippingContextProvider
      */
     public function get(string $productId, string $countryIso): ?float
     {
-        if (!in_array(strtoupper($countryIso), array_map('strtoupper', $this->countries), true)) {
+        if (!in_array(strtoupper($countryIso), $this->countries, true)) {
             return null;
         }
 
@@ -47,7 +47,7 @@ final class ShippingContextProvider
         }
     }
 
-    /** Gibt die konfigurierten Länder zurück (für Template-Iteration). */
+    /** @return array<int, string> Konfigurierte Länder (für Template-Iteration) */
     public function getCountries(): array
     {
         return $this->countries;

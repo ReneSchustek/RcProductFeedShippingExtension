@@ -38,6 +38,7 @@ abstract class AbstractShippingCommand extends Command
         }
     }
 
+    /** @return array<string, \Shopware\Core\System\SalesChannel\SalesChannelEntity> */
     protected function loadActiveSalesChannels(Context $context): array
     {
         $criteria = new Criteria();
@@ -46,6 +47,7 @@ abstract class AbstractShippingCommand extends Command
         return $this->salesChannelRepository->search($criteria, $context)->getElements();
     }
 
+    /** @return array<int, string> */
     protected function loadActiveProductIds(Context $context): array
     {
         $criteria = new Criteria();

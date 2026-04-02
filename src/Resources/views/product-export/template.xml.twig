@@ -7,6 +7,23 @@
     <g:availability>{{ product.availableStock > 0 ? 'in stock' : 'out of stock' }}</g:availability>
     <g:price>{{ product.calculatedPrice.unitPrice|number_format(2, '.', '') }} EUR</g:price>
     <g:brand>{{ (product.manufacturer.name ?? '')|e }}</g:brand>
+    {% if product.shippingFree %}
+    <g:shipping>
+        <g:country>DE</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    <g:shipping>
+        <g:country>AT</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    <g:shipping>
+        <g:country>CH</g:country>
+        <g:service>Standard</g:service>
+        <g:price>0.00 EUR</g:price>
+    </g:shipping>
+    {% else %}
     {% if rcShipping.get(product.id, 'DE') is not null %}
     <g:shipping>
         <g:country>DE</g:country>
@@ -27,5 +44,6 @@
         <g:service>Standard</g:service>
         <g:price>{{ rcShipping.get(product.id, 'CH') | number_format(2, '.', '') }} EUR</g:price>
     </g:shipping>
+    {% endif %}
     {% endif %}
 </item>

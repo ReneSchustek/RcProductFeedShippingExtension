@@ -23,8 +23,8 @@ class ShippingFallbackServiceTest extends TestCase
     public function testGetFallbackResultReturnsConfiguredPrice(): void
     {
         $this->configurationService
-            ->method('getFallbackShippingCost')
-            ->with('sales-channel-id')
+            ->method('getFallbackShippingCostForCountry')
+            ->with('DE', 'sales-channel-id')
             ->willReturn(4.95);
 
         $result = $this->service->getFallbackResult('product-id', 'DE', 'sales-channel-id', 'EUR');
@@ -37,7 +37,7 @@ class ShippingFallbackServiceTest extends TestCase
 
     public function testGetFallbackResultAlwaysSetsFallbackFlag(): void
     {
-        $this->configurationService->method('getFallbackShippingCost')->willReturn(0.0);
+        $this->configurationService->method('getFallbackShippingCostForCountry')->willReturn(0.0);
 
         $result = $this->service->getFallbackResult('product-id', 'DE', 'sales-channel-id', 'EUR');
 

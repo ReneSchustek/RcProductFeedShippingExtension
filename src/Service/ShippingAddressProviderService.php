@@ -88,7 +88,7 @@ final class ShippingAddressProviderService
         return isset(self::ADDRESSES[strtoupper($countryIso)]);
     }
 
-    /** Gibt alle unterstützten ISO-Codes zurück. */
+    /** @return array<int, string> Alle unterstützten ISO-Codes */
     public function getSupportedCountryCodes(): array
     {
         return array_keys(self::ADDRESSES);

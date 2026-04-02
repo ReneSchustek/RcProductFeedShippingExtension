@@ -36,6 +36,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  */
 final class ShippingCostCalculatorService
 {
+    /** @var array<string, SalesChannelContext> In-Memory-Cache für Base-Contexts pro SalesChannel */
+    private array $baseContextCache = [];
+
     public function __construct(
         private readonly VirtualCartBuilderService $cartBuilder,
         private readonly ShippingFallbackService $fallbackService,
@@ -68,11 +71,7 @@ final class ShippingCostCalculatorService
         }
 
         try {
-            $context = $this->contextFactory->create(
-                Uuid::randomHex(),
-                $salesChannelId,
-                [],
-            );
+            $context = $this->getOrCreateBaseContext($salesChannelId);
 
             // Das Zielland (inkl. PLZ) kommt ausschließlich über die Pseudo-Adresse.
             // Wir übergeben kein COUNTRY_ID an die Context-Factory — das Land wird
@@ -90,9 +89,10 @@ final class ShippingCostCalculatorService
             $excluded = $this->configurationService->getExcludedShippingMethods($salesChannelId);
             $shippingCost = $this->findCheapestApplicableShippingCost($salesChannelId, $context, $excluded);
 
-            // Kein positiver Preis gefunden — Fallback verwenden.
-            // 0,00 € gilt nur als kostenloser Versand wenn der Fallback selbst 0,00 € ist (bewusst konfiguriert).
-            if ($shippingCost === null || $shippingCost <= 0.0) {
+            // Kein Preis gefunden — Fallback verwenden.
+            // 0,00 € ist ein gültiges Ergebnis (z.B. Gratis-Versand-Aktion) und wird NICHT durch Fallback ersetzt.
+            // Selbstabholung (0,00 €) ist bereits über die Ausschlussliste abgedeckt.
+            if ($shippingCost === null) {
                 $fallback = $this->fallbackService->getFallbackResult($productId, $countryIso, $salesChannelId, $currencyIso);
                 $this->cacheService->set($productId, $countryIso, $salesChannelId, $fallback);
 
@@ -118,12 +118,33 @@ final class ShippingCostCalculatorService
     }
 
     /**
+     * Gibt einen geklonten Base-Context für den SalesChannel zurück.
+     *
+     * Der Base-Context wird pro SalesChannel einmalig erstellt und dann für jede
+     * Berechnung geklont. Das vermeidet teure Context-Factory-Aufrufe pro Produkt/Land.
+     */
+    private function getOrCreateBaseContext(string $salesChannelId): SalesChannelContext
+    {
+        if (!isset($this->baseContextCache[$salesChannelId])) {
+            $this->baseContextCache[$salesChannelId] = $this->contextFactory->create(
+                Uuid::randomHex(),
+                $salesChannelId,
+                [],
+            );
+        }
+
+        return clone $this->baseContextCache[$salesChannelId];
+    }
+
+    /**
      * Lädt alle aktiven Versandmethoden des Kanals und gibt die günstigste zurück,
      * die für den aktuellen Kontext verfügbar ist.
      *
      * Methoden werden übersprungen wenn sie auf der Ausschlussliste stehen (z.B. Selbstabholung)
      * oder wenn ihre Availabilityregel nicht zu den gematchten Rule-IDs des Kontexts passt.
      * Unter den verbleibenden Methoden gewinnt der niedrigste anwendbare Preis-Tier.
+     *
+     * @param array<int, string> $excludedKeywords
      */
     private function findCheapestApplicableShippingCost(
         string $salesChannelId,
@@ -171,6 +192,8 @@ final class ShippingCostCalculatorService
      *
      * Preis-Tiers mit einer matchenden Regel haben Vorrang vor Tier ohne Regel.
      * Unter mehreren matchenden Tiers wird der günstigste gewählt.
+     *
+     * @param array<int, string> $matchedRuleIds
      */
     private function resolveApplicablePriceTier(
         ShippingMethodEntity $method,
@@ -267,25 +290,39 @@ final class ShippingCostCalculatorService
         $address->setCountryId($country->getId());
         $address->setCountry($country);
 
-        // ShippingLocation injizieren
-        $shippingLocation = ShippingLocation::createFromAddress($address);
-        $refLocation = new \ReflectionProperty(SalesChannelContext::class, 'shippingLocation');
-        $refLocation->setValue($context, $shippingLocation);
+        // ShippingLocation und Customer per Reflection injizieren.
+        // Shopware bietet keine öffentliche API um die ShippingLocation nachträglich zu setzen,
+        // und COUNTRY_ID über die Factory validiert das Land gegen die Kanalkonfiguration,
+        // was bei Feeds für nicht-konfigurierte Länder fehlschlägt.
+        // Guard: Bei Shopware-Updates, die diese Properties umbenennen, wird ein klarer Fehler geloggt.
+        try {
+            $shippingLocation = ShippingLocation::createFromAddress($address);
+            $refLocation = new \ReflectionProperty(SalesChannelContext::class, 'shippingLocation');
+            $refLocation->setValue($context, $shippingLocation);
 
-        // Minimalen Customer mit aktiver Versandadresse injizieren, damit
-        // customerShippingZipCode-Regeln die PLZ auswerten können.
-        $customer = new CustomerEntity();
-        $customer->setId(Uuid::randomHex());
-        $customer->setAccountType(CustomerEntity::ACCOUNT_TYPE_PRIVATE);
-        $customer->setActiveShippingAddress($address);
-        $customer->setActiveBillingAddress($address);
+            // Minimalen Customer mit aktiver Versandadresse injizieren, damit
+            // customerShippingZipCode-Regeln die PLZ auswerten können.
+            $customer = new CustomerEntity();
+            $customer->setId(Uuid::randomHex());
+            $customer->setAccountType(CustomerEntity::ACCOUNT_TYPE_PRIVATE);
+            $customer->setActiveShippingAddress($address);
+            $customer->setActiveBillingAddress($address);
 
-        $refCustomer = new \ReflectionProperty(SalesChannelContext::class, 'customer');
-        $refCustomer->setValue($context, $customer);
+            $refCustomer = new \ReflectionProperty(SalesChannelContext::class, 'customer');
+            $refCustomer->setValue($context, $customer);
+        } catch (\ReflectionException $e) {
+            $this->logger->error('Reflection-Zugriff auf SalesChannelContext fehlgeschlagen — Shopware-API-Änderung?', [
+                'property' => $e->getMessage(),
+                'shopwareVersion' => \Shopware\Core\Kernel::SHOPWARE_FALLBACK_VERSION ?? 'unknown',
+            ]);
+
+            return false;
+        }
 
         return true;
     }
 
+    /** @param array<int, string> $excludedKeywords */
     private function isExcluded(string $methodName, array $excludedKeywords): bool
     {
         if (empty($excludedKeywords)) {

@@ -7,7 +7,7 @@
 
         <prototype namespace="Ruhrcoder\RcProductFeedShippingExtension\"
                    resource="../../*"
-                   exclude="../../{Resources,Tests}"/>
+                   exclude="../../{Resources,tests}"/>
 
         <service id="Ruhrcoder\RcProductFeedShippingExtension\Cache\ShippingCacheService">
             <argument type="service" id="cache.object"/>

@@ -15,7 +15,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0 || ^11.0",
-        "phpstan/phpstan": "^1.0"
+        "phpstan/phpstan": "^1.0",
+        "friendsofphp/php-cs-fixer": "^3.0"
     },
     "autoload": {
         "psr-4": {
@@ -24,7 +25,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Ruhrcoder\\RcProductFeedShippingExtension\\Tests\\": "Tests/"
+            "Ruhrcoder\\RcProductFeedShippingExtension\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -41,8 +42,8 @@
     "extra": {
         "shopware-plugin-class": "Ruhrcoder\\RcProductFeedShippingExtension\\RcProductFeedShippingExtension",
         "label": {
-            "de-DE": "Produktfeed Versandkosten",
-            "en-GB": "Product Feed Shipping Costs"
+            "de-DE": "Versandkosten im Produktfeed",
+            "en-GB": "Shipping Costs in Product Feed"
         },
         "description": {
             "de-DE": "Erweitert Produktfeeds um länderspezifisch berechnete Versandkosten im Google Shopping Format.",

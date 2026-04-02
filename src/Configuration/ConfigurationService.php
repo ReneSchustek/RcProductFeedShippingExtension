@@ -54,7 +54,7 @@ final class ConfigurationService
         return $value !== '' ? trim($value) : null;
     }
 
-    /** Gibt die konfigurierten Länder als Array von ISO-Codes in Großbuchstaben zurück. */
+    /** @return array<int, string> ISO-Codes in Großbuchstaben */
     public function getCountries(string $salesChannelId): array
     {
         $value = $this->systemConfigService->getString(
@@ -107,6 +107,8 @@ final class ConfigurationService
      * Ist das Konfigurationsfeld leer, werden die Standardwerte zurückgegeben
      * (`Selbstabholung`, `Abholung`, `Pickup`). Das verhindert, dass Selbstabholung
      * mit 0,00 € als günstigste Versandart in den Feed gelangt.
+     *
+     * @return array<int, string>
      */
     public function getExcludedShippingMethods(string $salesChannelId): array
     {
@@ -122,6 +124,7 @@ final class ConfigurationService
         return $this->parseCommaSeparated($value, false);
     }
 
+    /** @return array<int, string> */
     private function parseCommaSeparated(string $value, bool $uppercase): array
     {
         if ($value === '') {
