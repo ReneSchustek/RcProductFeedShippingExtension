@@ -18,6 +18,11 @@
         "phpstan/phpstan": "^1.0",
         "friendsofphp/php-cs-fixer": "^3.0"
     },
+    "config": {
+        "allow-plugins": {
+            "symfony/runtime": true
+        }
+    },
     "autoload": {
         "psr-4": {
             "Ruhrcoder\\RcProductFeedShippingExtension\\": "src/"

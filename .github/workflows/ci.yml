@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Quellcode auschecken
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: PHP 8.3 einrichten
         uses: shivammathur/setup-php@v2
@@ -23,7 +23,7 @@ jobs:
           tools: composer:v2
 
       - name: Composer-Cache laden
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
