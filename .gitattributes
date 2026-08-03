@@ -1,0 +1,19 @@
+# Einheitliche LF-Line-Endings für alle Text-Dateien.
+# Windows-Clients behalten LF im Working Tree (überschreibt core.autocrlf=true),
+# damit der DevBox-Sync über tar keine CRLF einspielt und PHP-CS-Fixer keinen
+# Line-Ending-Drift findet.
+* text=auto eol=lf
+
+# Binär-Dateien explizit schützen
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.pdf binary
+*.zip binary

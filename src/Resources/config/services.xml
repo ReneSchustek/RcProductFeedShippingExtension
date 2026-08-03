@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults autowire="true" autoconfigure="true" public="false"/>
+
+        <prototype namespace="Ruhrcoder\RcProductFeedShippingExtension\"
+                   resource="../../*"
+                   exclude="../../{Resources,tests}"/>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
+            <argument type="service" id="country.repository"/>
+            <argument type="service" id="shipping_method.repository"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <!-- Eine Quelle für „welche Produkte zählen" — Warmup und Diagnose müssen dieselbe Menge
+             sehen, sonst widersprechen sich ihre Zahlen. -->
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService">
+            <argument type="service" id="product.repository"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
+            <tag name="console.command"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingWarmupCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService"/>
+            <tag name="console.command"/>
+        </service>
+
+        <!-- Braucht die Aufgaben-Verwaltung, weil eine Preisänderung den Warmup vorzieht, statt
+             den Bestand wegzuwerfen. Siehe ShippingMethodChangeSubscriber. -->
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Subscriber\ShippingMethodChangeSubscriber">
+            <argument type="service" id="scheduled_task.repository"/>
+            <argument type="service" id="logger"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <!-- Ohne diese Aufgabe ist das Plugin wirkungslos: Der Feed liest nur vorberechnete Werte,
+             und die Einträge halten 24 Stunden. Siehe ShippingWarmupTask. -->
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\ScheduledTask\ShippingWarmupTask">
+            <tag name="shopware.scheduled.task"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\ScheduledTask\ShippingWarmupTaskHandler">
+            <argument type="service" id="scheduled_task.repository"/>
+            <argument type="service" id="logger"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService"/>
+            <argument type="service" id="logger"/>
+            <tag name="messenger.message_handler"/>
+        </service>
+    </services>
+</container>

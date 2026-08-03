@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Lauf ohne Shopware-Installation (Plugin-Verzeichnis allein).
+
+    Warum diese Datei neben der `.dist`: Die Integration-Tests brauchen einen gebooteten
+    Shopware-Kernel und eine Datenbank. Beides gibt es nur, wenn die Tests aus einer echten
+    Installation heraus gestartet werden. Ein `php vendor/bin/phpunit` im Plugin-Verzeichnis
+    würde sie sonst mitziehen und mit Fehlern abbrechen, die nichts über den Code aussagen.
+
+    PHPUnit bevorzugt `phpunit.xml` vor `phpunit.xml.dist`. Der Gate-Lauf startet die
+    Integration-Suite getrennt aus der Instanz heraus und nimmt dort die `.dist`.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
+         bootstrap="tests/TestBootstrap.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <!-- PHPUnit 11 erwartet den Abdeckungs-Filter unter <source>. Der alte
+         <coverage><include>-Block wird stillschweigend ignoriert: Der Lauf meldet dann
+         "No filter is configured, code coverage will not be processed" und liefert
+         gar keine Zahl. -->
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>src/Migration</directory>
+            <directory>src/Resources</directory>
+        </exclude>
+    </source>
+</phpunit>
