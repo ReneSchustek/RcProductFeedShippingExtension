@@ -1,6 +1,6 @@
 # Einheitliche LF-Line-Endings für alle Text-Dateien.
 # Windows-Clients behalten LF im Working Tree (überschreibt core.autocrlf=true),
-# damit der DevBox-Sync über tar keine CRLF einspielt und PHP-CS-Fixer keinen
+# damit beim Übertragen keine CRLF einsickern und PHP CS Fixer keinen
 # Line-Ending-Drift findet.
 * text=auto eol=lf
 
