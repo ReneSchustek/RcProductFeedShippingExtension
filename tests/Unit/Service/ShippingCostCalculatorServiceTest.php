@@ -38,6 +38,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\Price;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\PriceCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\Checkout\Shipping\ShippingMethodCollection;
+use Shopware\Core\System\Country\CountryCollection;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
@@ -308,7 +310,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
         $country->setId(Uuid::randomHex());
 
         $countryResult = $this->createMock(EntitySearchResult::class);
-        $countryResult->method('first')->willReturn($country);
+        $countryResult->method('getEntities')->willReturn(new CountryCollection([$country]));
         $this->countryRepository->method('search')->willReturn($countryResult);
 
         $cart ??= $this->buildCartWithWeight(1.0);
@@ -340,7 +342,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     private function setUpShippingMethods(array $methods): void
     {
         $result = $this->createMock(EntitySearchResult::class);
-        $result->method('getElements')->willReturn($methods);
+        $result->method('getEntities')->willReturn(new ShippingMethodCollection($methods));
         $this->shippingMethodRepository->method('search')->willReturn($result);
     }
 

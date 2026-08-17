@@ -218,7 +218,7 @@ class ShippingWarmupService
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('active', true));
 
-        return $this->salesChannelRepository->search($criteria, $context)->getElements();
+        return $this->salesChannelRepository->search($criteria, $context)->getEntities()->getElements();
     }
 
     /** @param callable(string):void|null $onMessage */

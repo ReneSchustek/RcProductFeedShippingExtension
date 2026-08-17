@@ -297,6 +297,7 @@ class ShippingCostCalculatorService
 
             $this->shippingMethodsCache[$salesChannelId] = $this->shippingMethodRepository
                 ->search($criteria, $context->getContext())
+                ->getEntities()
                 ->getElements();
         }
 
@@ -553,7 +554,7 @@ class ShippingCostCalculatorService
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsFilter('iso', $isoKey));
             $criteria->setLimit(1);
-            $found = $this->countryRepository->search($criteria, Context::createDefaultContext())->first();
+            $found = $this->countryRepository->search($criteria, Context::createDefaultContext())->getEntities()->first();
             // first() liefert ?Entity; nur ein echtes CountryEntity ist an setCountry() übergebbar.
             $this->countryCache[$isoKey] = $found instanceof CountryEntity ? $found : null;
         }

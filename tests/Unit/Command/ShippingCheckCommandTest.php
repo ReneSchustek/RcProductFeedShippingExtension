@@ -14,6 +14,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Struct\FallbackReason;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Symfony\Component\Console\Command\Command;
@@ -160,7 +161,7 @@ class ShippingCheckCommandTest extends TestCase
         }
 
         $ergebnis = $this->createMock(EntitySearchResult::class);
-        $ergebnis->method('getElements')->willReturn($entities);
+        $ergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
         $this->salesChannelRepository->method('search')->willReturn($ergebnis);
     }
 

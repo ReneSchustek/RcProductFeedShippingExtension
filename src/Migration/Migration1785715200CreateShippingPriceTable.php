@@ -51,7 +51,7 @@ final class Migration1785715200CreateShippingPriceTable extends MigrationStep
 
     public function updateDestructive(Connection $connection): void
     {
-        // Nichts abzureissen. Die Tabelle wird bei der Deinstallation entfernt, und zwar
+        // Nichts abzureißen. Die Tabelle wird bei der Deinstallation entfernt, und zwar
         // nur dann, wenn der Nutzer seine Daten nicht behalten will -- siehe Plugin-Klasse.
     }
 }

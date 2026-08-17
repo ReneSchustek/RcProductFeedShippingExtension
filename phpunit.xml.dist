@@ -19,8 +19,8 @@
             <directory suffix=".php">src</directory>
         </include>
         <exclude>
-            <!-- Migrationen laufen einmal gegen ein echtes Schema; ein Unit-Test darueber
-                 pruefte nur, dass SQL-Text gleich SQL-Text ist. -->
+            <!-- Migrationen laufen einmal gegen ein echtes Schema; ein Unit-Test darüber
+                 prüfte nur, dass SQL-Text gleich SQL-Text ist. -->
             <directory>src/Migration</directory>
             <directory>src/Resources</directory>
         </exclude>

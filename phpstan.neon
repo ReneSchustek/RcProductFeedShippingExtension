@@ -1,3 +1,6 @@
+includes:
+    - vendor/shopwarelabs/phpstan-shopware/rules.neon
+
 parameters:
     level: 8
     paths:
@@ -6,4 +9,27 @@ parameters:
         - vendor
     bootstrapFiles:
         - vendor/autoload.php
-    ignoreErrors: []
+    ignoreErrors:
+        # Ein Konsolenbefehl hat keinen angemeldeten Nutzer. Genau dafür gibt es den
+        # Standardkontext.
+        -
+            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
+            path: src/Command/ShippingCheckCommand.php
+
+        # Läuft ohne Anfrage — zeitgesteuert beziehungsweise als Empfänger eines
+        # Ereignisses. Es gibt keinen Aufrufer, dessen Kontext zu übernehmen wäre.
+        -
+            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
+            path: src/Service/ShippingWarmupService.php
+
+        # Läuft ohne Anfrage — zeitgesteuert beziehungsweise als Empfänger eines
+        # Ereignisses. Es gibt keinen Aufrufer, dessen Kontext zu übernehmen wäre.
+        -
+            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
+            path: src/Subscriber/ShippingMethodChangeSubscriber.php
+
+        # Läuft ohne Anfrage — zeitgesteuert beziehungsweise als Empfänger eines
+        # Ereignisses. Es gibt keinen Aufrufer, dessen Kontext zu übernehmen wäre.
+        -
+            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
+            path: src/Service/ShippingCostCalculatorService.php

@@ -14,6 +14,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 
@@ -222,11 +223,11 @@ class ShippingWarmupServiceTest extends TestCase
         self::assertSame(6, $this->createService()->combinationCount());
     }
 
-    /** @param array<string, string> $kanaele Kennung => Name */
-    private function givenSalesChannels(array $kanaele): void
+    /** @param array<string, string> $salesChannels Kennung => Name */
+    private function givenSalesChannels(array $salesChannels): void
     {
         $entities = [];
-        foreach ($kanaele as $id => $name) {
+        foreach ($salesChannels as $id => $name) {
             $entity = new SalesChannelEntity();
             $entity->setUniqueIdentifier($id);
             $entity->setId($id);
@@ -235,7 +236,7 @@ class ShippingWarmupServiceTest extends TestCase
         }
 
         $suchergebnis = $this->createMock(EntitySearchResult::class);
-        $suchergebnis->method('getElements')->willReturn($entities);
+        $suchergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
         $this->salesChannelRepository->method('search')->willReturn($suchergebnis);
     }
 

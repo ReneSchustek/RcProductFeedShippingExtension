@@ -3,6 +3,18 @@
 Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [1.4.2] - 2026-08-10 — Die benötigte PHP-Fassung steht jetzt dabei
+
+### Geändert
+
+- **Das Plugin nennt die PHP-Fassung, die es braucht** (ab 8.2). Bisher stand sie als einziges unserer Plugins nicht in den Angaben — eine Installation auf einer zu alten Umgebung wäre erst zur Laufzeit aufgefallen.
+
+## [1.4.1] - 2026-08-10 — Vorbereitet auf die nächste Shopware-Hauptversion
+
+### Geändert
+
+- **Vorbereitung auf die nächste Shopware-Hauptversion.** Der Zugriff auf Suchergebnisse folgt der Schreibweise, die Shopware 6.8 verlangt. Am Verhalten ändert sich nichts.
+
 ## [1.4.0] - 2026-08-03 — Fünf Wege zu einem falschen Betrag geschlossen
 
 > **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear && php bin/console rc:shipping:warmup`. Der Warmup ist diesmal **Pflicht**: Die vorberechneten Preise ändern sich.
