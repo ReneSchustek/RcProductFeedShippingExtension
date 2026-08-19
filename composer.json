@@ -3,7 +3,7 @@
     "description": "Extends Shopware product feeds with calculated shipping costs per country",
     "type": "shopware-platform-plugin",
     "license": "MIT",
-    "version": "1.4.2",
+    "version": "1.4.6",
     "authors": [
         {
             "name": "Ruhrcoder",

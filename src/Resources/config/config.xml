@@ -45,8 +45,8 @@
             <name>fallbackShippingCostsPerCountry</name>
             <label lang="de-DE">Fallback-Versandkosten pro Land</label>
             <label lang="en-GB">Fallback shipping costs per country</label>
-            <helpText lang="de-DE">Länderspezifische Fallback-Preise im Format ISO:Preis, kommasepariert. Beispiel: DE:4.95,AT:9.90,CH:14.90. Hat Vorrang vor dem globalen Fallback-Wert. Für Länder ohne eigenen Eintrag gilt der globale Wert.</helpText>
-            <helpText lang="en-GB">Per-country fallback prices. Format: ISO:Price, comma-separated. Example: DE:4.95,AT:9.90,CH:14.90. Overrides the global fallback for the specified countries.</helpText>
+            <helpText lang="de-DE">Länderspezifische Fallback-Preise im Format ISO:Preis, getrennt durch Komma oder Semikolon. Beispiel: DE:4.95,AT:9.90,CH:14.90. Hat Vorrang vor dem globalen Fallback-Wert. Für Länder ohne eigenen Eintrag gilt der globale Wert. Der Dezimaltrenner ist der Punkt; Einträge, die sich nicht lesen lassen, stehen im Protokoll.</helpText>
+            <helpText lang="en-GB">Per-country fallback prices. Format: ISO:Price, separated by comma or semicolon. Example: DE:4.95,AT:9.90,CH:14.90. Overrides the global fallback for the specified countries. Use a dot as decimal separator; unreadable entries are logged.</helpText>
         </input-field>
 
         <input-field type="single-select">

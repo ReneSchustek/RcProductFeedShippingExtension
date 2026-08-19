@@ -38,6 +38,7 @@ class ShippingWarmupService
         private readonly AbstractSalesChannelContextFactory $contextFactory,
         private readonly EntityRepository $salesChannelRepository,
         private readonly ActiveProductProviderService $activeProductProvider,
+        private readonly FeedChannelProviderService $feedChannelProvider,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -60,12 +61,18 @@ class ShippingWarmupService
         // Mehrere Feed-Kanäle können denselben Berechnungs-Kanal teilen. Ohne Merkliste liefe der
         // Warmup für diesen Kanal mehrfach — bei mehreren tausend Produkten kein Detail.
         $processedChannels = [];
+        $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
 
         foreach ($this->loadActiveSalesChannels($context) as $salesChannel) {
             $feedChannelId = $salesChannel->getId();
             $channelName = $salesChannel->getName() ?? $feedChannelId;
 
             if (!$this->configurationService->isEnabled($feedChannelId)) {
+                continue;
+            }
+
+            if (!isset($readingChannels[$feedChannelId])) {
+                $this->reportUnreadChannel($channelName, $onMessage);
                 continue;
             }
 
@@ -139,11 +146,12 @@ class ShippingWarmupService
         $products = count($this->activeProductProvider->loadActiveProductIds($context));
         $total = 0;
         $processedChannels = [];
+        $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
 
         foreach ($this->loadActiveSalesChannels($context) as $salesChannel) {
             $feedChannelId = $salesChannel->getId();
 
-            if (!$this->configurationService->isEnabled($feedChannelId)) {
+            if (!$this->configurationService->isEnabled($feedChannelId) || !isset($readingChannels[$feedChannelId])) {
                 continue;
             }
 
@@ -198,6 +206,28 @@ class ShippingWarmupService
                 }
             }
         }
+    }
+
+    /**
+     * Meldet einen Kanal, den kein Produktexport ausliest — in der Konsole und im Protokoll.
+     *
+     * Beides, weil die geplante Aufgabe keine Konsole hat: Ohne Protokolleintrag bliebe unerklärt,
+     * warum ein eingeschalteter Kanal keine Werte bekommt.
+     *
+     * @param callable(string):void|null $onMessage
+     */
+    private function reportUnreadChannel(string $channelName, ?callable $onMessage): void
+    {
+        $message = sprintf(
+            'Übersprungen: %s — kein Produktexport liest diesen Kanal aus.',
+            $channelName,
+        );
+
+        $this->report($onMessage, $message);
+        $this->logger->info('RcProductFeedShipping: ' . $message, [
+            'context' => 'ruhrcoder_product_feed_shipping.warmup',
+            'metric' => 'warmup_channel_without_feed',
+        ]);
     }
 
     private function canCreateContext(string $salesChannelId): bool

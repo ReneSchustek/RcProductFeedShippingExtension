@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ruhrcoder\RcProductFeedShippingExtension\Configuration;
 
+use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 /**
@@ -17,11 +18,35 @@ class ConfigurationService
     private const CONFIG_PREFIX = 'RcProductFeedShippingExtension.config.';
     private const DEFAULT_EXCLUDED_METHODS = ['Selbstabholung', 'Abholung', 'Pickup'];
 
+    /**
+     * Trennzeichen zwischen den Einträgen der länderspezifischen Ersatzwerte.
+     *
+     * Die Hilfe der Einstellung nennt das Komma. Auf live-clone stand dort trotzdem
+     * `DE:7.95;AT:14.95;CH:21.95` — und weil nur am Komma getrennt wurde, war die ganze Zeichenkette
+     * ein einziger Eintrag: `DE` traf zufällig zu, AT und CH fielen still auf den globalen Wert
+     * zurück. 1040 Kombinationen Speditionsware standen dadurch mit 7,95 € statt 14,95 € bzw.
+     * 21,95 € im Warenstrom. Beide Zeichen zu akzeptieren kostet nichts und nimmt der Einstellung
+     * ihre schärfste Falle.
+     */
+    private const ENTRY_SEPARATORS = '/[,;]/';
+
     /** Wert der Einstellung `missingShippingMethodBehaviour`, bei dem der Feed schweigt. */
     public const BEHAVIOUR_OMIT = 'omit';
 
-    public function __construct(private readonly SystemConfigService $systemConfigService)
-    {
+    /**
+     * Zuordnung Land → Ersatzwert, je Verkaufskanal einmal aufgebaut.
+     *
+     * Nicht nur wegen der Arbeit: Ein unlesbarer Eintrag wird beim Aufbau **einmal** gemeldet.
+     * Bei jedem Aufruf zu prüfen hieße, dieselbe Meldung tausendfach zu schreiben.
+     *
+     * @var array<string, array<string, float>>
+     */
+    private array $fallbackPerCountry = [];
+
+    public function __construct(
+        private readonly SystemConfigService $systemConfigService,
+        private readonly LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -82,26 +107,69 @@ class ConfigurationService
     /**
      * Gibt den Fallback-Versandpreis für ein bestimmtes Land zurück.
      *
-     * Sucht zuerst in der länderspezifischen Konfiguration (Format: `DE:4.95,AT:9.90`).
+     * Sucht zuerst in der länderspezifischen Konfiguration (Format: `DE:4.95,AT:9.90`; Komma
+     * und Semikolon trennen gleichermaßen).
      * Ist kein Eintrag für das Land vorhanden, wird der globale Fallback zurückgegeben.
      */
     public function getFallbackShippingCostForCountry(string $countryIso, string $salesChannelId): float
     {
+        $perCountry = $this->loadFallbackPerCountry($salesChannelId);
+        $iso = strtoupper(trim($countryIso));
+
+        return $perCountry[$iso] ?? $this->getFallbackShippingCost($salesChannelId);
+    }
+
+    /**
+     * Liest die länderspezifischen Ersatzwerte und meldet, was sich nicht lesen lässt.
+     *
+     * Ein Eintrag ohne Doppelpunkt oder ohne Zahl dahinter wird **verworfen und gemeldet**, nicht
+     * als 0,00 € übernommen: `(float) 'abc'` wäre kostenloser Versand im Warenstrom, und das ist
+     * die teuerste aller stillen Auslegungen.
+     *
+     * @return array<string, float>
+     */
+    private function loadFallbackPerCountry(string $salesChannelId): array
+    {
+        if (isset($this->fallbackPerCountry[$salesChannelId])) {
+            return $this->fallbackPerCountry[$salesChannelId];
+        }
+
         $value = $this->systemConfigService->getString(
             self::CONFIG_PREFIX . 'fallbackShippingCostsPerCountry',
             $salesChannelId
         );
 
-        $iso = strtoupper(trim($countryIso));
+        $perCountry = [];
+        $unreadable = [];
 
-        foreach (explode(',', $value) as $entry) {
-            $parts = explode(':', trim($entry), 2);
-            if (count($parts) === 2 && strtoupper(trim($parts[0])) === $iso) {
-                return max(0.0, (float) trim($parts[1]));
+        foreach (preg_split(self::ENTRY_SEPARATORS, $value) ?: [] as $entry) {
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
             }
+
+            $parts = explode(':', $entry, 2);
+            $iso = strtoupper(trim($parts[0]));
+            $amount = trim($parts[1] ?? '');
+
+            if (count($parts) !== 2 || $iso === '' || !is_numeric($amount)) {
+                $unreadable[] = $entry;
+                continue;
+            }
+
+            $perCountry[$iso] = max(0.0, (float) $amount);
         }
 
-        return $this->getFallbackShippingCost($salesChannelId);
+        if ($unreadable !== []) {
+            $this->logger->warning('RcProductFeedShipping: unlesbare Einträge bei den länderspezifischen Ersatzwerten.', [
+                'salesChannelId' => substr($salesChannelId, 0, 8),
+                'entries' => $unreadable,
+                'expectedFormat' => 'DE:4.95,AT:9.90',
+                'metric' => 'fallback_per_country_unreadable',
+            ]);
+        }
+
+        return $this->fallbackPerCountry[$salesChannelId] = $perCountry;
     }
 
     /**

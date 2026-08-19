@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
@@ -33,6 +34,7 @@ class ShippingWarmupServiceTest extends TestCase
     private AbstractSalesChannelContextFactory&MockObject $contextFactory;
     private EntityRepository&MockObject $salesChannelRepository;
     private ActiveProductProviderService&MockObject $activeProductProvider;
+    private FeedChannelProviderService&MockObject $feedChannelProvider;
     private LoggerInterface&MockObject $logger;
 
     protected function setUp(): void
@@ -42,6 +44,7 @@ class ShippingWarmupServiceTest extends TestCase
         $this->contextFactory = $this->createMock(AbstractSalesChannelContextFactory::class);
         $this->salesChannelRepository = $this->createMock(EntityRepository::class);
         $this->activeProductProvider = $this->createMock(ActiveProductProviderService::class);
+        $this->feedChannelProvider = $this->createMock(FeedChannelProviderService::class);
         $this->logger = $this->createMock(LoggerInterface::class);
     }
 
@@ -223,8 +226,81 @@ class ShippingWarmupServiceTest extends TestCase
         self::assertSame(6, $this->createService()->combinationCount());
     }
 
-    /** @param array<string, string> $salesChannels Kennung => Name */
-    private function givenSalesChannels(array $salesChannels): void
+    /**
+     * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
+     * Warum: Auf live-clone war das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
+     *        alles greift dort zu Recht keine. Der Warmup rechnete ihn trotzdem durch und legte
+     *        5223 Einträge „keine Versandart" ab, die niemand liest. Sie waren nicht nur nutzlos:
+     *        Sie stellten fünf Sechstel aller Meldungen und haben die Fehlersuche zweimal in die
+     *        falsche Richtung geschickt.
+     * Erwartet: kein Rechenversuch, dafür eine Meldung mit Grund — in Konsole und Protokoll.
+     */
+    public function testAChannelNoFeedReadsIsSkippedWithAReason(): void
+    {
+        $this->givenSalesChannels(['ohne-feed' => 'Headless'], []);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE', 'AT', 'CH']);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['p1', 'p2']);
+
+        $this->calculator->expects(self::never())->method('calculate');
+
+        $protokoll = [];
+        $this->logger->method('info')->willReturnCallback(
+            static function (string|\Stringable $message) use (&$protokoll): void {
+                $protokoll[] = (string) $message;
+            }
+        );
+
+        $meldungen = [];
+        $result = $this->createService()->warmup(null, static function (string $text) use (&$meldungen): void {
+            $meldungen[] = $text;
+        });
+
+        $hatGrund = static fn (string $text): bool => str_contains($text, 'kein Produktexport liest diesen Kanal aus');
+
+        self::assertSame(0, $result->total());
+        self::assertNotEmpty(array_filter($meldungen, $hatGrund), 'Die Konsole nennt den Grund nicht.');
+        self::assertNotEmpty(array_filter($protokoll, $hatGrund), 'Das Protokoll nennt den Grund nicht.');
+    }
+
+    /**
+     * Was: Die Vorabzählung für denselben Kanal.
+     * Warum: Zählt sie einen Kanal mit, den der Lauf überspringt, bleibt der Fortschrittsbalken vor
+     *        dem Ende stehen — und das Kommando meldet einen Lauf, den es nie gab.
+     * Erwartet: null Kombinationen.
+     */
+    public function testTheCombinationCountIgnoresChannelsWithoutAFeed(): void
+    {
+        $this->givenSalesChannels(['ohne-feed' => 'Headless'], []);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE', 'AT', 'CH']);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['p1', 'p2']);
+
+        self::assertSame(0, $this->createService()->combinationCount());
+    }
+
+    /**
+     * Was: Die Vorabzählung für einen Kanal ohne konfigurierte Länder.
+     * Warum: Der Lauf überspringt ihn — die Zählung muss dasselbe tun. Zählte sie ihn mit, wäre
+     *        der Fortschrittsbalken von Anfang an falsch geeicht und stünde am Ende still.
+     * Erwartet: null Kombinationen.
+     */
+    public function testTheCombinationCountIgnoresChannelsWithoutCountries(): void
+    {
+        $this->givenSalesChannels(['ohne-land' => 'Ohne Land']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn([]);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['p1']);
+
+        self::assertSame(0, $this->createService()->combinationCount());
+    }
+
+    /**
+     * @param array<string, string>   $salesChannels Kennung => Name
+     * @param array<int, string>|null $readByAFeed   Kennungen, die ein Produktexport ausliest.
+     *                                               `null` heißt: alle — der Regelfall der Tests.
+     */
+    private function givenSalesChannels(array $salesChannels, ?array $readByAFeed = null): void
     {
         $entities = [];
         foreach ($salesChannels as $id => $name) {
@@ -238,6 +314,9 @@ class ShippingWarmupServiceTest extends TestCase
         $suchergebnis = $this->createMock(EntitySearchResult::class);
         $suchergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
         $this->salesChannelRepository->method('search')->willReturn($suchergebnis);
+
+        $this->feedChannelProvider->method('loadReadingChannelIds')
+            ->willReturn(array_fill_keys($readByAFeed ?? array_keys($salesChannels), true));
     }
 
     private function createService(): ShippingWarmupService
@@ -248,6 +327,7 @@ class ShippingWarmupServiceTest extends TestCase
             $this->contextFactory,
             $this->salesChannelRepository,
             $this->activeProductProvider,
+            $this->feedChannelProvider,
             $this->logger,
         );
     }

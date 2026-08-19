@@ -3,6 +3,73 @@
 Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [1.4.6] - 2026-08-19 — Der Warenstrom rechnet nur noch für Kanäle, die ihn lesen
+
+### Behoben
+
+- **Die länderspezifischen Ersatzwerte griffen nur für das erste Land.** Die Einträge wurden
+  ausschließlich am Komma getrennt; stand in der Einstellung `DE:7.95;AT:14.95;CH:21.95`, war die
+  ganze Zeichenkette ein einziger Eintrag. DE traf zufällig zu, AT und CH fielen still auf den
+  globalen Wert zurück. **1040 Kombinationen Speditionsware standen dadurch mit 7,95 € statt
+  14,95 € bzw. 21,95 € im Warenstrom** — zu niedrig angegebene Versandkosten sind bei Google ein
+  Richtlinienverstoß. Komma und Semikolon trennen jetzt gleichermaßen.
+- **Ein unlesbarer Eintrag wird gemeldet statt zu 0,00 € zu werden.** `(float) 'frei'` ergibt
+  null — kostenloser Versand im Warenstrom, entstanden aus einem Tippfehler. Die Meldung kommt
+  einmal je Verkaufskanal, nicht je Kombination.
+
+### Geändert
+
+- **Warmup und `rc:shipping:check` arbeiten nur noch die Kanäle ab, die ein Produktexport
+  ausliest.** Bisher war jeder aktive Kanal mit eingeschaltetem Plugin dabei — eingeschaltet ist es
+  standardmäßig überall. Auf live-clone traf das den Kanal „Headless" mit 20 statt 206
+  Versandarten: **5223 Einträge „keine Versandart" für einen Kanal, den kein Warenstrom liest.**
+  Sie waren nicht nur nutzlos, sie stellten fünf Sechstel aller Meldungen und haben die
+  Fehlersuche zweimal in die falsche Richtung geschickt. Maßgeblich ist der Storefront-Kanal des
+  Produktexports — den bekommt auch der Subscriber zur Laufzeit zu sehen.
+- Ein übersprungener Kanal wird mit Grund gemeldet, in der Konsole und im Protokoll.
+
+## [1.4.5] - 2026-08-19 — „Keine Versandart" sagt jetzt, woran es lag
+
+### Neu
+
+- **Der Protokolleintrag nennt die Kennwerte, an denen die Auswahl gescheitert ist**: Menge,
+  Warenwert, Gewicht, Volumen und die Zahl der zutreffenden Regeln. Bisher stand dort nur „keine
+  Versandart", und die Suche begann bei null.
+- **Dazu die Maße der Position** — Länge, Breite, Höhe, Gewicht, so wie sie im Warenkorb ankommen.
+  Die Regeln der Versandarten prüfen die Länge, nicht das Volumen; ein Volumen von 0 sagt nur, dass
+  Breite oder Höhe fehlen. Genau diese Angabe hat den Fehler sichtbar gemacht: Die Länge kommt an
+  der Position gar nicht an.
+- **Und die Spur der Auswahl** — an welcher der drei Hürden die Versandarten hängengeblieben sind:
+  Ausschlussliste, Verfügbarkeitsregel oder Preisstaffel. Ohne sie sieht der Aufrufer nur, dass
+  nichts übrig blieb, und die Suche beginnt bei null.
+- Der Anlass: 1373 Artikel in DE tragen im Warenstrom den Ersatzwert, obwohl der Shop sie im
+  echten Warenkorb versendet. Die Verfügbarkeitsregeln hängen fast alle an Gewicht, Länge und
+  Warenwert der Position — ohne diese Zahlen im Protokoll lässt sich nicht unterscheiden, ob die
+  Regel zu eng ist oder die Position ihre Lieferangaben gar nicht mitbringt.
+
+## [1.4.4] - 2026-08-19 — Ohne Hersteller bleibt das Markenfeld weg
+
+### Behoben
+
+- **35 Artikel trugen ein leeres `<g:brand></g:brand>`.** Es sind Artikel ohne Hersteller. Ein
+  leeres Pflichtfeld ist für den Empfänger schlechter als ein fehlendes: Es sieht nach gepflegter
+  Angabe aus und ist keine. Jetzt bleibt das Feld weg, wenn es keinen Hersteller gibt — so wie es
+  Shopwares mitgelieferte Vorlage hält.
+
+## [1.4.3] - 2026-08-19 — Titel, Beschreibung und Marke kommen aus der Übersetzung
+
+### Behoben
+
+- **Der Warenstrom las an drei Stellen das Rohfeld statt der Übersetzung** — Titel, Beschreibung
+  und Marke. Das Rohfeld trägt nur dann etwas, wenn die Sprache des ausliefernden Verkaufskanals
+  eine eigene Übersetzungszeile mit Inhalt hat; der Rückfall über die Sprachkette liegt allein in
+  `translated`. Shopwares mitgelieferte Google-Vorlage macht es genauso — unsere ist daraus
+  entstanden und hat das `translated` unterwegs verloren.
+- Solange der ausliefernde Verkaufskanal in derselben Sprache läuft wie die Artikelpflege, fiel
+  nichts aus. Mit einem zweiten Verkaufskanal oder einer zweiten Sprache läuft der Warenstrom
+  weiter, liefert die richtige Zahl an Artikeln — und jeder trägt einen leeren Titel. Google weist
+  solche Artikel zurück, im Shop selbst ist nichts zu sehen.
+
 ## [1.4.2] - 2026-08-10 — Die benötigte PHP-Fassung steht jetzt dabei
 
 ### Geändert

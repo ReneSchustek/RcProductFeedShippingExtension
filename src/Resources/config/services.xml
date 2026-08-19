@@ -32,12 +32,18 @@
             <argument type="service" id="product.repository"/>
         </service>
 
+        <!-- Dasselbe für „welche Kanäle zählen": die Storefront-Kanäle der Produktexporte. -->
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService">
+            <argument type="service" id="product_export.repository"/>
+        </service>
+
         <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService">
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
             <argument type="service" id="logger"/>
         </service>
 
@@ -47,6 +53,7 @@
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
             <tag name="console.command"/>
         </service>
 

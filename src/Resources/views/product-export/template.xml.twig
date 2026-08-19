@@ -1,14 +1,27 @@
 <item>
+    {# Übersetzte Felder gehören über `translated` gelesen, nicht über das Rohfeld: Das Rohfeld
+       trägt nur dann etwas, wenn die Sprache des ausliefernden Verkaufskanals eine eigene
+       Übersetzungszeile mit Inhalt hat. Der Rückfall über die Sprachkette liegt allein in
+       `translated`. Shopwares mitgelieferte Google-Vorlage macht es genauso.
+
+       Ohne das läuft der Warenstrom weiter, liefert die richtige Zahl an Artikeln — und jeder
+       trägt einen leeren Titel. Ein leeres g:title ist teurer als ein abgebrochener Lauf, weil
+       ein Abbruch auffällt. #}
     <g:id>{{ product.id|e }}</g:id>
-    <g:title>{{ product.name|e }}</g:title>
-    <g:description>{{ product.description|striptags|e }}</g:description>
+    <g:title>{{ product.translated.name|e }}</g:title>
+    <g:description>{{ product.translated.description|striptags|e }}</g:description>
     <g:link>{{ seoUrl('frontend.detail.page', {productId: product.id})|e }}</g:link>
     {# Produkt-Export läuft mit strict_variables=on: ohne Titelbild würfe product.cover.media eine
        RuntimeError und bräche die komplette Feed-Zeile. Daher guarden. #}
     {% if product.cover and product.cover.media %}<g:image_link>{{ product.cover.media.url|e }}</g:image_link>{% endif %}
     <g:availability>{{ product.availableStock > 0 ? 'in stock' : 'out of stock' }}</g:availability>
     <g:price>{{ product.calculatedPrice.unitPrice|number_format(2, '.', '') }} EUR</g:price>
-    <g:brand>{{ (product.manufacturer.name ?? '')|e }}</g:brand>
+    {# Ohne Hersteller bleibt das Feld ganz weg. Ein leeres `<g:brand></g:brand>` ist für den
+       Empfänger schlechter als ein fehlendes: Es sieht nach gepflegter Angabe aus und ist keine.
+       Shopwares mitgelieferte Vorlage hält es genauso. #}
+    {% if product.manufacturer and product.manufacturer.translated.name %}
+    <g:brand>{{ product.manufacturer.translated.name|e }}</g:brand>
+    {% endif %}
     {% if product.shippingFree and rcShipping is defined %}
     {% for country in rcShipping.getCountries() %}
     <g:shipping>

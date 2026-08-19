@@ -87,6 +87,13 @@ class ShippingCostCalculatorService
      * Feed dadurch täglich rund sechs Stunden lang komplett auf dem Ersatzwert — der Zustand,
      * gegen den es diesen Speicher gibt.
      */
+    /**
+     * Warum die letzte Auswahl leer ausging — nur für das Protokoll.
+     *
+     * @var array{excluded: int, ruleMissed: int, noPriceTier: int, total: int}
+     */
+    private array $lastSelectionTrace = ['excluded' => 0, 'ruleMissed' => 0, 'noPriceTier' => 0, 'total' => 0];
+
     public function calculate(
         string $productId,
         string $countryIso,
@@ -160,6 +167,27 @@ class ShippingCostCalculatorService
             // 0,00 € ist ein gültiges Ergebnis (z.B. Gratis-Versand-Aktion) und wird NICHT durch Fallback ersetzt.
             // Selbstabholung (0,00 €) ist bereits über die Ausschlussliste abgedeckt.
             if ($shippingCost === null) {
+                // Mit den Kennwerten, an denen es gescheitert ist. Ohne sie steht im Protokoll nur
+                // „keine Versandart", und die Suche beginnt bei null: Die Verfügbarkeitsregeln
+                // hängen bei Trummer fast alle an Gewicht, Länge und Warenwert der Position — wer
+                // die Zahlen nicht sieht, kann nicht unterscheiden, ob die Regel zu eng ist oder
+                // die Position ihre Lieferangaben gar nicht mitbringt.
+                $this->logger->info('RcProductFeedShipping: keine Versandart für diese Kombination.', [
+                    'productId' => substr($productId, 0, 8),
+                    'countryIso' => $countryIso,
+                    'quantity' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_LINE_ITEM_COUNT] ?? null,
+                    'goodsPrice' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_PRICE] ?? null,
+                    'weight' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_WEIGHT] ?? null,
+                    'volume' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_VOLUME] ?? null,
+                    // Die Maße der Position getrennt: Die Regeln der Versandarten prüfen die
+                    // **Länge** (`cartLineItemDimensionLength`), nicht das Volumen. Ein Volumen von
+                    // 0 sagt nur, dass Breite oder Höhe fehlen — über die Länge sagt es nichts.
+                    'dimensions' => $this->describeDimensions($cart),
+                    'matchedRules' => \count($context->getRuleIds()),
+                    'versandarten' => $this->lastSelectionTrace,
+                    'metric' => 'no_shipping_method_detail',
+                ]);
+
                 return $this->storeFallback(
                     $productId,
                     $countryIso,
@@ -305,21 +333,33 @@ class ShippingCostCalculatorService
 
         $lowestCost = null;
 
+        // Warum keine Versandart übrig blieb, lässt sich hinterher nicht mehr rekonstruieren:
+        // Der Aufrufer sieht nur `null`. Die Zählung hält fest, an welcher der drei Hürden die
+        // Versandarten hängengeblieben sind — Ausschlussliste, Verfügbarkeitsregel oder Preisstaffel.
+        $this->lastSelectionTrace = ['excluded' => 0, 'ruleMissed' => 0, 'noPriceTier' => 0, 'total' => \count($methods)];
+
         foreach ($methods as $method) {
             /** @var ShippingMethodEntity $method */
             $methodName = $method->getTranslated()['name'] ?? $method->getName() ?? '';
 
             if ($this->isExcluded($methodName, $excludedKeywords)) {
+                ++$this->lastSelectionTrace['excluded'];
                 continue;
             }
 
             $availabilityRuleId = $method->getAvailabilityRuleId();
             if ($availabilityRuleId !== null && !in_array($availabilityRuleId, $matchedRuleIds, true)) {
+                ++$this->lastSelectionTrace['ruleMissed'];
                 continue;
             }
 
             $cost = $this->resolveApplicablePriceTier($method, $matchedRuleIds, $context, $deliveryValues, $taxStatus);
-            if ($cost !== null && ($lowestCost === null || $cost < $lowestCost)) {
+            if ($cost === null) {
+                ++$this->lastSelectionTrace['noPriceTier'];
+                continue;
+            }
+
+            if ($lowestCost === null || $cost < $lowestCost) {
                 $lowestCost = $cost;
             }
         }
@@ -420,6 +460,36 @@ class ShippingCostCalculatorService
      * 0 beginnt, traf danach das billigste — ein erfundener Preis. Der Aufrufer setzt für `null`
      * jetzt 0,00 € an, wie es der Kern auch tut.
      *
+     * @return array<int, float>|null
+     */
+    /**
+     * Die Maße der ersten Produktposition, wie sie im Warenkorb ankommen.
+     *
+     * Nur für das Protokoll: Wer wissen will, warum eine Regel auf `cartLineItemDimensionLength`
+     * nicht zutrifft, braucht die Länge — und die Auskunft, ob überhaupt Lieferangaben an der
+     * Position hängen.
+     */
+    private function describeDimensions(Cart $cart): string
+    {
+        foreach ($cart->getLineItems() as $lineItem) {
+            $information = $lineItem->getDeliveryInformation();
+            if ($information === null) {
+                continue;
+            }
+
+            return sprintf(
+                'L=%s B=%s H=%s G=%s',
+                $information->getLength() ?? 'null',
+                $information->getWidth() ?? 'null',
+                $information->getHeight() ?? 'null',
+                $information->getWeight() ?? 'null',
+            );
+        }
+
+        return 'keine Lieferangaben an der Position';
+    }
+
+    /**
      * @return array<int, float>|null
      */
     private function extractDeliveryValues(Cart $cart): ?array

@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\FallbackReason;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
@@ -34,6 +35,7 @@ class ShippingCheckCommandTest extends TestCase
     private AbstractSalesChannelContextFactory&MockObject $contextFactory;
     private EntityRepository&MockObject $salesChannelRepository;
     private ActiveProductProviderService&MockObject $activeProductProvider;
+    private FeedChannelProviderService&MockObject $feedChannelProvider;
 
     protected function setUp(): void
     {
@@ -42,6 +44,7 @@ class ShippingCheckCommandTest extends TestCase
         $this->contextFactory = $this->createMock(AbstractSalesChannelContextFactory::class);
         $this->salesChannelRepository = $this->createMock(EntityRepository::class);
         $this->activeProductProvider = $this->createMock(ActiveProductProviderService::class);
+        $this->feedChannelProvider = $this->createMock(FeedChannelProviderService::class);
     }
 
     /**
@@ -140,6 +143,67 @@ class ShippingCheckCommandTest extends TestCase
     }
 
     /** @param array<int, string> $countries */
+    /**
+     * Was: Ein Kanal ohne konfigurierte Länder.
+     * Warum: Ohne Land gibt es keine Kombination. Ein Lauf, der hier trotzdem rechnete, prüfte
+     *        gegen einen leeren Ländersatz und meldete „alles in Ordnung" über nichts.
+     * Erwartet: kein Rechenversuch.
+     */
+    public function testAChannelWithoutCountriesIsNotChecked(): void
+    {
+        $this->givenSalesChannels(['ohne-land' => 'Ohne Land']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn([]);
+
+        $this->calculator->expects(self::never())->method('calculate');
+
+        self::assertSame(Command::SUCCESS, $this->execute()->getStatusCode());
+    }
+
+    /**
+     * Was: Zwei Kanäle, die sich denselben Berechnungs-Kanal teilen.
+     * Warum: Dieselbe Merkliste wie im Warmup. Ohne sie liefe die Prüfung zweimal über denselben
+     *        Bestand und nennte jede Kombination doppelt — die Gesamtzahl wäre das Doppelte des
+     *        Wahren, und genau diese Zahl steht am Ende im Bericht.
+     * Erwartet: nur ein Durchgang über die eine Kombination.
+     */
+    public function testASharedCalculationChannelIsCheckedOnlyOnce(): void
+    {
+        $this->givenSalesChannels(['feed-a' => 'Google Shopping', 'feed-b' => 'Headless']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn('gemeinsamer-kanal');
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+
+        $this->calculator->expects(self::once())
+            ->method('calculate')
+            ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
+
+        self::assertSame(Command::SUCCESS, $this->execute()->getStatusCode());
+    }
+
+    /**
+     * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
+     * Warum: Die Prüfung muss dieselbe Menge sehen wie der Warmup. Zählte sie den Kanal „Headless"
+     *        mit, stünden dort Ersatzwerte, die im Warenstrom nie erscheinen — genau diese Zahlen
+     *        haben die Fehlersuche am 2026-08-19 zweimal fehlgeleitet.
+     * Erwartet: kein Rechenversuch, dafür ein Hinweis mit Grund.
+     */
+    public function testAChannelNoFeedReadsIsSkippedWithAReason(): void
+    {
+        $this->givenSalesChannels(['ohne-feed' => 'Headless'], []);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+
+        $this->calculator->expects(self::never())->method('calculate');
+
+        $tester = $this->execute();
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('kein Produktexport liest diesen Kanal aus', $tester->getDisplay());
+    }
+
     private function givenOneEnabledChannel(array $countries, string $name = 'Trummer Edelstahl'): void
     {
         $this->givenSalesChannels(['kanal' => $name]);
@@ -148,8 +212,12 @@ class ShippingCheckCommandTest extends TestCase
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
     }
 
-    /** @param array<string, string> $channels Kennung => Name */
-    private function givenSalesChannels(array $channels): void
+    /**
+     * @param array<string, string>   $channels    Kennung => Name
+     * @param array<int, string>|null $readByAFeed Kennungen, die ein Produktexport ausliest.
+     *                                             `null` heißt: alle — der Regelfall der Tests.
+     */
+    private function givenSalesChannels(array $channels, ?array $readByAFeed = null): void
     {
         $entities = [];
         foreach ($channels as $id => $name) {
@@ -163,6 +231,9 @@ class ShippingCheckCommandTest extends TestCase
         $ergebnis = $this->createMock(EntitySearchResult::class);
         $ergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
         $this->salesChannelRepository->method('search')->willReturn($ergebnis);
+
+        $this->feedChannelProvider->method('loadReadingChannelIds')
+            ->willReturn(array_fill_keys($readByAFeed ?? array_keys($channels), true));
     }
 
     private function execute(): CommandTester
@@ -173,6 +244,7 @@ class ShippingCheckCommandTest extends TestCase
             $this->contextFactory,
             $this->salesChannelRepository,
             $this->activeProductProvider,
+            $this->feedChannelProvider,
         );
 
         $tester = new CommandTester($command);

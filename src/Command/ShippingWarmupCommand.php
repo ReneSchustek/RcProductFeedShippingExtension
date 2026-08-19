@@ -38,8 +38,8 @@ final class ShippingWarmupCommand extends Command
         $total = $this->warmupService->combinationCount();
         if ($total === 0) {
             $io->warning(
-                'Nichts zu tun: kein aktiver Verkaufskanal mit eingeschaltetem Plugin, konfigurierten Ländern '
-                . 'und gültigem Berechnungs-Kanal.'
+                'Nichts zu tun: kein aktiver Verkaufskanal mit eingeschaltetem Plugin, konfigurierten Ländern, '
+                . 'gültigem Berechnungs-Kanal und einem Produktexport, der ihn ausliest.'
             );
 
             return self::SUCCESS;
