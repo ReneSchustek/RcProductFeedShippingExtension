@@ -11,7 +11,10 @@ use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
@@ -35,6 +38,9 @@ class ShippingWarmupServiceTest extends TestCase
     private EntityRepository&MockObject $salesChannelRepository;
     private ActiveProductProviderService&MockObject $activeProductProvider;
     private FeedChannelProviderService&MockObject $feedChannelProvider;
+    private VirtualCartBuilderService&MockObject $cartBuilder;
+    private ShippingFingerprintService&MockObject $fingerprintService;
+    private ShippingPriceStore&MockObject $priceStore;
     private LoggerInterface&MockObject $logger;
 
     protected function setUp(): void
@@ -45,6 +51,9 @@ class ShippingWarmupServiceTest extends TestCase
         $this->salesChannelRepository = $this->createMock(EntityRepository::class);
         $this->activeProductProvider = $this->createMock(ActiveProductProviderService::class);
         $this->feedChannelProvider = $this->createMock(FeedChannelProviderService::class);
+        $this->cartBuilder = $this->createMock(VirtualCartBuilderService::class);
+        $this->fingerprintService = $this->createMock(ShippingFingerprintService::class);
+        $this->priceStore = $this->createMock(ShippingPriceStore::class);
         $this->logger = $this->createMock(LoggerInterface::class);
     }
 
@@ -92,13 +101,13 @@ class ShippingWarmupServiceTest extends TestCase
             ->method('calculate')
             ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
 
-        $meldungen = [];
-        $result = $this->createService()->warmup(null, static function (string $text) use (&$meldungen): void {
-            $meldungen[] = $text;
+        $messages = [];
+        $result = $this->createService()->warmup(null, static function (string $text) use (&$messages): void {
+            $messages[] = $text;
         });
 
         self::assertSame(1, $result->total());
-        self::assertNotEmpty(array_filter($meldungen, static fn (string $m): bool => str_contains($m, 'bereits verarbeitet')));
+        self::assertNotEmpty(array_filter($messages, static fn (string $m): bool => str_contains($m, 'bereits verarbeitet')));
     }
 
     /**
@@ -251,15 +260,15 @@ class ShippingWarmupServiceTest extends TestCase
             }
         );
 
-        $meldungen = [];
-        $result = $this->createService()->warmup(null, static function (string $text) use (&$meldungen): void {
-            $meldungen[] = $text;
+        $messages = [];
+        $result = $this->createService()->warmup(null, static function (string $text) use (&$messages): void {
+            $messages[] = $text;
         });
 
         $hatGrund = static fn (string $text): bool => str_contains($text, 'kein Produktexport liest diesen Kanal aus');
 
         self::assertSame(0, $result->total());
-        self::assertNotEmpty(array_filter($meldungen, $hatGrund), 'Die Konsole nennt den Grund nicht.');
+        self::assertNotEmpty(array_filter($messages, $hatGrund), 'Die Konsole nennt den Grund nicht.');
         self::assertNotEmpty(array_filter($protokoll, $hatGrund), 'Das Protokoll nennt den Grund nicht.');
     }
 
@@ -300,6 +309,139 @@ class ShippingWarmupServiceTest extends TestCase
      * @param array<int, string>|null $readByAFeed   Kennungen, die ein Produktexport ausliest.
      *                                               `null` heißt: alle — der Regelfall der Tests.
      */
+    /**
+     * Was: Ein Produkt, dessen Prüfwert dem gespeicherten entspricht.
+     * Warum: Der Kern von BRIEF24. Auf dem produktiven Shop entstanden so 21 172 Berechnungen an
+     *        einem Tag, bei einer einzigen Bestellung — dreimal täglich dasselbe Ergebnis.
+     * Erwartet: **keine** Berechnung, stattdessen ein Auffrischen des Zeitstempels.
+     */
+    public function testUnchangedCombinationIsNotRecalculated(): void
+    {
+        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+
+        $this->fingerprintService->method('loadFingerprints')->willReturn(['produkt-1' => 'abc']);
+        $this->priceStore->method('loadState')->willReturn([
+            'produkt-1|DE' => ['hash' => 'abc', 'age' => 3600],
+        ]);
+
+        $this->calculator->expects(self::never())->method('calculate');
+        $this->priceStore->expects(self::once())
+            ->method('touch')
+            ->with([['productId' => 'produkt-1', 'countryIso' => 'DE']], 'kanal-a');
+
+        $result = $this->createService()->warmup();
+
+        self::assertSame(1, $result->unchanged);
+        self::assertSame(0, $result->total());
+        self::assertSame(1, $result->inspected());
+    }
+
+    /**
+     * Was: Derselbe Fall, aber der gespeicherte Prüfwert weicht ab.
+     * Warum: Gewicht, Maße, **Preis** oder die Versandkonfiguration haben sich geändert — dann muss
+     *        gerechnet werden, sonst steht im Feed ein falscher Betrag.
+     * Erwartet: eine Berechnung, und der neue Prüfwert wird mitgegeben.
+     */
+    public function testChangedFingerprintTriggersRecalculation(): void
+    {
+        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+
+        $this->fingerprintService->method('loadFingerprints')->willReturn(['produkt-1' => 'neu']);
+        $this->priceStore->method('loadState')->willReturn([
+            'produkt-1|DE' => ['hash' => 'alt', 'age' => 60],
+        ]);
+
+        $this->calculator->expects(self::once())
+            ->method('calculate')
+            ->with('produkt-1', 'DE', 'kanal-a', 'EUR', false, 'neu')
+            ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
+
+        $result = $this->createService()->warmup();
+
+        self::assertSame(1, $result->calculated);
+        self::assertSame(0, $result->unchanged);
+    }
+
+    /**
+     * Was: Gleicher Prüfwert, aber der Eintrag ist älter als die Vollauf-Frist.
+     * Warum: Das Sicherheitsnetz. Eine Änderung, die der Prüfwert nicht erfasst, darf höchstens
+     *        sieben Tage unbemerkt bleiben — sonst steht ein falscher Betrag beliebig lange im Feed.
+     * Erwartet: gerechnet, obwohl sich nichts geändert zu haben scheint.
+     */
+    public function testAnEntryOlderThanTheFullRecalculationIntervalIsRecalculated(): void
+    {
+        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+
+        $this->fingerprintService->method('loadFingerprints')->willReturn(['produkt-1' => 'abc']);
+        $this->priceStore->method('loadState')->willReturn([
+            'produkt-1|DE' => ['hash' => 'abc', 'age' => ShippingWarmupService::FULL_RECALCULATION_SECONDS],
+        ]);
+
+        $this->calculator->expects(self::once())
+            ->method('calculate')
+            ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
+
+        self::assertSame(1, $this->createService()->warmup()->calculated);
+    }
+
+    /**
+     * Was: Der Schalter für den Lauf von Hand bei unverändertem Prüfwert.
+     * Warum: Der Notausgang. Wer ihn zieht, will alles neu gerechnet haben und nicht hören, dass
+     *        sich nichts geändert hat.
+     * Erwartet: der Stand wird gar nicht erst gelesen, es wird gerechnet.
+     */
+    public function testForceRecalculatesEverything(): void
+    {
+        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+
+        $this->fingerprintService->method('loadFingerprints')->willReturn(['produkt-1' => 'abc']);
+        $this->priceStore->expects(self::never())->method('loadState');
+
+        $this->calculator->expects(self::once())
+            ->method('calculate')
+            ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
+
+        self::assertSame(1, $this->createService()->warmup(null, null, true)->calculated);
+    }
+
+    /**
+     * Was: Ein abgeschlossener Lauf.
+     * Warum: Shopware schreibt den Warenkorb beim Berechnen weg. Bleiben die Zeilen liegen, wächst
+     *        die Datenbank um ein Gigabyte am Tag und die Warenkorb-Kennzahlen des Shops sind
+     *        unbrauchbar. Der Lauf räumt seine eigene Spur weg — von außen ginge das nicht sicher.
+     * Erwartet: genau ein Aufräumen am Ende.
+     */
+    public function testTheRunRemovesItsOwnCartTrace(): void
+    {
+        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->configurationService->method('isEnabled')->willReturn(true);
+        $this->configurationService->method('getCountries')->willReturn(['DE']);
+        $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
+        $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['produkt-1']);
+        $this->calculator->method('calculate')
+            ->willReturn(new ShippingCalculationResult('produkt-1', 'DE', 8.93, 'EUR', false));
+
+        $this->cartBuilder->expects(self::once())->method('removeTrace');
+
+        $this->createService()->warmup();
+    }
+
     private function givenSalesChannels(array $salesChannels, ?array $readByAFeed = null): void
     {
         $entities = [];
@@ -328,6 +470,9 @@ class ShippingWarmupServiceTest extends TestCase
             $this->salesChannelRepository,
             $this->activeProductProvider,
             $this->feedChannelProvider,
+            $this->cartBuilder,
+            $this->fingerprintService,
+            $this->priceStore,
             $this->logger,
         );
     }

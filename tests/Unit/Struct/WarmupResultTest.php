@@ -110,4 +110,38 @@ class WarmupResultTest extends TestCase
         self::assertSame('Google Shopping: kein gültiger Berechnungs-Kanal', $result->skippedChannels[0]);
         self::assertSame('Headless: bereits verarbeitet', $result->skippedChannels[1]);
     }
+
+    /**
+     * Was: Unveränderte Kombinationen im Zählwerk.
+     * Warum: Sie sind kein Ausfall, sondern der Zweck: nachgesehen, nichts geändert. Ein Lauf, der
+     *        nur auffrischt, hat nichts gerechnet — und ist trotzdem in Ordnung. Ohne eigenen
+     *        Zähler sähe er aus wie ein Lauf, der nichts getan hat.
+     * Erwartet: getrennte Zählung, und `inspected()` nennt die Summe.
+     */
+    public function testUnchangedCombinationsAreCountedSeparately(): void
+    {
+        $result = new WarmupResult();
+        $result->record(false);
+        $result->recordUnchanged();
+        $result->recordUnchanged(4);
+
+        self::assertSame(1, $result->calculated);
+        self::assertSame(5, $result->unchanged);
+        self::assertSame(1, $result->total());
+        self::assertSame(6, $result->inspected());
+    }
+
+    /**
+     * Was: Ein Lauf, der ausschließlich aufgefrischt hat.
+     * Warum: `fallbacksOnly()` meldet den Notstand „nur Ersatzwerte". Ein Lauf ohne jede
+     *        Berechnung, weil sich nichts geändert hat, darf diesen Alarm nicht auslösen.
+     * Erwartet: kein Alarm.
+     */
+    public function testARunThatOnlyRefreshedIsNotAnAlarm(): void
+    {
+        $result = new WarmupResult();
+        $result->recordUnchanged(2739);
+
+        self::assertFalse($result->fallbacksOnly());
+    }
 }

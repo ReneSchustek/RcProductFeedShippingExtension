@@ -14,6 +14,33 @@
             <argument type="service" id="logger"/>
         </service>
 
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedImageService">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Subscriber\FeedImageSubscriber">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedImageService"/>
+            <argument type="service" id="shopware.filesystem.public"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\FeedImageCheckCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedImageService"/>
+            <argument>%kernel.project_dir%/public</argument>
+            <tag name="console.command"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\CartCalculator"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="logger"/>
+        </service>
+
         <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService">
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
@@ -44,6 +71,9 @@
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore"/>
             <argument type="service" id="logger"/>
         </service>
 

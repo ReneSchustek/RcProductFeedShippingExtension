@@ -100,6 +100,7 @@ class ShippingCostCalculatorService
         string $salesChannelId,
         string $currencyIso = 'EUR',
         bool $useStoredValue = true,
+        ?string $sourceHash = null,
     ): ShippingCalculationResult {
         if ($useStoredValue) {
             $cached = $this->priceStore->get($productId, $countryIso, $salesChannelId);
@@ -139,6 +140,7 @@ class ShippingCostCalculatorService
                     $salesChannelId,
                     $currencyIso,
                     FallbackReason::NotPurchasable,
+                    $sourceHash,
                 );
             }
 
@@ -149,7 +151,7 @@ class ShippingCostCalculatorService
             // das ist ein echtes Ergebnis und kein Ersatzwert.
             if ($deliveryValues === null) {
                 $result = new ShippingCalculationResult($productId, $countryIso, 0.0, $currencyIso, false);
-                $this->priceStore->set($productId, $countryIso, $salesChannelId, $result);
+                $this->priceStore->set($productId, $countryIso, $salesChannelId, $result, $sourceHash);
 
                 return $result;
             }
@@ -194,11 +196,12 @@ class ShippingCostCalculatorService
                     $salesChannelId,
                     $currencyIso,
                     FallbackReason::NoShippingMethod,
+                    $sourceHash,
                 );
             }
 
             $result = new ShippingCalculationResult($productId, $countryIso, $shippingCost, $currencyIso, false);
-            $this->priceStore->set($productId, $countryIso, $salesChannelId, $result);
+            $this->priceStore->set($productId, $countryIso, $salesChannelId, $result, $sourceHash);
 
             return $result;
         } catch (\Throwable $e) {
@@ -216,6 +219,7 @@ class ShippingCostCalculatorService
                 $salesChannelId,
                 $currencyIso,
                 FallbackReason::CalculationFailed,
+                $sourceHash,
             );
         }
     }
@@ -227,6 +231,7 @@ class ShippingCostCalculatorService
         string $salesChannelId,
         string $currencyIso,
         FallbackReason $reason,
+        ?string $sourceHash = null,
     ): ShippingCalculationResult {
         $fallback = $this->fallbackService->getFallbackResult(
             $productId,
@@ -235,7 +240,7 @@ class ShippingCostCalculatorService
             $currencyIso,
             $reason,
         );
-        $this->priceStore->set($productId, $countryIso, $salesChannelId, $fallback);
+        $this->priceStore->set($productId, $countryIso, $salesChannelId, $fallback, $sourceHash);
 
         return $fallback;
     }

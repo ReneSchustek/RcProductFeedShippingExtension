@@ -81,6 +81,20 @@
     </card>
 
     <card>
+        <title lang="de-DE">Bilder für Google</title>
+        <title lang="en-GB">Images for Google</title>
+
+        <input-field type="bool">
+            <name>feedImageReplacement</name>
+            <label lang="de-DE">Größeres Bild verwenden, wenn das Titelbild zu klein ist</label>
+            <label lang="en-GB">Use a larger image when the cover image is too small</label>
+            <helpText lang="de-DE">Google verlangt ab dem 31.01.2027 für image_link mindestens 500 × 500 Pixel. Eingeschaltet nimmt der Feed dann das erste ausreichend große Bild desselben Artikels. Wirkt nur in Vorlagen, die rcFeedImage.url(product) statt product.cover.media.url verwenden. Hochgerechnet wird nie; Artikel ohne ausreichendes Bild nennt der Befehl rc:feed:image-check --liste.</helpText>
+            <helpText lang="en-GB">From 31 Jan 2027 Google requires at least 500 × 500 pixels for image_link. When enabled, the feed uses the first large-enough image of the same product. Only applies to templates that use rcFeedImage.url(product) instead of product.cover.media.url. Images are never upscaled; products without a large-enough image are listed by rc:feed:image-check --liste.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
         <title lang="de-DE">Feed-Template</title>
         <title lang="en-GB">Feed Template</title>
 

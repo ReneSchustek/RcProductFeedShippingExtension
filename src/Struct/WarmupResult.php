@@ -17,6 +17,14 @@ final class WarmupResult
 
     public int $fallback = 0;
 
+    /**
+     * Kombinationen, deren Prüfwert unverändert war und die deshalb nicht neu gerechnet wurden.
+     *
+     * Sie sind **kein** Ausfall, sondern der Zweck der Übung: nachgesehen, nichts geändert, alter
+     * Wert bleibt gültig. Ihr Zeitstempel wird aufgefrischt, damit der Eintrag nicht verfällt.
+     */
+    public int $unchanged = 0;
+
     /** @var array<int, string> Kanäle, die übersprungen wurden, samt Grund */
     public array $skippedChannels = [];
 
@@ -31,6 +39,11 @@ final class WarmupResult
         ++$this->calculated;
     }
 
+    public function recordUnchanged(int $anzahl = 1): void
+    {
+        $this->unchanged += $anzahl;
+    }
+
     public function channelSkipped(string $channelName, string $reason): void
     {
         $this->skippedChannels[] = $channelName . ': ' . $reason;
@@ -39,6 +52,12 @@ final class WarmupResult
     public function total(): int
     {
         return $this->calculated + $this->fallback;
+    }
+
+    /** Alles, was der Lauf angesehen hat — gerechnet, ersetzt oder als unverändert erkannt. */
+    public function inspected(): int
+    {
+        return $this->total() + $this->unchanged;
     }
 
     /**

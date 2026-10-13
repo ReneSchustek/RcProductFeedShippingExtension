@@ -6,6 +6,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 use Psr\Log\LoggerInterface;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
+use Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\WarmupResult;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -30,6 +31,15 @@ use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 class ShippingWarmupService
 {
     /**
+     * Höchstalter, nach dem in jedem Fall neu gerechnet wird — auch bei gleichem Prüfwert.
+     *
+     * Sieben Tage. Geplant war ein wöchentlicher Vollauf an einem festen Tag; die Frist je
+     * Eintrag erfüllt denselben Zweck und verteilt die Last, statt sie einmal in der Woche zu
+     * bündeln. **Sie ist das Sicherheitsnetz** für jede Änderung, die der Prüfwert nicht erfasst.
+     */
+    public const FULL_RECALCULATION_SECONDS = 604800;
+
+    /**
      * @param EntityRepository<SalesChannelCollection> $salesChannelRepository
      */
     public function __construct(
@@ -39,6 +49,9 @@ class ShippingWarmupService
         private readonly EntityRepository $salesChannelRepository,
         private readonly ActiveProductProviderService $activeProductProvider,
         private readonly FeedChannelProviderService $feedChannelProvider,
+        private readonly VirtualCartBuilderService $cartBuilder,
+        private readonly ShippingFingerprintService $fingerprintService,
+        private readonly ShippingPriceStore $priceStore,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -53,7 +66,7 @@ class ShippingWarmupService
      *                                                 durchläuft, steht für die geplante Aufgabe
      *                                                 zusätzlich im Protokoll.
      */
-    public function warmup(?callable $onProgress = null, ?callable $onMessage = null): WarmupResult
+    public function warmup(?callable $onProgress = null, ?callable $onMessage = null, bool $force = false): WarmupResult
     {
         $context = Context::createDefaultContext();
         $result = new WarmupResult();
@@ -124,13 +137,18 @@ class ShippingWarmupService
                 count($productIds),
             ));
 
-            $this->warmupChannel($productIds, $countries, $calcChannelId, $result, $onProgress);
+            $this->warmupChannel($productIds, $countries, $calcChannelId, $result, $onProgress, $force);
         }
+
+        // Die Warenkorbzeile dieses Prozesses wieder abräumen. Sie entsteht zwangsläufig, weil
+        // Shopware den Warenkorb beim Berechnen wegschreibt — liegen bleiben muss sie deshalb nicht.
+        $this->cartBuilder->removeTrace();
 
         $this->logger->info('RcProductFeedShipping: Warmup abgeschlossen.', [
             'context' => 'ruhrcoder_product_feed_shipping.warmup',
             'calculated' => $result->calculated,
             'fallback' => $result->fallback,
+            'unchanged' => $result->unchanged,
             'metric' => 'warmup_completed',
         ]);
 
@@ -184,9 +202,40 @@ class ShippingWarmupService
         string $calcChannelId,
         WarmupResult $result,
         ?callable $onProgress,
+        bool $force = false,
     ): void {
+        // Beides in je einer Abfrage für den ganzen Kanal, bevor die erste Kombination drankommt.
+        // Der Vergleich selbst kostet danach nichts mehr.
+        $fingerprints = $this->fingerprintService->loadFingerprints($productIds);
+        $state = $force ? [] : $this->priceStore->loadState($calcChannelId);
+        $toRefresh = [];
+
         foreach ($productIds as $productId) {
+            $fingerprint = $fingerprints[$productId] ?? null;
+
             foreach ($countries as $countryIso) {
+                $key = $productId . '|' . strtoupper($countryIso);
+                $known = $state[$key] ?? null;
+
+                // Übersprungen wird nur, wenn drei Dinge zusammenkommen: ein gespeicherter Prüfwert,
+                // ein gleicher aktueller Prüfwert und ein Eintrag, der die Vollauf-Frist noch nicht
+                // gerissen hat. Fehlt eines, wird gerechnet.
+                if (
+                    $known !== null
+                    && $fingerprint !== null
+                    && $known['hash'] === $fingerprint
+                    && $known['age'] < self::FULL_RECALCULATION_SECONDS
+                ) {
+                    $toRefresh[] = ['productId' => $productId, 'countryIso' => $countryIso];
+                    $result->recordUnchanged();
+
+                    if ($onProgress !== null) {
+                        $onProgress(1);
+                    }
+
+                    continue;
+                }
+
                 // `useStoredValue: false` — der Warmup rechnet, immer. Rief er die Methode mit
                 // Speicher-Kurzschluss auf, füllte er nur Lücken: Ein gültiger Eintrag wurde
                 // übersprungen und erst neu gerechnet, nachdem er verfallen war. Zwischen dem
@@ -197,6 +246,7 @@ class ShippingWarmupService
                     $countryIso,
                     $calcChannelId,
                     useStoredValue: false,
+                    sourceHash: $fingerprint,
                 );
 
                 $result->record($match->isFallback);
@@ -206,6 +256,11 @@ class ShippingWarmupService
                 }
             }
         }
+
+        // Die übersprungenen Einträge sind gültig, nur alt aussehend. Ohne dieses Auffrischen
+        // verfielen sie nach `ShippingPriceStore::MAX_AGE_SECONDS`, und der Feed nennte für jedes
+        // unveränderte Produkt den Ersatzwert — die Ersparnis wäre teuer erkauft.
+        $this->priceStore->touch($toRefresh, $calcChannelId);
     }
 
     /**

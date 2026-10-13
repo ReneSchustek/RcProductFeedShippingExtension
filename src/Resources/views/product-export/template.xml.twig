@@ -11,9 +11,11 @@
     <g:title>{{ product.translated.name|e }}</g:title>
     <g:description>{{ product.translated.description|striptags|e }}</g:description>
     <g:link>{{ seoUrl('frontend.detail.page', {productId: product.id})|e }}</g:link>
-    {# Produkt-Export läuft mit strict_variables=on: ohne Titelbild würfe product.cover.media eine
-       RuntimeError und bräche die komplette Feed-Zeile. Daher guarden. #}
-    {% if product.cover and product.cover.media %}<g:image_link>{{ product.cover.media.url|e }}</g:image_link>{% endif %}
+    {# image_link über rcFeedImage (BRIEF23): ist das Titelbild unter 500 × 500, nimmt der Feed ein größeres Bild
+       desselben Artikels, sofern in den Einstellungen eingeschaltet. Ohne Bild kommt null und damit kein Eintrag;
+       der Export läuft mit strict_variables, ein ungeprüftes product.cover.media bräche die Zeile ab. #}
+    {% set imageLink = rcFeedImage.url(product) %}
+    {% if imageLink %}<g:image_link>{{ imageLink|e }}</g:image_link>{% endif %}
     <g:availability>{{ product.availableStock > 0 ? 'in stock' : 'out of stock' }}</g:availability>
     <g:price>{{ product.calculatedPrice.unitPrice|number_format(2, '.', '') }} EUR</g:price>
     {# Ohne Hersteller bleibt das Feld ganz weg. Ein leeres `<g:brand></g:brand>` ist für den

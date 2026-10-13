@@ -63,6 +63,18 @@ class ConfigurationService
     }
 
     /**
+     * Ob der Warenstrom für `image_link` ein größeres Bild desselben Artikels nimmt, wenn das Titelbild unter
+     * 500 × 500 liegt (BRIEF23, Stufe 2). Vorgabe: aus, damit sich der Feed nicht ungefragt ändert.
+     */
+    public function isFeedImageReplacementEnabled(?string $salesChannelId): bool
+    {
+        return (bool) ($this->systemConfigService->get(
+            self::CONFIG_PREFIX . 'feedImageReplacement',
+            $salesChannelId
+        ) ?? false);
+    }
+
+    /**
      * Gibt den konfigurierten Berechnungs-Verkaufskanal zurück.
      *
      * Produktvergleichs-Kanäle (z.B. Google Shopping) besitzen keine Versandmethoden.

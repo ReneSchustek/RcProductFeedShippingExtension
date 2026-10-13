@@ -106,6 +106,29 @@ also planmäßig zu, nicht ausnahmsweise.
 php bin/console rc:shipping:warmup
 ```
 
+### Bildmaße prüfen
+
+Ab dem 31.01.2027 verlangt Google für `image_link` mindestens 500 × 500 Pixel, beide Kanten.
+Was der Bestand hergibt, sagt:
+
+```bash
+php bin/console rc:feed:image-check            # die drei Zahlen
+php bin/console rc:feed:image-check --liste    # die Artikel ohne ausreichendes Bild
+php bin/console rc:feed:image-check --nachmessen   # Stichprobe gegen die echten Dateien
+```
+
+Der Befehl misst und meldet — er ändert den Feed nicht.
+
+**Der Lauf rechnet nur, was sich geändert hat.** Je Produkt entsteht ein Prüfwert über Gewicht,
+Abmessungen, Preis, Steuersatz, Versandkostenfreiheit und Aktiv-Merkmal, dazu über den Stand der
+Versandarten, ihrer Preismatrizen und der Regeln. Ist er unverändert, bleibt der gespeicherte Wert
+stehen; spätestens nach sieben Tagen wird trotzdem neu gerechnet. `--full` erzwingt eine
+vollständige Neuberechnung:
+
+```bash
+php bin/console rc:shipping:warmup --full
+```
+
 Der Warmup berechnet die Versandkosten für alle aktiven Produkte und Länder aller aktivierten
 Verkaufskanäle. Ohne ihn trägt der Feed den Ersatzwert — und schreibt für jeden betroffenen
 Artikel eine Warnung ins Protokoll.

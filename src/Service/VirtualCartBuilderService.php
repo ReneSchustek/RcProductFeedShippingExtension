@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
+use Doctrine\DBAL\Connection;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\CartCalculator;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
@@ -13,19 +15,57 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 /**
  * Erstellt einen temporären Warenkorb für die Versandkostenberechnung.
  *
- * **Er wird gespeichert, anders als hier lange behauptet.** `CartCalculator::calculate()` geht über
- * `CartRuleLoader::load()`, und das schreibt den Warenkorb bei geändertem Datenstempel weg
- * (Kern 6.7.12.1, Zeile 112-119). Weil alle Kombinationen eines Kanals dasselbe Token teilen,
- * bleibt es bei **einer** Zeile in `cart` — aber der Warmup löst dabei je Produkt und Land einen
- * Schreibvorgang aus, bei rund 8000 Kombinationen also 8000.
+ * **Er wird gespeichert.** `CartCalculator::calculate()` geht über `CartRuleLoader::load()`, und das
+ * schreibt den Warenkorb bei geändertem Datenstempel weg (Kern 6.7.12.1, Zeile 112-119).
  *
- * Hier steht die Wahrheit statt der Zusicherung, weil die falsche Zusicherung teurer war: Wer sie
- * las, suchte die Last woanders.
+ * Das Token entsteht deshalb **einmal je Prozess** und nicht je Berechnung. Vorher trug jeder
+ * Warenkorb ein eigenes `Uuid::randomHex()`, und damit hinterließ jede Kombination aus Produkt und
+ * Land eine eigene Zeile: Auf dem produktiven Shop **21 172 Zeilen an einem Tag**, rund ein
+ * Gigabyte Rohdaten, die dreißig Tage liegen blieben und die Warenkorb-Kennzahlen des Shops
+ * unbrauchbar machten. Ein Token je Prozess macht daraus **eine** Zeile je Lauf; ein zufälliges
+ * Token je Instanz statt eines festen Wertes hält auch parallele Arbeiter auseinander.
+ *
+ * Diese eine Zeile räumt {@see self::removeTrace()} am Ende des Laufs weg. Der Dienst kennt sein
+ * Token — ein Aufräumen von außen hätte diese Sicherheit nicht und träfe irgendwann einen echten
+ * Kundenwarenkorb.
  */
 class VirtualCartBuilderService
 {
-    public function __construct(private readonly CartCalculator $calculator)
+    /**
+     * Das Token aller Warenkörbe dieses Prozesses.
+     *
+     * Zufällig, damit zwei gleichzeitig laufende Arbeiter sich nicht dieselbe Zeile überschreiben,
+     * und für die Lebensdauer des Dienstes stabil, damit nur eine Zeile entsteht.
+     */
+    private readonly string $token;
+
+    public function __construct(
+        private readonly CartCalculator $calculator,
+        private readonly Connection $connection,
+        private readonly LoggerInterface $logger,
+    ) {
+        $this->token = Uuid::randomHex();
+    }
+
+    /**
+     * Löscht die Warenkorbzeile, die dieser Prozess hinterlassen hat.
+     *
+     * Wird am Ende eines Warmup-Laufs gerufen. Schlägt es fehl, ist das kein Grund, den Lauf als
+     * gescheitert zu melden — die Zeile läuft dann über Shopwares eigene Aufräumaufgabe aus.
+     */
+    public function removeTrace(): void
     {
+        try {
+            $this->connection->executeStatement(
+                'DELETE FROM `cart` WHERE `token` = :token',
+                ['token' => $this->token],
+            );
+        } catch (\Throwable $error) {
+            $this->logger->warning('RcProductFeedShipping: Warenkorb-Spur konnte nicht entfernt werden.', [
+                'context' => 'ruhrcoder_product_feed_shipping.warmup',
+                'error' => $error->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -37,7 +77,7 @@ class VirtualCartBuilderService
      */
     public function buildCalculatedCart(string $productId, SalesChannelContext $context): Cart
     {
-        $cart = new Cart(Uuid::randomHex());
+        $cart = new Cart($this->token);
 
         $cart->add(new LineItem(
             id: Uuid::randomHex(),

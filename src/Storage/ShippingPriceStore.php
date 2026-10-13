@@ -118,19 +118,21 @@ class ShippingPriceStore
         string $countryIso,
         string $salesChannelId,
         ShippingCalculationResult $result,
+        ?string $sourceHash = null,
     ): void {
         try {
             $this->connection->executeStatement(
                 'INSERT INTO ' . self::TABLE . '
                     (product_id, country_iso, sales_channel_id, shipping_cost, currency_iso,
-                     is_fallback, fallback_reason, calculated_at)
+                     is_fallback, fallback_reason, source_hash, calculated_at)
                  VALUES (:productId, :countryIso, :salesChannelId, :shippingCost, :currencyIso,
-                         :isFallback, :fallbackReason, NOW())
+                         :isFallback, :fallbackReason, :sourceHash, NOW())
                  ON DUPLICATE KEY UPDATE
                     shipping_cost = VALUES(shipping_cost),
                     currency_iso = VALUES(currency_iso),
                     is_fallback = VALUES(is_fallback),
                     fallback_reason = VALUES(fallback_reason),
+                    source_hash = VALUES(source_hash),
                     calculated_at = VALUES(calculated_at)',
                 [
                     'productId' => Uuid::fromHexToBytes($productId),
@@ -140,6 +142,7 @@ class ShippingPriceStore
                     'currencyIso' => $result->currencyIso,
                     'isFallback' => $result->isFallback ? 1 : 0,
                     'fallbackReason' => $result->fallbackReason?->value,
+                    'sourceHash' => $sourceHash,
                 ]
             );
         } catch (\Throwable $error) {
@@ -151,6 +154,98 @@ class ShippingPriceStore
                 'countryIso' => $countryIso,
             ]);
         }
+    }
+
+    /**
+     * Liest für einen Kanal, welcher Prüfwert je Produkt und Land gespeichert ist und wie alt er ist.
+     *
+     * In **einer** Abfrage für den ganzen Kanal, nicht je Kombination: Der Warmup braucht den Stand
+     * aller mehreren tausend Kombinationen, bevor er die erste berechnet. Tausend Einzelabfragen
+     * wären genau die Last, die dieser Weg vermeiden soll.
+     *
+     * @return array<string, array{hash: ?string, age: int}> Schlüssel „<produktId>|<LAND>", Alter in Sekunden
+     */
+    public function loadState(string $salesChannelId): array
+    {
+        try {
+            $rows = $this->connection->fetchAllAssociative(
+                'SELECT LOWER(HEX(product_id)) AS product_id,
+                        country_iso,
+                        source_hash,
+                        TIMESTAMPDIFF(SECOND, calculated_at, NOW()) AS age
+                 FROM ' . self::TABLE . '
+                 WHERE sales_channel_id = :salesChannelId',
+                ['salesChannelId' => Uuid::fromHexToBytes($salesChannelId)]
+            );
+        } catch (\Throwable $error) {
+            // Ohne Stand wird alles neu gerechnet — langsam, aber richtig.
+            $this->logger->warning('Stand der vorberechneten Versandpreise nicht lesbar.', [
+                'error' => $error->getMessage(),
+            ]);
+
+            return [];
+        }
+
+        $state = [];
+
+        foreach ($rows as $row) {
+            $key = (string) $row['product_id'] . '|' . strtoupper((string) $row['country_iso']);
+            $state[$key] = [
+                'hash' => $row['source_hash'] !== null ? (string) $row['source_hash'] : null,
+                'age' => (int) $row['age'],
+            ];
+        }
+
+        return $state;
+    }
+
+    /**
+     * Frischt den Zeitstempel unveränderter Einträge auf, ohne sie neu zu berechnen.
+     *
+     * Notwendig, weil ein Eintrag nach {@see self::MAX_AGE_SECONDS} verfällt und der Feed danach den
+     * Ersatzwert nennen würde. **Übersprungen heißt nicht ungültig** — es heißt „nachgesehen, hat
+     * sich nicht geändert".
+     *
+     * Ein Aufruf je Stapel statt je Eintrag: Bei mehreren tausend unveränderten Kombinationen ist
+     * der Unterschied zwischen einer Anweisung und tausend genau der Punkt der Übung.
+     *
+     * @param array<int, array{productId: string, countryIso: string}> $entries
+     */
+    public function touch(array $entries, string $salesChannelId): int
+    {
+        if ($entries === []) {
+            return 0;
+        }
+
+        $refreshed = 0;
+
+        foreach (array_chunk($entries, 500) as $chunk) {
+            $conditions = [];
+            $parameters = ['salesChannelId' => Uuid::fromHexToBytes($salesChannelId)];
+
+            foreach ($chunk as $i => $entry) {
+                $conditions[] = '(product_id = :p' . $i . ' AND country_iso = :c' . $i . ')';
+                $parameters['p' . $i] = Uuid::fromHexToBytes($entry['productId']);
+                $parameters['c' . $i] = strtoupper($entry['countryIso']);
+            }
+
+            try {
+                $refreshed += (int) $this->connection->executeStatement(
+                    'UPDATE ' . self::TABLE . '
+                        SET calculated_at = NOW()
+                      WHERE sales_channel_id = :salesChannelId
+                        AND (' . implode(' OR ', $conditions) . ')',
+                    $parameters
+                );
+            } catch (\Throwable $error) {
+                $this->logger->warning('Vorberechnete Versandpreise nicht aufgefrischt.', [
+                    'error' => $error->getMessage(),
+                    'count' => count($chunk),
+                ]);
+            }
+        }
+
+        return $refreshed;
     }
 
     /** Räumt den gesamten Bestand ab -- aufgerufen, wenn sich eine Versandart geändert hat. */

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Ruhrcoder\RcProductFeedShippingExtension\Tests\Unit\Service;
 
 use PHPUnit\Framework\MockObject\MockObject;
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\CartCalculator;
@@ -15,12 +17,18 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 class VirtualCartBuilderServiceTest extends TestCase
 {
     private CartCalculator&MockObject $calculator;
+    private Connection&MockObject $connection;
     private VirtualCartBuilderService $service;
 
     protected function setUp(): void
     {
         $this->calculator = $this->createMock(CartCalculator::class);
-        $this->service = new VirtualCartBuilderService($this->calculator);
+        $this->connection = $this->createMock(Connection::class);
+        $this->service = new VirtualCartBuilderService(
+            $this->calculator,
+            $this->connection,
+            $this->createMock(LoggerInterface::class),
+        );
     }
 
     public function testBuildCalculatedCartReturnsCart(): void
@@ -77,5 +85,58 @@ class VirtualCartBuilderServiceTest extends TestCase
             ->willReturn(new Cart('result'));
 
         $this->service->buildCalculatedCart('any-product', $context);
+    }
+
+    /**
+     * Was: Zwei Warenkörbe nacheinander aus demselben Dienst.
+     * Warum: Shopware schreibt jeden berechneten Warenkorb weg. Trug jeder ein eigenes Token, ließ
+     *        der Warmup je Produkt und Land eine Zeile zurück — auf dem produktiven Shop 21 172 an
+     *        einem Tag, rund ein Gigabyte, dreißig Tage Aufbewahrung.
+     * Erwartet: dasselbe Token, also eine einzige Zeile für den ganzen Lauf.
+     */
+    public function testAllCartsOfOneProcessShareOneToken(): void
+    {
+        $context = $this->createMock(SalesChannelContext::class);
+        $this->calculator->method('calculate')->willReturnArgument(0);
+
+        $erster = $this->service->buildCalculatedCart('produkt-1', $context);
+        $zweiter = $this->service->buildCalculatedCart('produkt-2', $context);
+
+        self::assertSame($erster->getToken(), $zweiter->getToken());
+    }
+
+    /**
+     * Was: Das Aufräumen am Ende eines Laufs.
+     * Warum: Der Dienst kennt sein Token. Ein Aufräumen von außen hätte diese Sicherheit nicht —
+     *        in der Tabelle `cart` sind alle Merkmalsspalten leer, es bliebe die Uhrzeit, und wer
+     *        sich in der Minute irrt, löscht einen echten Kundenwarenkorb.
+     * Erwartet: gelöscht wird genau nach dem eigenen Token.
+     */
+    public function testRemoveTraceDeletesExactlyItsOwnToken(): void
+    {
+        $context = $this->createMock(SalesChannelContext::class);
+        $this->calculator->method('calculate')->willReturnArgument(0);
+        $token = $this->service->buildCalculatedCart('produkt-1', $context)->getToken();
+
+        $this->connection->expects(self::once())
+            ->method('executeStatement')
+            ->with(self::stringContains('DELETE FROM `cart`'), ['token' => $token]);
+
+        $this->service->removeTrace();
+    }
+
+    /**
+     * Was: Die Datenbank verweigert das Aufräumen.
+     * Warum: Eine liegengebliebene Zeile ist ein Schönheitsfehler, ein abgebrochener Warmup-Lauf
+     *        nicht — dann stünden im Feed Ersatzwerte.
+     * Erwartet: keine Ausnahme nach außen.
+     */
+    public function testAFailingCleanupDoesNotBreakTheRun(): void
+    {
+        $this->connection->method('executeStatement')->willThrowException(new \RuntimeException('weg'));
+
+        $this->service->removeTrace();
+
+        self::assertTrue(true);
     }
 }

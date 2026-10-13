@@ -3,6 +3,113 @@
 Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [1.7.0] - 2026-10-13 — Ein größeres Bild für Google, wenn das Titelbild zu klein ist
+
+> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> Keine Migration. Der Feed ändert sich erst, wenn die neue Einstellung eingeschaltet ist **und** die
+> Export-Vorlage `rcFeedImage.url(product)` statt `product.cover.media.url` verwendet.
+
+### Neu
+
+- **`rcFeedImage.url(product)` für die Export-Vorlage** (BRIEF23, Stufe 2). Liegt das Titelbild unter 500 × 500
+  Pixeln, liefert es das erste ausreichend große Bild desselben Artikels; eine Variante ohne eigene Bilder bekommt
+  die des Hauptartikels. Maßzeichnungen werden übersprungen, sie sind kein Hauptbild für Google. Gibt es kein
+  passendes Bild, bleibt das Titelbild, und der Artikel steht auf der Liste von `rc:feed:image-check --liste`.
+  Hochgerechnet wird nie. Dateinamen mit Leerzeichen und Komma werden in der Adresse kodiert.
+- **Einstellung „Größeres Bild verwenden, wenn das Titelbild zu klein ist"** (Karte „Bilder für Google"),
+  Vorgabe aus. Ausgeschaltet liefert `rcFeedImage.url(product)` genau das Titelbild.
+- Die Referenzvorlage (`src/Resources/views/product-export/template.xml.twig`) verwendet `rcFeedImage.url(product)`.
+
+### Gemessen auf live-clone (13.10.2026)
+
+| | Artikel |
+|---|--:|
+| Titelbild zu klein | 426 |
+| davon mit einem anderen ausreichenden Foto (ohne Zeichnungen) | 18 |
+| davon ohne jedes ausreichende Foto | **408** |
+
+Mit Zeichnungen wären es 326 Ersatzbilder gewesen, 306 davon Maßzeichnungen.
+
+## [1.6.0] - 2026-09-09 — Der Warenstrom sagt, welche Bilder Google ab 2027 nicht mehr annimmt
+
+> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> Keine Migration, kein Eingriff in den Feed — der neue Befehl misst und meldet, mehr nicht.
+
+### Neu
+
+- **Befehl `rc:feed:image-check`.** Ab dem 31.01.2027 verlangt das Merchant Center für
+  `image_link` mindestens **500 × 500 Pixel**, beide Kanten; kleinere Bilder werden nicht mehr
+  genehmigt und das Produkt erscheint nicht mehr bei Google. Der Befehl nennt, wie viele Artikel
+  betroffen sind — und trennt dabei die beiden Fälle, die verschiedene Lösungen brauchen:
+
+  | | am Bestand vom 09.09.2026 |
+  |---|--:|
+  | Titelbild groß genug | 1 681 |
+  | **Titelbild zu klein** | **413** |
+  | davon mit einem anderen ausreichenden Bild | **313** |
+  | davon ohne jedes ausreichende Bild | **100** |
+  | ohne Titelbild | 586 |
+
+- **`--liste`** nennt die Artikel der letzten Gruppe mit Nummer, Bezeichnung und heutigem Maß —
+  die Liste zum Abarbeiten. **`--nachmessen`** lädt die Bilddateien wirklich und hält ihre Maße
+  gegen die Angaben der Mediathek; standardmäßig an einer Stichprobe von 25.
+
+### Was dabei herauskam
+
+- **Die vermutete Ursache war nicht die richtige.** Vermutet war eine zu klein gewählte
+  Vorschaufassung. Alle drei Export-Vorlagen des Shops verlinken jedoch
+  `product.cover.media.url`, also das **Original** — eine andere Vorschaufassung zu wählen hilft
+  deshalb nicht. Was hilft, ist ein **anderes Bild desselben Artikels**, und für 313 der 413
+  Artikel gibt es eines.
+- Die häufigsten zu kleinen Maße sind 400 × 400, 500 × 250, 500 × 333 und 480 × 400 — knapp
+  daneben, nicht winzig. **Hochskalieren bleibt ausgeschlossen:** Google nähme das Bild an, im Shop
+  stünde es unscharf.
+
+## [1.5.0] - 2026-09-09 — Die Vorberechnung rechnet nur noch, was sich geändert hat
+
+> **Ausrollen — die Migration ist Pflicht, nicht Beiwerk:**
+> `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+>
+> **Ohne sie schreibt der Speicher gar nichts mehr.** Die neue Spalte `source_hash` steht im
+> `INSERT`; fehlt sie, scheitert jeder Schreibvorgang — und der Speicher fängt Schreibfehler
+> bewusst ab und schreibt nur eine Warnung ins Protokoll. Der Feed nennte danach für **jeden**
+> Artikel den Ersatzwert, ohne dass etwas sichtbar bricht. (Beim Tor-Lauf am 09.09. genau so
+> passiert: In der Testdatenbank fehlte die Spalte, und vier Tests fielen mit „null ist nicht
+> null" durch, statt mit einer Fehlermeldung.)
+>
+> Der erste Lauf danach rechnet noch einmal alles durch — die vorhandenen Einträge tragen keinen
+> Prüfwert, und ein erfundener wäre eine Lüge.
+
+### Geändert
+
+- **Der Lauf rechnet nur noch, was sich geändert hat.** Bisher wurde bei jedem Lauf jede
+  Kombination aus Produkt und Land neu berechnet — dreimal am Tag dasselbe Ergebnis. Auf dem
+  produktiven Shop waren das **21 172 Berechnungen an einem Tag bei einer einzigen Bestellung**.
+  Jetzt bildet die Erweiterung je Produkt einen Prüfwert über alles, was das Ergebnis bestimmt:
+  Gewicht, Abmessungen, **Preis** (wegen „versandkostenfrei ab X"), Steuersatz, Kennzeichen für
+  Versandkostenfreiheit und Aktiv-Merkmal — dazu den Stand der Versandarten, ihrer Preismatrizen
+  und der Regeln. Ist er unverändert, bleibt der gespeicherte Wert stehen und wird nur aufgefrischt.
+- **Ändert sich die Versandkonfiguration, ist der Prüfwert aller Produkte hinfällig.** Der Stand
+  der Konfiguration steckt in jedem einzelnen Prüfwert, statt als Sonderweg daneben zu liegen. In
+  ihn geht auch die **Anzahl** der Zeilen ein — eine gelöschte Versandart hinterlässt keinen
+  neueren Zeitstempel, wohl aber eine Zeile weniger.
+- **Sicherheitsnetz:** Jeder Eintrag wird spätestens nach **sieben Tagen** neu gerechnet, auch bei
+  gleichem Prüfwert. Damit fällt eine Änderung, die der Prüfwert nicht erfasst, von selbst auf.
+  Die Frist gilt je Eintrag und verteilt die Last, statt sie an einem Wochentag zu bündeln.
+- **Neuer Schalter `--full`** für `rc:shipping:warmup`: rechnet alles neu, auch nachweislich
+  Unverändertes. Der Weg von Hand, wenn man dem Prüfwert im Einzelfall nicht traut.
+
+### Behoben
+
+- **Jede Berechnung ließ eine Warenkorbzeile in der Datenbank zurück.** Shopware schreibt einen
+  berechneten Warenkorb weg, und jeder trug bisher ein eigenes Token: rund **ein Gigabyte
+  Rohdaten am Tag**, dreißig Tage Aufbewahrung, entsprechend gewachsene nächtliche Sicherungen —
+  und Warenkorb-Kennzahlen, die zu 99,99 Prozent diesen Lauf maßen (die Abbruchquote im Dashboard
+  stand dauerhaft auf 100 Prozent und musste abgeschaltet werden). Jetzt teilen sich alle
+  Warenkörbe eines Laufs **ein** Token, und der Lauf räumt diese eine Zeile am Ende selbst weg.
+  Von außen ginge das nicht sicher: In der Tabelle `cart` sind alle Merkmalsspalten leer, es
+  bliebe die Uhrzeit — und wer sich in der Minute irrt, löscht einen echten Kundenwarenkorb.
+
 ## [1.4.6] - 2026-08-19 — Der Warenstrom rechnet nur noch für Kanäle, die ihn lesen
 
 ### Behoben

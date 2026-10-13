@@ -8,6 +8,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -31,9 +32,20 @@ final class ShippingWarmupCommand extends Command
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption(
+            'full',
+            null,
+            InputOption::VALUE_NONE,
+            'Alles neu rechnen, auch was sich nachweislich nicht geändert hat',
+        );
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $force = (bool) $input->getOption('full');
 
         $total = $this->warmupService->combinationCount();
         if ($total === 0) {
@@ -56,16 +68,18 @@ final class ShippingWarmupCommand extends Command
                 $io->writeln($message);
                 $progressBar->display();
             },
+            $force,
         );
 
         $progressBar->finish();
         $io->newLine(2);
 
         $io->writeln(sprintf(
-            'Berechnet: %d · Ersatzwert: %d · Gesamt: %d',
+            'Berechnet: %d · Ersatzwert: %d · unverändert: %d · Gesamt: %d',
             $result->calculated,
             $result->fallback,
-            $result->total(),
+            $result->unchanged,
+            $result->inspected(),
         ));
 
         foreach ($result->skippedChannels as $hint) {
