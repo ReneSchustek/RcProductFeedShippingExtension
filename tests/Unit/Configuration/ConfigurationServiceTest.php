@@ -113,7 +113,7 @@ class ConfigurationServiceTest extends TestCase
 
     /**
      * Was: Die Einträge sind mit Semikolon getrennt statt mit Komma.
-     * Warum: Genau so stand es auf live-clone — `DE:7.95;AT:14.95;CH:21.95`. Weil nur am Komma
+     * Warum: Genau so stand es auf der Testkopie — `DE:7.95;AT:14.95;CH:21.95`. Weil nur am Komma
      *        getrennt wurde, war die Zeichenkette ein einziger Eintrag: DE traf zufällig zu, AT und
      *        CH fielen still auf den globalen Ersatzwert zurück. 1040 Kombinationen Speditionsware
      *        standen dadurch mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom — zu niedrige

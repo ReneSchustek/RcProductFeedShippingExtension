@@ -65,7 +65,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testEveryProductCountryCombinationIsCalculatedExactlyOnce(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE', 'AT', 'CH']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -84,7 +84,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Zwei Feed-Kanäle, die sich denselben Berechnungs-Kanal teilen.
-     * Warum: Genau das ist die Lage auf live-clone — Google Shopping und Headless rechnen beide
+     * Warum: Genau das ist die Lage auf der Testkopie — Google Shopping und Headless rechnen beide
      *        über den Storefront-Kanal. Ohne Merkliste liefe der Warmup zweimal über denselben
      *        Bestand; bei 2739 Produkten sind das sechs Minuten für nichts.
      * Erwartet: nur der erste Kanal rechnet, der zweite wird als übersprungen gemeldet.
@@ -113,7 +113,7 @@ class ShippingWarmupServiceTest extends TestCase
     /**
      * Was: Ein Kanal, für den sich kein Context bauen lässt.
      * Warum: Produktvergleichs-Kanäle haben oft keine vollständige Sprachkonfiguration — auf
-     *        live-clone ist genau das der Fall. Ohne die Vorabprüfung erzeugte jedes einzelne
+     *        der Testkopie ist genau das der Fall. Ohne die Vorabprüfung erzeugte jedes einzelne
      *        Produkt denselben Fehler; bei 2112 Produkten sind das 2112 Protokollzeilen für
      *        einen einzigen Konfigurationsmangel.
      * Erwartet: kein einziger Rechenversuch, der Kanal steht mit Grund in der Auswertung.
@@ -177,7 +177,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testARunProducingOnlyFallbacksIsReportedAsSuspicious(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -202,7 +202,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testProgressIsReportedOncePerCombination(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE', 'AT']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -237,7 +237,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
-     * Warum: Auf live-clone war das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
+     * Warum: Auf der Testkopie war das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
      *        alles greift dort zu Recht keine. Der Warmup rechnete ihn trotzdem durch und legte
      *        5223 Einträge „keine Versandart" ab, die niemand liest. Sie waren nicht nur nutzlos:
      *        Sie stellten fünf Sechstel aller Meldungen und haben die Fehlersuche zweimal in die
@@ -311,13 +311,13 @@ class ShippingWarmupServiceTest extends TestCase
      */
     /**
      * Was: Ein Produkt, dessen Prüfwert dem gespeicherten entspricht.
-     * Warum: Der Kern von BRIEF24. Auf dem produktiven Shop entstanden so 21 172 Berechnungen an
+     * Warum: Der eigentliche Zweck des Prüfwerts. Auf dem produktiven Shop entstanden so 21 172 Berechnungen an
      *        einem Tag, bei einer einzigen Bestellung — dreimal täglich dasselbe Ergebnis.
      * Erwartet: **keine** Berechnung, stattdessen ein Auffrischen des Zeitstempels.
      */
     public function testUnchangedCombinationIsNotRecalculated(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -348,7 +348,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testChangedFingerprintTriggersRecalculation(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -378,7 +378,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testAnEntryOlderThanTheFullRecalculationIntervalIsRecalculated(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -404,7 +404,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testForceRecalculatesEverything(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);
@@ -429,7 +429,7 @@ class ShippingWarmupServiceTest extends TestCase
      */
     public function testTheRunRemovesItsOwnCartTrace(): void
     {
-        $this->givenSalesChannels(['kanal-a' => 'Trummer Edelstahl']);
+        $this->givenSalesChannels(['kanal-a' => 'Beispielshop']);
         $this->configurationService->method('isEnabled')->willReturn(true);
         $this->configurationService->method('getCountries')->willReturn(['DE']);
         $this->configurationService->method('getCalculationSalesChannelId')->willReturn(null);

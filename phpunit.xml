@@ -7,7 +7,7 @@
     Installation heraus gestartet werden. Ein `php vendor/bin/phpunit` im Plugin-Verzeichnis
     würde sie sonst mitziehen und mit Fehlern abbrechen, die nichts über den Code aussagen.
 
-    PHPUnit bevorzugt `phpunit.xml` vor `phpunit.xml.dist`. Der Gate-Lauf startet die
+    PHPUnit bevorzugt `phpunit.xml` vor `phpunit.xml.dist`. Der lokale Prüflauf startet die
     Integration-Suite getrennt aus der Instanz heraus und nimmt dort die `.dist`.
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

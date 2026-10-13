@@ -21,7 +21,7 @@ class ConfigurationService
     /**
      * Trennzeichen zwischen den Einträgen der länderspezifischen Ersatzwerte.
      *
-     * Die Hilfe der Einstellung nennt das Komma. Auf live-clone stand dort trotzdem
+     * Die Hilfe der Einstellung nennt das Komma. Auf der Testkopie stand dort trotzdem
      * `DE:7.95;AT:14.95;CH:21.95` — und weil nur am Komma getrennt wurde, war die ganze Zeichenkette
      * ein einziger Eintrag: `DE` traf zufällig zu, AT und CH fielen still auf den globalen Wert
      * zurück. 1040 Kombinationen Speditionsware standen dadurch mit 7,95 € statt 14,95 € bzw.
@@ -64,7 +64,7 @@ class ConfigurationService
 
     /**
      * Ob der Warenstrom für `image_link` ein größeres Bild desselben Artikels nimmt, wenn das Titelbild unter
-     * 500 × 500 liegt (BRIEF23, Stufe 2). Vorgabe: aus, damit sich der Feed nicht ungefragt ändert.
+     * 500 × 500 liegt. Vorgabe: aus, damit sich der Feed nicht ungefragt ändert.
      */
     public function isFeedImageReplacementEnabled(?string $salesChannelId): bool
     {

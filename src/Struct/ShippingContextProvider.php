@@ -97,7 +97,7 @@ final class ShippingContextProvider extends Struct
 
         if ($precomputed !== null) {
             // „Nicht bestellbar" heißt: Für diesen Artikel gibt es keinen Versandpreis, weil er
-            // sich nicht in einen Warenkorb legen lässt — bei Trummer sind das die Hauptartikel
+            // sich nicht in einen Warenkorb legen lässt — im Produktivshop sind das die Hauptartikel
             // mit Varianten. Jede Zahl, die hier stünde, wäre erfunden, und der Ersatzwert von
             // 4,95 Euro wäre bei einem Artikel mit 238 Euro Versand die schlechteste davon.
             //

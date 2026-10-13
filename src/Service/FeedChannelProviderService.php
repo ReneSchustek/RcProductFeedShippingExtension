@@ -14,7 +14,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
  * **Welche Verkaufskanäle liest überhaupt ein Warenstrom aus?**
  *
  * Warum das eine eigene Klasse wert ist: Bis zum 2026-08-19 wärmte der Warmup jeden aktiven Kanal
- * mit eingeschaltetem Plugin vor — und eingeschaltet ist es standardmäßig überall. Auf live-clone
+ * mit eingeschaltetem Plugin vor — und eingeschaltet ist es standardmäßig überall. Auf der Testkopie
  * traf das den Kanal „Headless", der 20 statt 206 Versandarten trägt. Ergebnis: 5223 Einträge
  * „keine Versandart" für einen Kanal, den kein Warenstrom ausliest. Sie waren nicht nur nutzlos,
  * sie haben die Fehlersuche zweimal in die falsche Richtung geschickt — fünf Sechstel aller

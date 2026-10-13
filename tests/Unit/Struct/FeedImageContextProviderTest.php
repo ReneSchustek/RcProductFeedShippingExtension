@@ -14,7 +14,7 @@ use Shopware\Core\Content\Product\Aggregate\ProductMedia\ProductMediaEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 
 /**
- * `rcFeedImage.url(product)` im Warenstrom (BRIEF23, Stufe 2): Wann bleibt das Titelbild, wann kommt ein
+ * `rcFeedImage.url(product)` im Warenstrom: Wann bleibt das Titelbild, wann kommt ein
  * größeres Bild desselben Artikels?
  */
 #[CoversClass(FeedImageContextProvider::class)]

@@ -11,7 +11,7 @@ use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Struct\Struct;
 
 /**
- * Die Adresse für `image_link` im Warenstrom (BRIEF23, Stufe 2).
+ * Die Adresse für `image_link` im Warenstrom.
  *
  * Die Vorlage ruft `rcFeedImage.url(product)` statt `product.cover.media.url`. Ist der Austausch in den
  * Einstellungen aus (Vorgabe), kommt genau das Titelbild heraus, also dasselbe wie vorher; eine Vorlage lässt

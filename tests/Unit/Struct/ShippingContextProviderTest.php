@@ -354,12 +354,12 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Was: Ein Artikel, der sich nicht in den Warenkorb legen lässt — bei Trummer sind das die
+     * Was: Ein Artikel, der sich nicht in den Warenkorb legen lässt — im Produktivshop sind das die
      *      Hauptartikel mit Varianten.
      * Warum: Für ihn gibt es keinen Versandpreis. Jede Zahl wäre erfunden, und der Ersatzwert
      *        von 4,95 € ist bei einem Artikel, dessen Varianten 238 € Versand kosten, die
      *        schlechteste davon — zu niedrig angegebene Versandkosten sind bei Google ein
-     *        Richtlinienverstoß. Auf live-clone betraf das 309 Artikel.
+     *        Richtlinienverstoß. Auf der Testkopie betraf das 309 Artikel.
      * Erwartet: kein Block, unabhängig von der Einstellung.
      */
     public function testNotPurchasableProductEmitsNoPrice(): void

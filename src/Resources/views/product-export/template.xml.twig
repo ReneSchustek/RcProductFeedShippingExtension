@@ -11,7 +11,7 @@
     <g:title>{{ product.translated.name|e }}</g:title>
     <g:description>{{ product.translated.description|striptags|e }}</g:description>
     <g:link>{{ seoUrl('frontend.detail.page', {productId: product.id})|e }}</g:link>
-    {# image_link über rcFeedImage (BRIEF23): ist das Titelbild unter 500 × 500, nimmt der Feed ein größeres Bild
+    {# image_link über rcFeedImage: ist das Titelbild unter 500 × 500, nimmt der Feed ein größeres Bild
        desselben Artikels, sofern in den Einstellungen eingeschaltet. Ohne Bild kommt null und damit kein Eintrag;
        der Export läuft mit strict_variables, ein ungeprüftes product.cover.media bräche die Zeile ab. #}
     {% set imageLink = rcFeedImage.url(product) %}

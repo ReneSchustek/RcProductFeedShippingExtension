@@ -31,7 +31,7 @@ class FeedChannelProviderServiceTest extends TestCase
     }
 
     /**
-     * Was: Ein Export mit Vergleichs-Kanal „Google Shopping" und Storefront-Kanal „Trummer".
+     * Was: Ein Export mit Vergleichs-Kanal „Google Shopping" und Storefront-Kanal „Beispielshop".
      * Warum: Der Kern baut den Rendering-Kontext aus `storefrontSalesChannelId`
      *        (`ProductExportGenerator`, 6.7.13.0) — genau diesen Kanal bekommt der Subscriber zu
      *        sehen, und genau für ihn muss vorgewärmt sein.
@@ -39,28 +39,28 @@ class FeedChannelProviderServiceTest extends TestCase
      */
     public function testTheStorefrontChannelCountsNotTheComparisonChannel(): void
     {
-        $this->givenExports([['storefront' => 'trummer', 'comparison' => 'google']]);
+        $this->givenExports([['storefront' => 'shop', 'comparison' => 'google']]);
 
         $channelIds = $this->createService()->loadReadingChannelIds(Context::createDefaultContext());
 
-        self::assertSame(['trummer' => true], $channelIds);
+        self::assertSame(['shop' => true], $channelIds);
     }
 
     /**
      * Was: Drei Exporte auf denselben Storefront-Kanal.
-     * Warum: Auf live-clone sind es genau drei — Produktivlauf, Rauchprobe und Vergleich. Der
+     * Warum: Auf der Testkopie sind es genau drei — Produktivlauf, Rauchprobe und Vergleich. Der
      *        Aufrufer schlägt je Kombination nach; eine Liste mit Dubletten wäre die falsche Form.
      * Erwartet: eine Kennung, einmal.
      */
     public function testTheSameChannelAppearsOnlyOnce(): void
     {
         $this->givenExports([
-            ['storefront' => 'trummer', 'comparison' => 'google'],
-            ['storefront' => 'trummer', 'comparison' => 'google'],
-            ['storefront' => 'trummer', 'comparison' => 'google'],
+            ['storefront' => 'shop', 'comparison' => 'google'],
+            ['storefront' => 'shop', 'comparison' => 'google'],
+            ['storefront' => 'shop', 'comparison' => 'google'],
         ]);
 
-        self::assertSame(['trummer' => true], $this->createService()->loadReadingChannelIds(Context::createDefaultContext()));
+        self::assertSame(['shop' => true], $this->createService()->loadReadingChannelIds(Context::createDefaultContext()));
     }
 
     /**

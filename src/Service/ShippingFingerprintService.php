@@ -41,7 +41,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  *
  * Warum `rule` nur gezählt und nicht datiert wird
  * -----------------------------------------------
- * **Gemessen am 09.09.2026 auf live-clone:** Der erste Lauf nach der Umstellung rechnete alles neu,
+ * **Gemessen am 09.09.2026 auf der Testkopie:** Der erste Lauf nach der Umstellung rechnete alles neu,
  * der zweite ebenfalls — erst der dritte übersprang. Ursache war der Stempel selbst: Shopware
  * kompiliert beim Berechnen eines Warenkorbs die Regel-Nutzlast und schreibt dabei `rule.updated_at`.
  * **Der Lauf verschob damit seinen eigenen Prüfwert**, und kein Eintrag konnte je unverändert sein.

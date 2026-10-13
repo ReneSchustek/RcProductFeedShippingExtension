@@ -1,14 +1,14 @@
 ﻿# RcProductFeedShippingExtension
 
-Shopware 6 Plugin — berechnet Versandkosten pro Produkt und Land und stellt sie im Produktfeed im Google Shopping Format bereit.
+Shopware-6-Plugin, das Versandkosten je Produkt und Land berechnet und sie im Produktfeed im Format von Google Shopping bereitstellt.
 
 ---
 
 ## Was das Plugin macht
 
-Google Shopping erwartet für korrekte Versandkostenangaben einen `g:shipping`-Block pro Land im Feed. Statische Preise sind wartungsaufwändig und werden schnell falsch — spätestens wenn sich Versandzonen oder Preise ändern.
+Google Shopping erwartet im Feed für jedes Land einen eigenen `g:shipping`-Block. Feste Preise dort einzutragen macht Arbeit, und spätestens wenn sich Versandzonen oder Preise ändern, stimmen sie nicht mehr.
 
-Dieses Plugin löst das Problem, indem es für jedes Produkt im Feed einen virtuellen Warenkorb aufbaut und Shopwares eigene Versandkostenkalkulation durchlaufen lässt. Dabei werden Shopware-Regeln (Versandzonen, Gewichtsgrenzen, Produkteigenschaften) vollständig ausgewertet, nicht nachgebaut. Die Ergebnisse werden vorberechnet in einer eigenen Tabelle gehalten, sodass wiederholte Feed-Exports performant bleiben und ein Cache-Leeren sie nicht mitnimmt.
+Das Plugin geht deshalb einen anderen Weg. Für jedes Produkt im Feed baut es einen virtuellen Warenkorb und lässt Shopwares eigene Versandkostenberechnung darüber laufen. Die Regeln des Shops (Versandzonen, Gewichtsgrenzen, Produkteigenschaften) werden so tatsächlich ausgewertet und nicht nachgebaut. Die Ergebnisse liegen vorberechnet in einer eigenen Tabelle. Wiederholte Exporte bleiben dadurch schnell, und ein geleerter Cache nimmt die Werte nicht mit.
 
 ---
 
@@ -39,12 +39,12 @@ Alle Einstellungen lassen sich global oder pro Verkaufskanal setzen.
 
 | Feld | Beschreibung | Beispiel |
 |---|---|---|
-| Plugin aktivieren | An/Aus pro Verkaufskanal | — |
+| Plugin aktivieren | An/Aus pro Verkaufskanal | |
 | Verkaufskanal für Versandberechnung | UUID eines Storefront-Kanals; nötig wenn der Feed über einen Produktvergleichs-Kanal läuft | `abc123...` |
 | Versandländer | ISO-Codes, kommasepariert | `DE,AT,CH` |
 | Fallback-Versandkosten | Preis wenn Berechnung fehlschlägt | `4.95` |
 | Fallback pro Land | Länderspezifische Fallbacks | `DE:4.95,AT:9.90,CH:14.90` |
-| Wenn für ein Land keine Versandart greift | Ersatzwert eintragen (Standard) oder Land weglassen | — |
+| Wenn für ein Land keine Versandart greift | Ersatzwert eintragen (Standard) oder Land weglassen | |
 | Ausgeschlossene Versandarten | Keywords, kommasepariert | `Selbstabholung,Pickup` |
 
 **Unterstützte Länder:** DE, AT, CH, BE, BG, CY, CZ, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK, GB, NO, IS, LI, US, CA, AU
@@ -74,19 +74,19 @@ Das Plugin stellt die berechneten Versandkosten über eine Twig-Variable `rcShip
 
 Drei Dinge sind daran wichtig:
 
-- **`get()` wird je Land genau einmal aufgerufen** und das Ergebnis gemerkt. Jeder Aufruf zählt im Plugin mit, und die Zusammenfassung am Feed-Ende meldet, wie viele Produkte den Ersatzwert bekommen haben. Ein zweiter Aufruf in der Bedingung verdoppelt diese Zahl — und wer ihr nicht trauen kann, sieht einen stillen Ausfall nicht.
+- **`get()` wird je Land genau einmal aufgerufen** und das Ergebnis gemerkt. Jeder Aufruf zählt im Plugin mit, und die Zusammenfassung am Feed-Ende meldet, wie viele Produkte den Ersatzwert bekommen haben. Ein zweiter Aufruf in der Bedingung verdoppelt diese Zahl, und wer ihr nicht trauen kann, übersieht einen stillen Ausfall.
 - **`shippingFree` hat Vorrang.** Kostenloser Versand ist eine Eigenschaft des Artikels, keine Rechenfrage.
-- **`is not null` bleibt Pflicht.** `null` heißt: kein Block ausgeben. Es ist ausdrücklich nicht dasselbe wie 0,00 € — den gibt es als echtes Ergebnis.
+- **`is not null` bleibt Pflicht.** `null` heißt: kein Block ausgeben. Das ist ausdrücklich nicht dasselbe wie 0,00 €, denn den gibt es als echtes Ergebnis.
 
 Die Länder kommen aus `rcShipping.getCountries()` und damit aus der Einstellung. Steht stattdessen eine feste Liste im Template, trägt jede Änderung an den konfigurierten Ländern nur halb, und niemand sieht, welche Hälfte fehlt.
 
-Ein vollständiges Referenz-Template mit DE, AT und CH liegt im Plugin unter:
+Ein vollständiges Referenz-Template liegt im Plugin unter:
 
 ```
 src/Resources/views/product-export/template.xml.twig
 ```
 
-Wichtig: Das Template muss für jedes konfigurierte Land einen eigenen `g:shipping`-Block enthalten. Wird ein Land in der Plugin-Konfiguration hinzugefügt, muss es auch im Template ergänzt werden.
+Es holt die Länder ebenfalls über `rcShipping.getCountries()`. Ein neu eingetragenes Land braucht deshalb keine Änderung am Template.
 
 ---
 
@@ -96,28 +96,15 @@ Die berechneten Werte stehen in der Tabelle `rc_product_feed_shipping_price`, je
 und Verkaufskanal.
 
 **Sie liegen bewusst nicht im Cache.** Bis Fassung 1.2.0 taten sie das, und ein
-`bin/console cache:clear` leerte sie mit — bis zum nächsten Warmup nannte der Feed danach für
+`bin/console cache:clear` leerte sie mit. Bis zum nächsten Warmup nannte der Feed danach für
 jeden Artikel den Ersatzwert. Da der Warmup alle sechs Stunden läuft, konnte dieser Zustand
-sechs Stunden anhalten. Cache leeren gehört zu jedem Update und jedem Aufspielen; die Falle ging
-also planmäßig zu, nicht ausnahmsweise.
+sechs Stunden anhalten. Cache leeren gehört zu jedem Update und jedem Aufspielen, die Falle schnappte
+also planmäßig zu und nicht nur ausnahmsweise.
 
 **Befüllen:**
 ```bash
 php bin/console rc:shipping:warmup
 ```
-
-### Bildmaße prüfen
-
-Ab dem 31.01.2027 verlangt Google für `image_link` mindestens 500 × 500 Pixel, beide Kanten.
-Was der Bestand hergibt, sagt:
-
-```bash
-php bin/console rc:feed:image-check            # die drei Zahlen
-php bin/console rc:feed:image-check --liste    # die Artikel ohne ausreichendes Bild
-php bin/console rc:feed:image-check --nachmessen   # Stichprobe gegen die echten Dateien
-```
-
-Der Befehl misst und meldet — er ändert den Feed nicht.
 
 **Der Lauf rechnet nur, was sich geändert hat.** Je Produkt entsteht ein Prüfwert über Gewicht,
 Abmessungen, Preis, Steuersatz, Versandkostenfreiheit und Aktiv-Merkmal, dazu über den Stand der
@@ -130,12 +117,13 @@ php bin/console rc:shipping:warmup --full
 ```
 
 Der Warmup berechnet die Versandkosten für alle aktiven Produkte und Länder aller aktivierten
-Verkaufskanäle. Ohne ihn trägt der Feed den Ersatzwert — und schreibt für jeden betroffenen
+Verkaufskanäle. Ohne ihn trägt der Feed den Ersatzwert und schreibt für jeden betroffenen
 Artikel eine Warnung ins Protokoll.
 
 **Wann Einträge verfallen:**
 
-- Eine Änderung an einer Versandart räumt den Bestand ab (Subscriber).
+- Eine Änderung an einer Versandart oder einem ihrer Preise löscht nichts, sie zieht den nächsten
+  Warmup vor (Subscriber). Bis dahin bleibt der bisherige, echte Preis stehen.
 - Ein Eintrag, der älter als 24 Stunden ist, gilt als nicht vorhanden. Das ist die
   Rückfalllinie für Änderungen, die niemand meldet: Gewicht und Maße eines Artikels bestimmen
   die Versandkosten mit.
@@ -148,13 +136,26 @@ DELETE FROM rc_product_feed_shipping_price;
 
 Beim Deinstallieren wird die Tabelle entfernt, sofern nicht „Daten behalten" gewählt wurde.
 
+### Bildmaße prüfen
+
+Ab dem 31.01.2027 verlangt Google für `image_link` mindestens 500 × 500 Pixel, beide Kanten.
+Was der Bestand hergibt, sagt:
+
+```bash
+php bin/console rc:feed:image-check            # die drei Zahlen
+php bin/console rc:feed:image-check --liste    # die Artikel ohne ausreichendes Bild
+php bin/console rc:feed:image-check --nachmessen   # Stichprobe gegen die echten Dateien
+```
+
+Der Befehl misst und meldet nur, am Feed ändert er nichts.
+
 ---
 
 ## Referenzadressen
 
-Für die Berechnung braucht das Plugin eine konkrete Lieferadresse pro Land — Shopware-Regeln wie Versandzonenzuordnung oder PLZ-basierte Preisregeln werden sonst nicht korrekt ausgewertet. Das Plugin nutzt dafür intern fest hinterlegte Referenzadressen.
+Für die Berechnung braucht das Plugin je Land eine konkrete Lieferadresse, sonst wertet Shopware Regeln wie die Zuordnung zu Versandzonen oder Preise nach Postleitzahl nicht korrekt aus. Das Plugin nutzt dafür intern fest hinterlegte Referenzadressen.
 
-Deutschland verwendet Kassel (34117) statt einer großstädtischen Adresse. Der Grund: Kassel liegt geographisch zentral und wird typischerweise in Versandzone 2 eingestuft. Berlin oder München landen je nach Spediteur in Zone 1 (günstiger), was zu einem zu niedrigen Feed-Preis führen würde.
+Für Deutschland steht dort Kassel (34117) statt einer Großstadt. Kassel liegt geographisch zentral und wird typischerweise in Versandzone 2 eingestuft. Berlin oder München landen je nach Spediteur in Zone 1 (günstiger), was zu einem zu niedrigen Feed-Preis führen würde.
 
 ---
 
@@ -162,12 +163,12 @@ Deutschland verwendet Kassel (34117) statt einer großstädtischen Adresse. Der 
 
 | Situation | Ergebnis |
 |---|---|
-| Versandart gefunden | Ihr Preis — **auch 0,00 €**, wenn der Shop tatsächlich versandkostenfrei liefert |
-| Keine Versandart greift für dieses Land | Ersatzwert, oder gar kein `g:shipping`-Block — je nach Einstellung „Wenn für ein Land keine Versandart greift" |
+| Versandart gefunden | Ihr Preis, **auch 0,00 €**, wenn der Shop tatsächlich versandkostenfrei liefert |
+| Keine Versandart greift für dieses Land | Ersatzwert oder gar kein `g:shipping`-Block, je nach Einstellung „Wenn für ein Land keine Versandart greift" |
 | Nichts vorberechnet (Zwischenspeicher kalt) | Ersatzwert, unabhängig von der Einstellung |
 | Fehler bei der Berechnung | Ersatzwert, mit Eintrag im Protokoll |
 
-**Warum 0,00 € stehen bleibt:** Liefert der Shop ab einem bestimmten Warenwert kostenlos, ist 0,00 € die richtige Angabe — nicht der Ersatzwert. Selbstabholung dagegen wäre eine falsche 0,00 €, deshalb gibt es die Ausschlussliste.
+**Warum 0,00 € stehen bleibt:** Liefert der Shop ab einem bestimmten Warenwert kostenlos, ist 0,00 € die richtige Angabe und nicht der Ersatzwert. Selbstabholung dagegen wäre eine falsche 0,00 €, deshalb gibt es die Ausschlussliste.
 
 **Warum ein kalter Speicher nie zum Weglassen führt:** „Keine Versandart" ist eine Aussage über das Sortiment, „nichts vorberechnet" ein Betriebszustand. Würde der zweite Fall den Block ebenfalls weglassen, verlöre der Feed nach jedem `cache:clear` schlagartig alle Versandangaben.
 
@@ -190,16 +191,11 @@ php bin/console rc:shipping:warmup
 
 **Sprachen-Konfiguration:** Der Verkaufskanal, der für die Berechnung verwendet wird, muss mindestens eine Sprache zugewiesen haben. Ohne Sprache schlägt die Context-Erstellung fehl und alle Berechnungen greifen auf den Fallback zurück. Prüfen unter **Verkaufskanäle → [Kanal] → Sprachen**.
 
-**Versandarten ohne Liefergebiet:** Greift für ein Land keine Versandart — etwa weil sperrige oder schwere Ware dorthin nur auf Anfrage verschickt wird —, entscheidet die Einstellung „Wenn für ein Land keine Versandart greift", ob der Ersatzwert erscheint oder der Block entfällt. Ein Feed kann „auf Anfrage" nicht ausdrücken; das Weglassen kommt dem am nächsten, weil Google dann die Versandeinstellung des Händlerkontos heranzieht.
+**Versandarten ohne Liefergebiet:** Greift für ein Land keine Versandart, etwa weil sperrige oder schwere Ware dorthin nur auf Anfrage verschickt wird, entscheidet die Einstellung „Wenn für ein Land keine Versandart greift", ob der Ersatzwert erscheint oder der Block entfällt. Ein Feed kann „auf Anfrage" nicht ausdrücken; das Weglassen kommt dem am nächsten, weil Google dann die Versandeinstellung des Händlerkontos heranzieht.
 
 **Nicht bestellbare Artikel:** Elternartikel mit Varianten und ausverkaufte Abverkaufsartikel lassen sich nicht in einen Warenkorb legen und bekommen deshalb nie einen berechneten Preis. Der Produkt-Export liefert Elternartikel ohnehin nicht aus; in der Zählung von `rc:shipping:check` tauchen sie dennoch auf.
 
 ---
 
-## Projektdokumentation
-
----
-
 Entwickelt von [Ruhrcoder](https://ruhrcoder.de)
 
-<!-- TRIAGE-WORKFLOW: auto-managed by triage-deploy.ps1 -->

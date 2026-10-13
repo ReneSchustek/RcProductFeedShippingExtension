@@ -13,7 +13,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Legt `rcFeedImage` in den Kontext jedes Produktexports (BRIEF23, Stufe 2).
+ * Legt `rcFeedImage` in den Kontext jedes Produktexports.
  *
  * Immer, unabhängig von den Versand-Einstellungen: Der Export läuft mit `strict_variables`. Eine Vorlage, die
  * `rcFeedImage.url(product)` ruft, bräche sonst ab, sobald jemand die Versandberechnung abschaltet.

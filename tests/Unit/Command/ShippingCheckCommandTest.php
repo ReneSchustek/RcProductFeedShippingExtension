@@ -110,7 +110,7 @@ class ShippingCheckCommandTest extends TestCase
 
     /**
      * Was: Ein Kanal, dessen Berechnungs-Kanal keinen Context liefert.
-     * Warum: Genau die Lage auf live-clone — der Google-Shopping-Kanal hat eine Sprache
+     * Warum: Genau die Lage auf der Testkopie — der Google-Shopping-Kanal hat eine Sprache
      *        zugewiesen, die es nicht gibt. Ohne deutlichen Hinweis sucht man den Fehler bei
      *        den Versandarten statt bei der Kanalkonfiguration.
      * Erwartet: Warnung mit Kanalnamen, keine Berechnung.
@@ -204,7 +204,7 @@ class ShippingCheckCommandTest extends TestCase
         self::assertStringContainsString('kein Produktexport liest diesen Kanal aus', $tester->getDisplay());
     }
 
-    private function givenOneEnabledChannel(array $countries, string $name = 'Trummer Edelstahl'): void
+    private function givenOneEnabledChannel(array $countries, string $name = 'Beispielshop'): void
     {
         $this->givenSalesChannels(['kanal' => $name]);
         $this->configurationService->method('isEnabled')->willReturn(true);

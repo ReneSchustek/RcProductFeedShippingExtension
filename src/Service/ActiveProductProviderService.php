@@ -16,7 +16,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
  * vom Elternartikel erben.**
  *
  * Ein bloßes `EqualsFilter('active', true)` vergleicht die Spalte und sieht bei einer Variante mit
- * `active = NULL` nichts. Auf `live-clone` sind das 1970 von 2739 Produkten. Ein Warmup, der die
+ * `active = NULL` nichts. Auf der Testkopie sind das 1970 von 2739 Produkten. Ein Warmup, der die
  * falschen Produkte wärmt, ist genauso wirkungslos wie gar keiner, meldet aber Erfolg — und eine
  * Diagnose, die dieselbe Verengung wiederholt, meldet ein Viertel der Wirklichkeit als Ganzes.
  *

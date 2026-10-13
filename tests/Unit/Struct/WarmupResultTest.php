@@ -69,7 +69,7 @@ class WarmupResultTest extends TestCase
     /**
      * Was: Ein einziger gerechneter Wert unter lauter Ersatzwerten.
      * Warum: „Auffällig" heißt „gar nichts gerechnet", nicht „überwiegend Ersatzwerte". Auf
-     *        live-clone sind 1943 von 8217 Kombinationen Ersatzwerte, und das ist ein gesunder
+     *        der Testkopie sind 1943 von 8217 Kombinationen Ersatzwerte, und das ist ein gesunder
      *        Lauf — die Ware geht dorthin schlicht nicht.
      * Erwartet: nicht auffällig.
      */

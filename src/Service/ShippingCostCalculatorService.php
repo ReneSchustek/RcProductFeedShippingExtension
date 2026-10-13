@@ -171,7 +171,7 @@ class ShippingCostCalculatorService
             if ($shippingCost === null) {
                 // Mit den Kennwerten, an denen es gescheitert ist. Ohne sie steht im Protokoll nur
                 // „keine Versandart", und die Suche beginnt bei null: Die Verfügbarkeitsregeln
-                // hängen bei Trummer fast alle an Gewicht, Länge und Warenwert der Position — wer
+                // hängen im Produktivshop fast alle an Gewicht, Länge und Warenwert der Position — wer
                 // die Zahlen nicht sieht, kann nicht unterscheiden, ob die Regel zu eng ist oder
                 // die Position ihre Lieferangaben gar nicht mitbringt.
                 $this->logger->info('RcProductFeedShipping: keine Versandart für diese Kombination.', [
@@ -557,7 +557,7 @@ class ShippingCostCalculatorService
      * **Er steht im Warenkorb, nicht im Kontext.** `CartRuleLoader::validateTaxFree()` setzt den
      * steuerfreien Zustand nur für die Dauer der Neuberechnung und **stellt ihn danach zurück**
      * (Kern 6.7.12.1, Zeile 325-345). Wer den Kontext hinterher fragt, bekommt wieder
-     * `TAX_STATE_GROSS` — gemessen auf live-clone bei `customerTax.enabled = true` für die
+     * `TAX_STATE_GROSS` — gemessen auf der Testkopie bei `customerTax.enabled = true` für die
      * Schweiz. Der berechnete Warenkorb trägt den tatsächlich verwendeten Zustand.
      *
      * Der Währungsfaktor gilt nur für den Preis in der Standardwährung: Er ist der Umrechnungs-
