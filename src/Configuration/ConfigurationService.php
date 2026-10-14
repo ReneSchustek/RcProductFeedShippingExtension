@@ -185,6 +185,38 @@ class ConfigurationService
     }
 
     /**
+     * Die Versandarten, die nie in den Feed dürfen, als Kennungen in Kleinschreibung.
+     *
+     * Der Ausschluss hängt an der Kennung statt am Namen: Die Namensteile der älteren Einstellung
+     * scheiterten schon an der ersten Umbenennung — Trummers Abholung heißt „Selbstabholer", und
+     * keines der drei voreingestellten Wörter steckt darin. Die Abholung für 0,00 € gewann dadurch
+     * als günstigste Lieferung, und 2.254 von 2.265 Artikeln standen in Google mit kostenlosem Versand.
+     *
+     * @return array<int, string>
+     */
+    public function getExcludedShippingMethodIds(string $salesChannelId): array
+    {
+        $value = $this->systemConfigService->get(
+            self::CONFIG_PREFIX . 'excludedShippingMethodIds',
+            $salesChannelId
+        );
+
+        if (!\is_array($value)) {
+            return [];
+        }
+
+        $ids = [];
+
+        foreach ($value as $id) {
+            if (\is_string($id) && $id !== '') {
+                $ids[] = strtolower($id);
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
      * Gibt die Keywords zurück, nach denen Versandarten ausgeschlossen werden.
      *
      * Ist das Konfigurationsfeld leer, werden die Standardwerte zurückgegeben

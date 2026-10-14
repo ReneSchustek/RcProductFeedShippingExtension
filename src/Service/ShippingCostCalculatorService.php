@@ -157,10 +157,12 @@ class ShippingCostCalculatorService
             }
 
             $excluded = $this->configurationService->getExcludedShippingMethods($salesChannelId);
+            $excludedIds = $this->configurationService->getExcludedShippingMethodIds($salesChannelId);
             $shippingCost = $this->findCheapestApplicableShippingCost(
                 $salesChannelId,
                 $context,
                 $excluded,
+                $excludedIds,
                 $deliveryValues,
                 $cart->getPrice()->getTaxStatus(),
             );
@@ -308,6 +310,7 @@ class ShippingCostCalculatorService
      * Unter den verbleibenden Methoden gewinnt der niedrigste anwendbare Preis-Tier.
      *
      * @param array<int, string> $excludedKeywords
+     * @param array<int, string> $excludedIds    Kennungen aus der Auswahl, kleingeschrieben
      * @param array<int, float>  $deliveryValues Liefer-Kennwerte je Calculation-Typ (Gewicht/Preis/Menge/Volumen)
      * @param string             $taxStatus      Steuerzustand des berechneten Warenkorbs
      */
@@ -315,6 +318,7 @@ class ShippingCostCalculatorService
         string $salesChannelId,
         SalesChannelContext $context,
         array $excludedKeywords,
+        array $excludedIds,
         array $deliveryValues,
         string $taxStatus,
     ): ?float {
@@ -332,6 +336,8 @@ class ShippingCostCalculatorService
                 ->search($criteria, $context->getContext())
                 ->getEntities()
                 ->getElements();
+
+            $this->warnAboutVanishedExclusions($salesChannelId, $excludedIds, $context->getContext());
         }
 
         $methods = $this->shippingMethodsCache[$salesChannelId];
@@ -347,7 +353,8 @@ class ShippingCostCalculatorService
             /** @var ShippingMethodEntity $method */
             $methodName = $method->getTranslated()['name'] ?? $method->getName() ?? '';
 
-            if ($this->isExcluded($methodName, $excludedKeywords)) {
+            if (\in_array(strtolower($method->getId()), $excludedIds, true)
+                || $this->isExcluded($methodName, $excludedKeywords)) {
                 ++$this->lastSelectionTrace['excluded'];
                 continue;
             }
@@ -682,6 +689,40 @@ class ShippingCostCalculatorService
         }
 
         return true;
+    }
+
+    /**
+     * Meldet ausgewählte Versandarten, die es nicht mehr gibt — einmal je Kanal und Lauf.
+     *
+     * Abbrechen wäre falsch: Eine gelöschte Versandart kann ohnehin nicht mehr gewinnen, der
+     * Ausschluss hat sein Ziel also erreicht. Schweigen wäre ebenso falsch, denn wer die Auswahl
+     * pflegt, soll die Leiche darin finden. Gefragt wird nur nach den Kennungen, die unter den
+     * aktiven Versandarten des Kanals fehlen; eine inaktive oder dem Kanal nicht zugeordnete
+     * Versandart gibt es noch und ist kein Fall für das Protokoll.
+     *
+     * @param array<int, string> $excludedIds
+     */
+    private function warnAboutVanishedExclusions(string $salesChannelId, array $excludedIds, Context $context): void
+    {
+        $known = [];
+        foreach ($this->shippingMethodsCache[$salesChannelId] ?? [] as $method) {
+            $known[strtolower($method->getId())] = true;
+        }
+
+        $unknown = array_values(array_filter($excludedIds, static fn (string $id): bool => !isset($known[$id])));
+        if ($unknown === []) {
+            return;
+        }
+
+        $existing = array_map('strtolower', $this->shippingMethodRepository->searchIds(new Criteria($unknown), $context)->getIds());
+        $vanished = array_values(array_diff($unknown, $existing));
+
+        if ($vanished !== []) {
+            $this->logger->warning('Excluded shipping methods no longer exist and are skipped', [
+                'salesChannelId' => $salesChannelId,
+                'shippingMethodIds' => $vanished,
+            ]);
+        }
     }
 
     /** @param array<int, string> $excludedKeywords */

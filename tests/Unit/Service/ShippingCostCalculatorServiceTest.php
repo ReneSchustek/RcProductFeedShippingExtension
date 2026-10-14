@@ -38,6 +38,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\Price;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\PriceCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 use Shopware\Core\Checkout\Shipping\ShippingMethodCollection;
 use Shopware\Core\System\Country\CountryCollection;
 use Shopware\Core\Framework\Uuid\Uuid;
@@ -182,6 +183,79 @@ class ShippingCostCalculatorServiceTest extends TestCase
         $result = $this->service->calculate(self::PRODUCT_ID, 'DE', self::SALES_CHANNEL_ID);
 
         self::assertSame(4.95, $result->shippingCost);
+    }
+
+    /**
+     * Was: Die Abholung ist per Kennung ausgewählt und heißt „Selbstabholer".
+     * Warum: Kein voreingestellter Namensteil steckt in „Selbstabholer"; die Abholung für 0,00 € gewann deshalb auf
+     *        Live bei 2.254 von 2.265 Artikeln. Die Kennung übersteht jede Umbenennung.
+     * Erwartet: der Paketversand gewinnt, obwohl die Namensliste leer ist.
+     */
+    public function testAMethodSelectedByIdIsSkippedWhateverItsName(): void
+    {
+        $pickup = $this->buildShippingMethod('Selbstabholer', null, null, 0.0);
+
+        $this->setUpCacheMiss();
+        $this->setUpSuccessfulContext([]);
+        $this->configurationService->method('getExcludedShippingMethodIds')
+            ->willReturn([strtolower($pickup->getId())]);
+        $this->setUpShippingMethods([
+            $pickup,
+            $this->buildShippingMethod('Paketversand', null, null, 8.93),
+        ]);
+
+        $result = $this->service->calculate(self::PRODUCT_ID, 'DE', self::SALES_CHANNEL_ID);
+
+        self::assertSame(8.93, $result->shippingCost);
+    }
+
+    /**
+     * Was: In der Auswahl steht eine Versandart, die gelöscht wurde.
+     * Warum: Die Auswahl speichert Kennungen; eine gelöschte Versandart bleibt darin stehen. Brach der Lauf daran ab,
+     *        stünde der ganze Feed auf Ersatzwerten.
+     * Erwartet: es wird gerechnet, und das Protokoll nennt die Kennung genau einmal je Kanal.
+     */
+    public function testAVanishedSelectedMethodIsReportedOnceAndSkipped(): void
+    {
+        $vanishedId = Uuid::randomHex();
+
+        $this->setUpCacheMiss();
+        $this->setUpSuccessfulContext([]);
+        $this->configurationService->method('getExcludedShippingMethodIds')->willReturn([$vanishedId]);
+        $this->setUpShippingMethods([$this->buildShippingMethod('Paketversand', null, null, 8.93)]);
+        $this->setUpExistingMethodIds([]);
+
+        $this->logger->expects(self::once())->method('warning')->with(
+            self::stringContains('no longer exist'),
+            self::callback(static fn (array $context): bool => $context['shippingMethodIds'] === [$vanishedId]),
+        );
+
+        $first = $this->service->calculate(self::PRODUCT_ID, 'DE', self::SALES_CHANNEL_ID);
+        $second = $this->service->calculate(self::PRODUCT_ID, 'AT', self::SALES_CHANNEL_ID);
+
+        self::assertSame(8.93, $first->shippingCost);
+        self::assertSame(8.93, $second->shippingCost);
+    }
+
+    /**
+     * Was: Ausgewählt ist eine Versandart, die es gibt, die aber inaktiv oder dem Kanal nicht zugeordnet ist.
+     * Warum: Sie fehlt unter den aktiven Versandarten des Kanals und sieht damit aus wie eine gelöschte. Eine Warnung
+     *        wäre ein Fehlalarm.
+     * Erwartet: keine Warnung.
+     */
+    public function testAnExistingButInactiveSelectedMethodIsNotReported(): void
+    {
+        $inactiveId = Uuid::randomHex();
+
+        $this->setUpCacheMiss();
+        $this->setUpSuccessfulContext([]);
+        $this->configurationService->method('getExcludedShippingMethodIds')->willReturn([$inactiveId]);
+        $this->setUpShippingMethods([$this->buildShippingMethod('Paketversand', null, null, 8.93)]);
+        $this->setUpExistingMethodIds([$inactiveId]);
+
+        $this->logger->expects(self::never())->method('warning');
+
+        $this->service->calculate(self::PRODUCT_ID, 'DE', self::SALES_CHANNEL_ID);
     }
 
     public function testCheapestMethodWins(): void
@@ -336,6 +410,14 @@ class ShippingCostCalculatorServiceTest extends TestCase
     private function setUpCacheMiss(): void
     {
         $this->priceStore->method('get')->willReturn(null);
+    }
+
+    /** @param array<int, string> $ids */
+    private function setUpExistingMethodIds(array $ids): void
+    {
+        $result = $this->createMock(IdSearchResult::class);
+        $result->method('getIds')->willReturn($ids);
+        $this->shippingMethodRepository->method('searchIds')->willReturn($result);
     }
 
     /** @param array<int, ShippingMethodEntity> $methods */

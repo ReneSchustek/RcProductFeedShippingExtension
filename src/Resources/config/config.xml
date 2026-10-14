@@ -70,12 +70,21 @@
             <defaultValue>fallback</defaultValue>
         </input-field>
 
+        <component name="sw-entity-multi-id-select">
+            <name>excludedShippingMethodIds</name>
+            <entity>shipping_method</entity>
+            <label lang="de-DE">Versandarten, die nie in den Feed dürfen</label>
+            <label lang="en-GB">Shipping methods never used in the feed</label>
+            <helpText lang="de-DE">Das Plugin wählt immer die günstigste Versandart. Eine Selbstabholung für 0,00 € würde sonst gewinnen und im Feed einen kostenlosen Versand versprechen, den es nicht gibt. Gespeichert wird die Versandart selbst, nicht ihr Name: Eine Umbenennung ändert nichts am Ausschluss. Eine Änderung der Auswahl erkennt die Vorberechnung selbst und rechnet beim nächsten Lauf alles neu.</helpText>
+            <helpText lang="en-GB">The plugin always picks the cheapest shipping method. A self-collection at 0.00 EUR would otherwise win and promise free delivery the shop does not offer. The method itself is stored, not its name, so renaming it does not lift the exclusion. The precalculation detects a changed selection and recalculates everything on its next run.</helpText>
+        </component>
+
         <input-field type="text">
             <name>excludedShippingMethods</name>
-            <label lang="de-DE">Ausgeschlossene Versandarten (Name enthält)</label>
-            <label lang="en-GB">Excluded shipping methods (name contains)</label>
-            <helpText lang="de-DE">Das Plugin wählt immer die günstigste Versandart. Selbstabholung (0,00 €) würde sonst gewinnen und im Feed einen Versand versprechen, den es nicht gibt. Schlüsselwörter kommasepariert eingeben — Versandarten deren Name eines dieser Wörter enthält werden ignoriert. Groß-/Kleinschreibung egal.</helpText>
-            <helpText lang="en-GB">Comma-separated keywords. Shipping methods whose name contains any of these words are excluded. Self-pickup (0.00 EUR) would otherwise win as the cheapest method and promise a delivery the shop does not offer.</helpText>
+            <label lang="de-DE">Ausgeschlossene Versandarten nach Namensteil (veraltet)</label>
+            <label lang="en-GB">Excluded shipping methods by name part (deprecated)</label>
+            <helpText lang="de-DE">Veraltet, bitte die Auswahl oben nutzen. Wirkt vorerst zusätzlich: Versandarten, deren Name eines dieser Wörter enthält, werden ignoriert. Wörter kommagetrennt, Groß- und Kleinschreibung egal. Ein Namensteil scheitert an jeder Umbenennung: „Selbstabholer" enthält weder „Selbstabholung" noch „Abholung".</helpText>
+            <helpText lang="en-GB">Deprecated, please use the selection above. Still applies in addition: shipping methods whose name contains any of these comma-separated words are excluded, case-insensitive. A name part breaks with every rename.</helpText>
             <defaultValue>Selbstabholung,Abholung,Pickup</defaultValue>
         </input-field>
     </card>

@@ -80,6 +80,24 @@ class ShippingFingerprintServiceTest extends TestCase
     }
 
     /**
+     * Was: Die Auswahl der ausgeschlossenen Versandarten ändert sich, sonst nichts.
+     * Warum: Die Auswahl steht in der Plugin-Konfiguration, nicht in den Versandtabellen. Ohne sie im Stempel stünde die
+     *        eben ausgeschlossene Abholung für 0,00 € weiter im Speicher.
+     * Erwartet: ein anderer Stempel.
+     */
+    public function testAChangedExclusionChangesTheStamp(): void
+    {
+        $key = 'RcProductFeedShippingExtension.config.excludedShippingMethodIds';
+
+        $without = $this->serviceWithSettings([])->configurationStamp();
+        $with = $this->serviceWithSettings([[$key, '-', '{"_value": ["0190abc"]}']])->configurationStamp();
+        $other = $this->serviceWithSettings([[$key, '-', '{"_value": ["0190def"]}']])->configurationStamp();
+
+        self::assertNotSame($without, $with);
+        self::assertNotSame($with, $other);
+    }
+
+    /**
      * Was: Zwei Produkte, die sich nur im Preis unterscheiden.
      * Warum: Der Preis ist die übersehene Eingangsgröße. Wo es „versandkostenfrei ab X" gibt,
      *        ändert eine Preisänderung die Versandkosten, obwohl das Gewicht gleich blieb.
@@ -162,6 +180,16 @@ class ShippingFingerprintServiceTest extends TestCase
         self::assertCount(1, $ruleQueries);
         self::assertStringNotContainsString('MAX(', $ruleQueries[0]);
         self::assertStringContainsString('COUNT(*)', $ruleQueries[0]);
+    }
+
+    /** @param array<int, array<int, string>> $settings */
+    private function serviceWithSettings(array $settings): ShippingFingerprintService
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('fetchAssociative')->willReturn(['count' => '4', 'latest' => '2026-10-14 08:00:00']);
+        $connection->method('fetchAllNumeric')->willReturn($settings);
+
+        return new ShippingFingerprintService($connection);
     }
 
     /**

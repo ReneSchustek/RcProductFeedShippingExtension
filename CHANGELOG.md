@@ -3,6 +3,29 @@
 Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [1.8.0] - 2026-10-14: Versandarten über die Kennung ausschließen
+
+> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> Keine Migration. Danach in der Plugin-Konfiguration „Versandarten, die nie in den Feed dürfen" wählen
+> (Selbstabholung, Platzhalter-Versandart) und `rc:shipping:warmup` laufen lassen; die Änderung erkennt
+> der Lauf selbst, `--full` ist nicht nötig.
+
+### Neu
+
+- **Auswahl „Versandarten, die nie in den Feed dürfen"**: Mehrfachauswahl der Versandarten, gespeichert
+  werden die Kennungen. Eine Umbenennung hebt den Ausschluss nicht auf. Auf Live hieß die Abholung
+  „Selbstabholer"; keiner der voreingestellten Namensteile steckte darin, und fast der ganze Feed trug
+  0,00 € Versand.
+- **Die Vorberechnung erkennt eine geänderte Auswahl selbst**: Auswahl und Namensteile stehen im
+  Stempel; nach einer Änderung rechnet der nächste Lauf alles neu.
+- **Gelöschte Versandart in der Auswahl**: Der Lauf rechnet weiter und protokolliert die Kennung einmal
+  je Kanal als Warnung.
+
+### Geändert
+
+- Das Feld mit Namensteilen heißt jetzt „Ausgeschlossene Versandarten nach Namensteil (veraltet)" und
+  wirkt vorerst zusätzlich. Es entfällt in einer späteren Fassung.
+
 ## [1.7.0] - 2026-10-13: Ein größeres Bild für Google, wenn das Titelbild zu klein ist
 
 > **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.

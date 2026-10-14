@@ -226,6 +226,31 @@ class ConfigurationServiceTest extends TestCase
         self::assertSame(['Express', 'Spedition'], $result);
     }
 
+    /**
+     * Was: Die Auswahl der Versandarten, die nie in den Feed dürfen.
+     * Warum: Der Rechner vergleicht kleingeschriebene Kennungen; doppelte oder leere Einträge dürfen den Vergleich
+     *        nicht stören.
+     * Erwartet: Kennungen kleingeschrieben, ohne Leereinträge und Doppelungen.
+     */
+    public function testExcludedShippingMethodIdsAreNormalised(): void
+    {
+        $this->systemConfigService->method('get')->willReturn(['ABC123', '', 'abc123', 'def456', 7]);
+
+        self::assertSame(['abc123', 'def456'], $this->service->getExcludedShippingMethodIds('channel-id'));
+    }
+
+    /**
+     * Was: Die Auswahl ist nie gespeichert worden.
+     * Warum: Ohne Wert liefert die Konfiguration `null`; der Ausschluss ist dann schlicht leer.
+     * Erwartet: leere Liste.
+     */
+    public function testNoExcludedShippingMethodIdsWithoutASelection(): void
+    {
+        $this->systemConfigService->method('get')->willReturn(null);
+
+        self::assertSame([], $this->service->getExcludedShippingMethodIds('channel-id'));
+    }
+
     public function testGetCalculationSalesChannelIdReturnsNullForEmptyValue(): void
     {
         $this->systemConfigService->method('getString')->willReturn('');

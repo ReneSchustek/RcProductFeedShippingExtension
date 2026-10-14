@@ -49,6 +49,14 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * Von `rule` geht deshalb nur die **Anzahl** in den Stempel ein — sie merkt eine hinzugefügte oder
  * gelöschte Regel. Eine inhaltliche Änderung fängt `rule_condition` ab: Dort stehen die Bedingungen
  * selbst, und diese Tabelle schreibt niemand nebenbei.
+ *
+ * Auch der Ausschluss gehört in den Stempel
+ * -----------------------------------------
+ * Welche Versandarten der Feed nie nehmen darf, steht in der Plugin-Konfiguration, nicht in den
+ * Versandtabellen. Ohne diese Werte im Stempel blieb eine geänderte Auswahl wirkungslos, bis ein
+ * Lauf mit `--force` alles neu rechnete: Die Abholung für 0,00 € stand weiter im Speicher, obwohl
+ * sie längst ausgeschlossen war. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
+ * rechnet der nächste Lauf alles neu — selten genug, dass die Unschärfe nicht zählt.
  */
 class ShippingFingerprintService
 {
@@ -63,6 +71,12 @@ class ShippingFingerprintService
         'shipping_method_price' => true,
         'rule_condition' => true,
         'rule' => false,
+    ];
+
+    /** Einstellungen, die bestimmen, welche Versandarten überhaupt in Frage kommen. */
+    private const CONFIGURATION_KEYS = [
+        'RcProductFeedShippingExtension.config.excludedShippingMethodIds',
+        'RcProductFeedShippingExtension.config.excludedShippingMethods',
     ];
 
     /** Produkte je Abfrage — eine `IN`-Liste mit mehreren tausend Werten will niemand. */
@@ -97,6 +111,19 @@ class ShippingFingerprintService
             $row = $this->connection->fetchAssociative('SELECT ' . $columns . ' FROM `' . $table . '`');
 
             $parts[] = $table . ':' . (string) ($row['count'] ?? '0') . ':' . (string) ($row['latest'] ?? '-');
+        }
+
+        $settings = $this->connection->fetchAllNumeric(
+            'SELECT `configuration_key`, COALESCE(LOWER(HEX(`sales_channel_id`)), "-"), `configuration_value`
+               FROM `system_config`
+              WHERE `configuration_key` IN (:keys)
+              ORDER BY 1, 2',
+            ['keys' => self::CONFIGURATION_KEYS],
+            ['keys' => ArrayParameterType::STRING],
+        );
+
+        foreach ($settings as $setting) {
+            $parts[] = implode(':', array_map(static fn (mixed $value): string => (string) $value, $setting));
         }
 
         return $this->configurationStamp = sha1(implode('|', $parts));
