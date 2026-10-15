@@ -3,6 +3,17 @@
 Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+
+## [1.8.1] - 2026-10-15 — Worker rechnet nicht mit alten Werten
+
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+
+### Behoben
+
+- Die Zwischenspeicher für Versandarten, Länder, Einstellungen, Prüfwert und Feedbilder werden zwischen zwei Nachrichten
+  eines langlebigen Workers geleert. Ein Warmup rechnete sonst unter Umständen mit Werten aus dem Lauf davor.
+- Die Bildprüfung (`rc:feed:image-check`) zählt eine beschädigte Datei als unlesbar, ohne Warnungen zu unterdrücken.
+
 ## [1.8.0] - 2026-10-14: Versandarten über die Kennung ausschließen
 
 > **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.

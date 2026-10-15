@@ -32,6 +32,7 @@ use Shopware\Core\System\Country\CountryCollection;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Berechnet Versandkosten für ein Produkt in ein bestimmtes Land.
@@ -45,7 +46,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * dieses Produkt nicht gelten (z.B. Paketdienst wenn nur Spedition erlaubt ist),
  * korrekt herausgefiltert.
  */
-class ShippingCostCalculatorService
+class ShippingCostCalculatorService implements ResetInterface
 {
     /** @var array<string, SalesChannelContext> In-Memory-Cache für Base-Contexts pro SalesChannel */
     private array $baseContextCache = [];
@@ -741,5 +742,16 @@ class ShippingCostCalculatorService
         }
 
         return false;
+    }
+
+    /**
+     * Leert die Zwischenspeicher zwischen zwei Nachrichten eines langlebigen Workers (`kernel.reset`). Sonst rechnete der
+     * nächste Warmup mit Versandarten, Ländern und Einstellungen aus dem Lauf davor.
+     */
+    public function reset(): void
+    {
+        $this->baseContextCache = [];
+        $this->shippingMethodsCache = [];
+        $this->countryCache = [];
     }
 }

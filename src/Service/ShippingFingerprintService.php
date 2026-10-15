@@ -8,6 +8,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Bildet je Produkt einen Prüfwert über alles, was die Versandkosten bestimmt.
@@ -58,7 +59,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * sie längst ausgeschlossen war. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
  * rechnet der nächste Lauf alles neu — selten genug, dass die Unschärfe nicht zählt.
  */
-class ShippingFingerprintService
+class ShippingFingerprintService implements ResetInterface
 {
     /**
      * Tabellen, deren Stand die Versandkosten aller Produkte bestimmt.
@@ -181,5 +182,14 @@ class ShippingFingerprintService
         }
 
         return $fingerprints;
+    }
+
+    /**
+     * Leert die Zwischenspeicher zwischen zwei Nachrichten eines langlebigen Workers (`kernel.reset`). Sonst rechnete der
+     * nächste Warmup mit Versandarten, Ländern und Einstellungen aus dem Lauf davor.
+     */
+    public function reset(): void
+    {
+        $this->configurationStamp = null;
     }
 }

@@ -128,8 +128,8 @@ final class FeedImageCheckCommand extends Command
                 continue;
             }
 
-            $size = @getimagesize($file);
-            if ($size === false) {
+            $size = self::imageSize($file);
+            if ($size === null) {
                 ++$unreadable;
 
                 continue;
@@ -177,5 +177,25 @@ final class FeedImageCheckCommand extends Command
                 $list
             )
         );
+    }
+
+    /**
+     * Breite und Höhe eines Bildes, `null` für eine Datei, die kein lesbares Bild ist.
+     *
+     * `getimagesize()` meldet eine beschädigte oder fremde Datei mit einer PHP-Warnung. Der Fehlerhandler fängt genau diese
+     * eine Meldung ab; die Datei zählt dann als unlesbar, statt die Prüfung abzubrechen.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private static function imageSize(string $file): ?array
+    {
+        set_error_handler(static fn (): bool => true, \E_WARNING | \E_NOTICE);
+        try {
+            $size = getimagesize($file);
+        } finally {
+            restore_error_handler();
+        }
+
+        return $size === false ? null : [$size[0], $size[1]];
     }
 }

@@ -7,6 +7,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Findet für den Warenstrom das Produktbild, das Googles Mindestmaß erfüllt.
@@ -40,7 +41,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * **Hochskaliert wird unter keinen Umständen.** Ein hochgerechnetes 400er-Bild bestünde Googles
  * Prüfung und stünde danach unscharf im Shop.
  */
-class FeedImageService
+class FeedImageService implements ResetInterface
 {
     /** Googles Mindestmaß ab dem 31.01.2027 — beide Kanten, nicht die Fläche. */
     public const MINIMUM_EDGE = 500;
@@ -244,5 +245,14 @@ class FeedImageService
         }
 
         return $list;
+    }
+
+    /**
+     * Leert die Zwischenspeicher zwischen zwei Nachrichten eines langlebigen Workers (`kernel.reset`). Sonst rechnete der
+     * nächste Warmup mit Versandarten, Ländern und Einstellungen aus dem Lauf davor.
+     */
+    public function reset(): void
+    {
+        $this->resolved = null;
     }
 }

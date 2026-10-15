@@ -6,6 +6,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Configuration;
 
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Liest die Plugin-Konfiguration aus dem Shopware SystemConfig-Service.
@@ -13,7 +14,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
  * Alle Werte sind pro Verkaufskanal überschreibbar. Ist kein verkanalspezifischer
  * Wert gesetzt, greift Shopware automatisch auf die globale Konfiguration zurück.
  */
-class ConfigurationService
+class ConfigurationService implements ResetInterface
 {
     private const CONFIG_PREFIX = 'RcProductFeedShippingExtension.config.';
     private const DEFAULT_EXCLUDED_METHODS = ['Selbstabholung', 'Abholung', 'Pickup'];
@@ -275,5 +276,14 @@ class ConfigurationService
         }
 
         return $result;
+    }
+
+    /**
+     * Leert die Zwischenspeicher zwischen zwei Nachrichten eines langlebigen Workers (`kernel.reset`). Sonst rechnete der
+     * nächste Warmup mit Versandarten, Ländern und Einstellungen aus dem Lauf davor.
+     */
+    public function reset(): void
+    {
+        $this->fallbackPerCountry = [];
     }
 }
