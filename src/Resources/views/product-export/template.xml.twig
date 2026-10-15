@@ -17,7 +17,7 @@
     {% set imageLink = rcFeedImage.url(product) %}
     {% if imageLink %}<g:image_link>{{ imageLink|e }}</g:image_link>{% endif %}
     <g:availability>{{ product.availableStock > 0 ? 'in stock' : 'out of stock' }}</g:availability>
-    <g:price>{{ product.calculatedPrice.unitPrice|number_format(2, '.', '') }} EUR</g:price>
+    <g:price>{{ product.calculatedPrice.unitPrice|number_format(2, '.', '') }} {{ context.currency.isoCode }}</g:price>
     {# Ohne Hersteller bleibt das Feld ganz weg. Ein leeres `<g:brand></g:brand>` ist für den
        Empfänger schlechter als ein fehlendes: Es sieht nach gepflegter Angabe aus und ist keine.
        Shopwares mitgelieferte Vorlage hält es genauso. #}
@@ -29,7 +29,7 @@
     <g:shipping>
         <g:country>{{ country }}</g:country>
         <g:service>Standard</g:service>
-        <g:price>0.00 EUR</g:price>
+        <g:price>0.00 {{ context.currency.isoCode }}</g:price>
     </g:shipping>
     {% endfor %}
     {% else %}
@@ -52,7 +52,7 @@
     <g:shipping>
         <g:country>{{ country }}</g:country>
         <g:service>Standard</g:service>
-        <g:price>{{ shippingCost | number_format(2, '.', '') }} EUR</g:price>
+        <g:price>{{ shippingCost | number_format(2, '.', '') }} {{ context.currency.isoCode }}</g:price>
     </g:shipping>
     {% endif %}
     {% endfor %}

@@ -160,7 +160,7 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Ein vollständig warmer Lauf darf nichts report — sonst gewöhnt man sich die Warnung ab.
+     * Ein vollständig warmer Lauf darf nichts melden — sonst gewöhnt man sich die Warnung ab.
      */
     public function testWithoutFallbacks_TheSummaryStaysSilent(): void
     {
@@ -304,8 +304,7 @@ class ShippingContextProviderTest extends TestCase
 
     /**
      * Die beiden Zahlen dürfen nicht verschmelzen: „kein Versand dorthin" ist ein Ergebnis,
-     * „nicht vorberechnet" ein Betriebszustand. Eine gemeinsame Zahl kostet bei der Fehlersuche Tage
-     * gekostet.
+     * „nicht vorberechnet" ein Betriebszustand. Eine gemeinsame Zahl kostet bei der Fehlersuche Tage.
      */
     public function testTheSummarySeparatesBothCounts(): void
     {

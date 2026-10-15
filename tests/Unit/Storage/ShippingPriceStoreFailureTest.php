@@ -78,20 +78,4 @@ class ShippingPriceStoreFailureTest extends TestCase
             new ShippingCalculationResult('product-id', 'DE', 12.5, 'EUR', false, null),
         );
     }
-
-    /**
-     * Was: Abräumen bei ausgefallener Datenbank.
-     * Warum: Der Aufruf hängt an einer Änderung der Versandart, also an einer Admin-Aktion.
-     *        Eine Ausnahme dort würde das Speichern der Versandart selbst scheitern lassen.
-     * Erwartet: kehrt zurück, mit Warnung.
-     */
-    public function testInvalidateFailureDoesNotBreakTheCaller(): void
-    {
-        $this->connection->method('executeStatement')
-            ->willThrowException(new DbalException('connection refused'));
-
-        $this->logger->expects(self::once())->method('warning');
-
-        $this->store->invalidateAll();
-    }
 }

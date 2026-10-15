@@ -276,7 +276,7 @@ class ShippingCostCalculatorService implements ResetInterface
      * und still im Ersatzwert.
      *
      * Gibt `null` zurück, wenn nichts vorliegt. Was dann passiert, entscheidet der Aufrufer — er
-     * muss es report, nicht verschlucken.
+     * muss es melden, nicht verschlucken.
      */
     public function lookupCached(string $productId, string $countryIso, string $salesChannelId): ?ShippingCalculationResult
     {

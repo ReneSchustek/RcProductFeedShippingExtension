@@ -190,6 +190,27 @@ class FeedImageServiceTest extends TestCase
         self::assertSame('media/Zeichnung_X.jpg', (new FeedImageService($this->connection))->resolveImageUrl('produkt-1'));
     }
 
+    /**
+     * Was: Eine Variante mit dem zu kleinen Titelbild des Hauptartikels; der Hauptartikel hat ein großes zweites Bild.
+     * Warum: Der Feed sucht das Ersatzbild einer Variante beim Hauptartikel. Zählte die Prüfung anders, stünde die
+     *        Variante auf der Liste der Artikel, die neues Material brauchen, obwohl der Feed längst ein Bild hat.
+     * Erwartet: in der Bestandsaufnahme als ersetzbar gezählt, nicht auf der Liste.
+     */
+    public function testAVariantUsesTheReplacementOfItsMainProduct(): void
+    {
+        $variant = ['product_id' => 'variante-1', 'parent_id' => 'haupt-1', 'product_number' => 'V-1', 'name' => 'Handlauf', 'width' => 400, 'height' => 400];
+        $replacements = [
+            $this->row('haupt-1', 'media/klein.jpg', 400, 400, isCover: true, position: 0),
+            $this->row('haupt-1', 'media/breit-800.jpg', 800, 800, isCover: false, position: 1),
+        ];
+        $this->connection->method('fetchAllAssociative')->willReturnOnConsecutiveCalls([$variant], $replacements, [$variant]);
+
+        $service = $this->service();
+
+        self::assertSame(1, $service->audit()['withReplacement']);
+        self::assertSame([], $service->productsNeedingNewImages());
+    }
+
     private function row(
         string $productId,
         string $path,

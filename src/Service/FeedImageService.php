@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 use Doctrine\DBAL\Connection;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\FeedImageContextProvider;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Symfony\Contracts\Service\ResetInterface;
@@ -141,19 +142,16 @@ class FeedImageService implements ResetInterface
     {
         $rows = $this->connection->fetchAllAssociative(
             'SELECT LOWER(HEX(p.id)) AS product_id,
+                    LOWER(HEX(p.parent_id)) AS parent_id,
                     CAST(JSON_EXTRACT(m.meta_data, "$.width") AS UNSIGNED) AS width,
                     CAST(JSON_EXTRACT(m.meta_data, "$.height") AS UNSIGNED) AS height
              FROM product p
-             LEFT JOIN product_media pm ON pm.id = p.product_media_id AND pm.version_id = p.version_id
+             LEFT JOIN product parent ON parent.id = p.parent_id AND parent.version_id = p.version_id
+             LEFT JOIN product_media pm
+                    ON pm.id = COALESCE(p.product_media_id, parent.product_media_id) AND pm.version_id = p.version_id
              LEFT JOIN media m ON m.id = pm.media_id
              WHERE p.version_id = :version
-               AND (
-                   p.active = 1
-                   OR (p.active IS NULL AND EXISTS (
-                       SELECT 1 FROM product parent
-                        WHERE parent.id = p.parent_id AND parent.version_id = p.version_id AND parent.active = 1
-                   ))
-               )',
+               AND COALESCE(p.active, parent.active) = 1',
             ['version' => Uuid::fromHexToBytes(Defaults::LIVE_VERSION)]
         );
 
@@ -178,7 +176,7 @@ class FeedImageService implements ResetInterface
 
             ++$counts['tooSmall'];
 
-            if (isset($replacement[(string) $row['product_id']])) {
+            if (self::hasReplacement($replacement, $row)) {
                 ++$counts['withReplacement'];
 
                 continue;
@@ -199,31 +197,32 @@ class FeedImageService implements ResetInterface
     {
         $rows = $this->connection->fetchAllAssociative(
             'SELECT LOWER(HEX(p.id)) AS product_id,
+                    LOWER(HEX(p.parent_id)) AS parent_id,
                     p.product_number,
-                    pt.name,
+                    COALESCE(pt.name, parent_translation.name) AS name,
                     CAST(JSON_EXTRACT(m.meta_data, "$.width") AS UNSIGNED) AS width,
                     CAST(JSON_EXTRACT(m.meta_data, "$.height") AS UNSIGNED) AS height
              FROM product p
-             LEFT JOIN product_media pm ON pm.id = p.product_media_id AND pm.version_id = p.version_id
+             LEFT JOIN product parent ON parent.id = p.parent_id AND parent.version_id = p.version_id
+             LEFT JOIN product_media pm
+                    ON pm.id = COALESCE(p.product_media_id, parent.product_media_id) AND pm.version_id = p.version_id
              LEFT JOIN media m ON m.id = pm.media_id
-             LEFT JOIN product_translation pt ON pt.product_id = p.id AND pt.product_version_id = p.version_id
+             LEFT JOIN product_translation pt
+                    ON pt.product_id = p.id AND pt.product_version_id = p.version_id AND pt.language_id = :language
+             LEFT JOIN product_translation parent_translation
+                    ON parent_translation.product_id = parent.id AND parent_translation.product_version_id = parent.version_id
+                   AND parent_translation.language_id = :language
              WHERE p.version_id = :version
-               AND (
-                   p.active = 1
-                   OR (p.active IS NULL AND EXISTS (
-                       SELECT 1 FROM product parent
-                        WHERE parent.id = p.parent_id AND parent.version_id = p.version_id AND parent.active = 1
-                   ))
-               )
+               AND COALESCE(p.active, parent.active) = 1
                AND (
                    m.meta_data IS NULL
                    OR CAST(JSON_EXTRACT(m.meta_data, "$.width") AS UNSIGNED) < :minimumEdge
                    OR CAST(JSON_EXTRACT(m.meta_data, "$.height") AS UNSIGNED) < :minimumEdge
                )
-             GROUP BY p.id, p.product_number, pt.name, width, height
              ORDER BY p.product_number',
             [
                 'version' => Uuid::fromHexToBytes(Defaults::LIVE_VERSION),
+                'language' => Uuid::fromHexToBytes(Defaults::LANGUAGE_SYSTEM),
                 'minimumEdge' => self::MINIMUM_EDGE,
             ]
         );
@@ -232,7 +231,7 @@ class FeedImageService implements ResetInterface
         $list = [];
 
         foreach ($rows as $row) {
-            if (isset($replacement[(string) $row['product_id']])) {
+            if (self::hasReplacement($replacement, $row)) {
                 continue;
             }
 
@@ -254,5 +253,18 @@ class FeedImageService implements ResetInterface
     public function reset(): void
     {
         $this->resolved = null;
+    }
+
+    /**
+     * Ob es für den Artikel ein ausreichend großes Bild gibt, beim Artikel selbst oder, für eine Variante mit geerbten
+     * Bildern, beim Hauptartikel. Genau so sucht der Feed ({@see FeedImageContextProvider::url()}).
+     *
+     * @param array<string, string> $replacement
+     * @param array<string, mixed>  $row
+     */
+    private static function hasReplacement(array $replacement, array $row): bool
+    {
+        return isset($replacement[(string) $row['product_id']])
+            || (\is_string($row['parent_id'] ?? null) && $row['parent_id'] !== '' && isset($replacement[$row['parent_id']]));
     }
 }

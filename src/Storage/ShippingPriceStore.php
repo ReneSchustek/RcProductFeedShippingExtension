@@ -43,10 +43,10 @@ class ShippingPriceStore
     /**
      * Höchstalter eines Eintrags in Sekunden (24 Stunden).
      *
-     * Eine Änderung an einer Versandart räumt den Bestand über den vorhandenen Subscriber ab.
-     * Gewicht und Maße eines Produkts bestimmen die Versandkosten aber ebenfalls, und deren
-     * Änderung merkt niemand. Das Alter ist die Rückfalllinie dagegen: Bei einem Warmup-Takt
-     * von sechs Stunden hat der Bestand vier Versuche, bevor ein Eintrag verfällt.
+     * Was die Versandkosten bestimmt, erkennt der Warmup über den Prüfwert und rechnet nur das
+     * Geänderte neu; unveränderte Einträge frischt er auf. Das Alter ist die Rückfalllinie, falls
+     * Läufe ausfallen: Bei einem Warmup-Takt von sechs Stunden hat der Bestand vier Versuche,
+     * bevor ein Eintrag verfällt.
      */
     public const MAX_AGE_SECONDS = 86400;
 
@@ -246,18 +246,6 @@ class ShippingPriceStore
         }
 
         return $refreshed;
-    }
-
-    /** Räumt den gesamten Bestand ab -- aufgerufen, wenn sich eine Versandart geändert hat. */
-    public function invalidateAll(): void
-    {
-        try {
-            $this->connection->executeStatement('DELETE FROM ' . self::TABLE);
-        } catch (\Throwable $error) {
-            $this->logger->warning('Vorberechnete Versandpreise konnten nicht abgeräumt werden.', [
-                'error' => $error->getMessage(),
-            ]);
-        }
     }
 
     private function toFallbackReason(mixed $raw): ?FallbackReason

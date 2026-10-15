@@ -188,27 +188,6 @@ class ShippingPriceStoreTest extends TestCase
     }
 
     /**
-     * Was: `invalidateAll()` räumt den Bestand ab.
-     * Warum: Ändert jemand eine Versandart, sind alle vorberechneten Werte hinfällig. Genau
-     *        das ruft der vorhandene Subscriber auf.
-     * Erwartet: Danach findet sich nichts mehr.
-     */
-    public function testInvalidateAllEmptiesTheStore(): void
-    {
-        $productId = Uuid::randomHex();
-        $this->store->set(
-            $productId,
-            'DE',
-            $this->salesChannelId,
-            new ShippingCalculationResult($productId, 'DE', 17.26, 'EUR', false)
-        );
-
-        $this->store->invalidateAll();
-
-        self::assertNull($this->store->get($productId, 'DE', $this->salesChannelId));
-    }
-
-    /**
      * Was: Derselbe Artikel in zwei Verkaufskanälen.
      * Warum: Versandarten hängen am Kanal. Würde der Schlüssel den Kanal nicht führen, bekäme
      *        ein Kanal die Preise des anderen.

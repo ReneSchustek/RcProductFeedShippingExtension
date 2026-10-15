@@ -81,16 +81,4 @@ class ShippingAddressProviderService
             street: $data['street'],
         );
     }
-
-    /** Prüft ob für den angegebenen ISO-Code eine Referenzadresse vorhanden ist. */
-    public function hasCountry(string $countryIso): bool
-    {
-        return isset(self::ADDRESSES[strtoupper($countryIso)]);
-    }
-
-    /** @return array<int, string> Alle unterstützten ISO-Codes */
-    public function getSupportedCountryCodes(): array
-    {
-        return array_keys(self::ADDRESSES);
-    }
 }

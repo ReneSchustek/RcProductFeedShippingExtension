@@ -8,6 +8,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
@@ -22,6 +23,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * und daher auf den Fallback-Preis zurückgegriffen wird.
  *
  * Hilfreich um Konfigurationslücken in Versandregeln oder -methoden zu erkennen.
+ * Fehlende Werte rechnet die Prüfung und legt sie wie der Warmup im Speicher ab; den Warenkorb, den sie dafür anlegt,
+ * räumt sie am Ende wieder weg.
  *
  * **Dieselbe Kanalmenge wie der Warmup.** Zählte die Prüfung Kanäle mit, die kein Warenstrom
  * ausliest, stünden dort Zahlen ohne Bedeutung für den Warenstrom — genau daran ist die
@@ -40,6 +43,7 @@ final class ShippingCheckCommand extends AbstractShippingCommand
         EntityRepository $salesChannelRepository,
         ActiveProductProviderService $activeProductProvider,
         private readonly FeedChannelProviderService $feedChannelProvider,
+        private readonly VirtualCartBuilderService $cartBuilder,
     ) {
         parent::__construct(
             $calculator,
@@ -57,17 +61,21 @@ final class ShippingCheckCommand extends AbstractShippingCommand
 
         $totalFallbacks = 0;
 
-        foreach ($this->selectChannels($io, $context) as $calcChannelId => $job) {
-            $io->section(sprintf('%s (Kanal: %s)', $job['name'], substr($calcChannelId, 0, 8)));
+        try {
+            foreach ($this->selectChannels($io, $context) as $calcChannelId => $job) {
+                $io->section(sprintf('%s (Kanal: %s)', $job['name'], substr($calcChannelId, 0, 8)));
 
-            $fallbacks = $this->collectFallbacks(
-                $this->loadActiveProductIds($context),
-                $job['countries'],
-                $calcChannelId,
-            );
+                $fallbacks = $this->collectFallbacks(
+                    $this->loadActiveProductIds($context),
+                    $job['countries'],
+                    $calcChannelId,
+                );
 
-            $totalFallbacks += count($fallbacks['rows']);
-            $this->reportChannel($io, $fallbacks['rows'], $fallbacks['reasons']);
+                $totalFallbacks += count($fallbacks['rows']);
+                $this->reportChannel($io, $fallbacks['rows'], $fallbacks['reasons']);
+            }
+        } finally {
+            $this->cartBuilder->removeTrace();
         }
 
         if ($totalFallbacks > 0) {
@@ -125,8 +133,9 @@ final class ShippingCheckCommand extends AbstractShippingCommand
                 continue;
             }
 
-            if (!$this->canCreateContext($calcChannelId)) {
-                $io->warning(sprintf('Kanal %s: Context-Erstellung fehlgeschlagen — Berechnungs-Kanal prüfen.', $name));
+            $contextError = $this->contextError($calcChannelId);
+            if ($contextError !== null) {
+                $io->warning(sprintf('Kanal %s: Context-Erstellung fehlgeschlagen (%s). Berechnungs-Kanal prüfen.', $name, $contextError));
                 continue;
             }
 

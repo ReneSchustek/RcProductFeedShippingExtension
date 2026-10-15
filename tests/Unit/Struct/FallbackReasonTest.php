@@ -8,29 +8,30 @@ use PHPUnit\Framework\TestCase;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\FallbackReason;
 
 /**
- * Die drei Gründe, aus denen ein Ergebnis der Ersatzwert ist.
+ * Die vier Gründe, aus denen ein Ergebnis kein regulärer Versandpreis ist.
  *
- * Sie sahen im Code lange gleich aus und bedeuten Gegensätzliches: „keine Versandart" ist ein
- * **Ergebnis** (der Shop versendet diese Ware nicht dorthin), „nicht vorberechnet" ein
- * **Betriebszustand** (der Speicher ist kalt, wir wissen nichts). Nur der erste rechtfertigt es,
- * im Feed zu schweigen.
+ * Sie bedeuten Gegensätzliches: „keine Versandart" ist ein Ergebnis (der Shop versendet diese Ware
+ * nicht dorthin), „nicht vorberechnet" ein Betriebszustand (der Speicher ist kalt, wir wissen
+ * nichts), „nicht bestellbar" heißt, der Artikel lässt sich gar nicht in einen Warenkorb legen.
  *
- * Die Werte werden seit Fassung 1.3.0 in einer Tabellenspalte abgelegt. Ändert jemand einen
- * Wert, sind alle vorhandenen Zeilen unlesbar — deshalb sind sie hier festgeschrieben.
+ * Die Werte stehen in einer Tabellenspalte. Ändert jemand einen Wert, sind alle vorhandenen Zeilen
+ * unlesbar; deshalb sind sie hier festgeschrieben.
  */
 class FallbackReasonTest extends TestCase
 {
     /**
-     * Was: Die abgelegten Werte der drei Fälle.
+     * Was: Die abgelegten Werte der vier Fälle.
      * Warum: Sie stehen in der Datenbank. Eine Umbenennung im Code ohne Migration macht jeden
      *        vorhandenen Eintrag zum unbekannten Grund.
-     * Erwartet: genau diese drei Zeichenketten.
+     * Erwartet: genau diese vier Zeichenketten, und keine weiteren Fälle.
      */
     public function testTheStoredValuesAreFixed(): void
     {
         self::assertSame('no_shipping_method', FallbackReason::NoShippingMethod->value);
         self::assertSame('not_precomputed', FallbackReason::NotPrecomputed->value);
         self::assertSame('calculation_failed', FallbackReason::CalculationFailed->value);
+        self::assertSame('not_purchasable', FallbackReason::NotPurchasable->value);
+        self::assertCount(4, FallbackReason::cases());
     }
 
     /**
@@ -69,5 +70,6 @@ class FallbackReasonTest extends TestCase
         self::assertSame('keine Versandart', FallbackReason::NoShippingMethod->label());
         self::assertSame('nicht vorberechnet', FallbackReason::NotPrecomputed->label());
         self::assertSame('Berechnung fehlgeschlagen', FallbackReason::CalculationFailed->label());
+        self::assertSame('nicht bestellbar', FallbackReason::NotPurchasable->label());
     }
 }

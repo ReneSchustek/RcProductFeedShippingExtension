@@ -20,6 +20,7 @@ use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
 
 /**
  * Das Diagnose-Kommando: Wo greift kein regulärer Versandpreis, und warum?
@@ -37,6 +38,8 @@ class ShippingCheckCommandTest extends TestCase
     private ActiveProductProviderService&MockObject $activeProductProvider;
     private FeedChannelProviderService&MockObject $feedChannelProvider;
 
+    private VirtualCartBuilderService&MockObject $cartBuilder;
+
     protected function setUp(): void
     {
         $this->calculator = $this->createMock(ShippingCostCalculatorService::class);
@@ -45,15 +48,17 @@ class ShippingCheckCommandTest extends TestCase
         $this->salesChannelRepository = $this->createMock(EntityRepository::class);
         $this->activeProductProvider = $this->createMock(ActiveProductProviderService::class);
         $this->feedChannelProvider = $this->createMock(FeedChannelProviderService::class);
+        $this->cartBuilder = $this->createMock(VirtualCartBuilderService::class);
     }
 
     /**
      * Was: Alle Kombinationen haben einen gerechneten Preis.
      * Warum: Der gute Fall muss mit 0 enden, sonst schlägt jede Überwachung ohne Anlass an.
-     * Erwartet: Exitcode 0 und eine klare Aussage.
+     * Erwartet: Exitcode 0 und eine klare Aussage; die Warenkorbzeile der Berechnung wird abgeräumt.
      */
     public function testAllRegularPricesResultInSuccess(): void
     {
+        $this->cartBuilder->expects(self::once())->method('removeTrace');
         $this->givenOneEnabledChannel(['DE']);
         $this->activeProductProvider->method('loadActiveProductIds')->willReturn(['p1', 'p2']);
         $this->calculator->method('calculate')
@@ -245,6 +250,7 @@ class ShippingCheckCommandTest extends TestCase
             $this->salesChannelRepository,
             $this->activeProductProvider,
             $this->feedChannelProvider,
+            $this->cartBuilder,
         );
 
         $tester = new CommandTester($command);

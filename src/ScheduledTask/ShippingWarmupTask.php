@@ -19,10 +19,9 @@ use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTask;
  * innerhalb einer Minute darüber, ob der Feed noch Werte findet — und ein einziger ausgefallener
  * Lauf risse ein Loch, das erst der übernächste wieder schließt.
  *
- * Dieser Abstand wirkt allerdings nur, weil der Warmup **jeden** Eintrag neu rechnet. Solange er
- * den Speicher-Kurzschluss von `calculate()` mitbenutzte, übersprang er alles noch Gültige und
- * erneuerte nichts: Der Lauf nach 24 Stunden traf Einträge, die knapp jünger waren, ließ sie
- * stehen, und Minuten später verfielen sie. Der Faktor 4 stand im Code und wirkte nicht.
+ * Dieser Abstand wirkt nur, weil jeder Lauf jeden Eintrag erneuert: Geänderte rechnet er neu,
+ * unveränderte frischt er auf (`touch()`). Bliebe ein gültiger Eintrag liegen, verfiele er zwischen
+ * zwei Läufen, und der Feed lieferte bis zum nächsten den Ersatzwert.
  */
 class ShippingWarmupTask extends ScheduledTask
 {

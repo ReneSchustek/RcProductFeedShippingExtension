@@ -108,11 +108,13 @@ class ShippingWarmupService
             // Den Berechnungs-Kanal vorab prüfen: Schlägt die Context-Erstellung fehl (etwa wegen
             // fehlender Sprachkonfiguration), überspringen wir den ganzen Kanal, statt für jedes
             // Produkt einzeln denselben Fehler zu erzeugen.
-            if (!$this->canCreateContext($calcChannelId)) {
+            $contextError = $this->contextError($calcChannelId);
+            if ($contextError !== null) {
                 $message = sprintf(
-                    'Berechnungs-Kanal %s kann keinen Context erstellen — Kanal "%s" übersprungen. '
+                    'Berechnungs-Kanal %s kann keinen Context erstellen (%s) — Kanal "%s" übersprungen. '
                     . 'In den Plugin-Einstellungen einen gültigen Storefront-Kanal als Berechnungs-Kanal hinterlegen.',
                     substr($calcChannelId, 0, 8),
+                    $contextError,
                     $channelName,
                 );
 
@@ -180,7 +182,7 @@ class ShippingWarmupService
 
             $calcChannelId = $this->configurationService->getCalculationSalesChannelId($feedChannelId) ?? $feedChannelId;
 
-            if (isset($processedChannels[$calcChannelId]) || !$this->canCreateContext($calcChannelId)) {
+            if (isset($processedChannels[$calcChannelId]) || $this->contextError($calcChannelId) !== null) {
                 continue;
             }
 
@@ -285,15 +287,18 @@ class ShippingWarmupService
         ]);
     }
 
-    private function canCreateContext(string $salesChannelId): bool
+    /**
+     * Warum sich für den Kanal kein Kontext bauen lässt, oder `null`, wenn es geht. Produktvergleichs-Kanäle haben oft
+     * keine vollständige Sprachkonfiguration; der Grund geht in die Meldung des übersprungenen Kanals.
+     */
+    private function contextError(string $salesChannelId): ?string
     {
         try {
             $this->contextFactory->create(Uuid::randomHex(), $salesChannelId, []);
 
-            return true;
-        } catch (\Throwable) {
-            // Erwartet: Produktvergleichs-Kanäle haben oft keine vollständige Sprachkonfiguration.
-            return false;
+            return null;
+        } catch (\Throwable $error) {
+            return $error->getMessage();
         }
     }
 

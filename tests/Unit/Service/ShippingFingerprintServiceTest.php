@@ -31,11 +31,11 @@ class ShippingFingerprintServiceTest extends TestCase
      * Was: Zweimal derselbe Aufruf.
      * Warum: Der Stempel wird für jedes der mehreren tausend Produkte gebraucht. Fragte ihn der
      *        Dienst jedes Mal neu ab, ersetzte er tausende Berechnungen durch tausende Abfragen.
-     * Erwartet: vier Abfragen für vier Quellen — beim zweiten Aufruf keine weitere.
+     * Erwartet: fünf Abfragen für fünf Quellen, beim zweiten Aufruf keine weitere.
      */
     public function testTheConfigurationStampIsQueriedOnlyOnce(): void
     {
-        $this->connection->expects(self::exactly(4))
+        $this->connection->expects(self::exactly(5))
             ->method('fetchAssociative')
             ->willReturn(['count' => '4', 'latest' => '2026-09-09 10:00:00']);
 

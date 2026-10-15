@@ -65,10 +65,11 @@ final class ShippingContextProvider extends Struct
     /**
      * Gibt die Versandkosten für ein Produkt in das angegebene Land zurück.
      *
-     * `null` bedeutet: Die Vorlage lässt den Block weg. Das passiert in drei Fällen — das Land ist
-     * nicht konfiguriert, der ISO-Code hat ein ungültiges Format (etwa eine UUID durch einen
-     * Vorlagen-Tippfehler), oder der Shop versendet diese Ware nicht in dieses Land und die
-     * Einstellung verlangt Schweigen statt Ersatzwert.
+     * `null` bedeutet: Die Vorlage lässt den Block weg. Das passiert in vier Fällen: Das Land ist
+     * nicht konfiguriert; der ISO-Code hat ein ungültiges Format (etwa eine UUID durch einen
+     * Vorlagen-Tippfehler); der Artikel lässt sich nicht in einen Warenkorb legen (Hauptartikel mit
+     * Varianten), sodass es keinen Preis gibt; oder der Shop versendet diese Ware nicht in dieses
+     * Land und die Einstellung verlangt Schweigen statt Ersatzwert.
      *
      * Sonst kommt immer ein Preis — der vorberechnete oder, wenn keiner vorliegt, der eingestellte
      * Ersatzwert. Letzteres wird gemeldet und nicht stillschweigend geliefert.

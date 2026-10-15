@@ -31,15 +31,18 @@ abstract class AbstractShippingCommand extends Command
         parent::__construct();
     }
 
-    protected function canCreateContext(string $salesChannelId): bool
+    /**
+     * Warum sich für den Kanal kein Kontext bauen lässt, oder `null`, wenn es geht. Häufigster Grund ist eine fehlende
+     * Sprachkonfiguration; der Aufrufer zeigt die Meldung an, statt nur „geht nicht“ zu sagen.
+     */
+    protected function contextError(string $salesChannelId): ?string
     {
         try {
             $this->contextFactory->create(Uuid::randomHex(), $salesChannelId, []);
 
-            return true;
-        } catch (\Throwable) {
-            // Context-Erstellung kann bei fehlender Sprachkonfiguration fehlschlagen — erwartetes Verhalten
-            return false;
+            return null;
+        } catch (\Throwable $error) {
+            return $error->getMessage();
         }
     }
 

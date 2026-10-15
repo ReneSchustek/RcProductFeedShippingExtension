@@ -50,23 +50,4 @@ class ShippingAddressProviderServiceTest extends TestCase
         self::assertSame('DE', $address->countryIso);
         self::assertSame('Kassel', $address->city);
     }
-
-    public function testHasCountryReturnsTrueForKnownCountry(): void
-    {
-        self::assertTrue($this->service->hasCountry('DE'));
-    }
-
-    public function testHasCountryReturnsFalseForUnknownCountry(): void
-    {
-        self::assertFalse($this->service->hasCountry('XX'));
-    }
-
-    public function testGetSupportedCountryCodesContainsCoreMarkets(): void
-    {
-        $codes = $this->service->getSupportedCountryCodes();
-
-        self::assertContains('DE', $codes);
-        self::assertContains('AT', $codes);
-        self::assertContains('CH', $codes);
-    }
 }

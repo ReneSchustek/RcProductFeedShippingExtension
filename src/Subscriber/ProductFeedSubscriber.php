@@ -52,8 +52,8 @@ final class ProductFeedSubscriber implements EventSubscriberInterface
      * Fügt dem Template-Kontext einen ShippingContextProvider hinzu.
      *
      * Der Provider wird einmalig konfiguriert (Länder, SalesChannel, Währung) und
-     * vom Template pro Produkt aufgerufen. Die Cache-Schicht im Calculator stellt
-     * sicher, dass jede Berechnung nur einmal durchgeführt wird.
+     * vom Template pro Produkt aufgerufen. Er rechnet nicht, sondern liest die Werte,
+     * die der Warmup vorab in den Speicher gelegt hat.
      */
     public function onProductExportRender(ProductExportRenderBodyContextEvent $event): void
     {

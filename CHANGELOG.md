@@ -4,6 +4,29 @@ Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 
+## [1.9.0] - 2026-10-15 — Währung, Prüfwert und Bildprüfung
+
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> Der erste Warmup danach rechnet alle Einträge neu, weil der Prüfwert mehr Bestandteile hat. Wer die mitgelieferte
+> Vorlage in den Produktexport kopiert hat, übernimmt die drei Zeilen mit `g:price` neu.
+
+### Behoben
+
+- Die mitgelieferte Feed-Vorlage schreibt die Währung des Verkaufskanals statt fest `EUR`.
+- Der Prüfwert erfasst jetzt auch Bestellbarkeit, Kategorien, Tags, Eigenschaften, Hersteller und die Namen der
+  Versandarten. Eine Versandregel, die darauf schaut, oder eine umbenannte Versandart wirkt damit beim nächsten Warmup,
+  nicht erst nach einem Lauf mit `--full`.
+- Die Bildprüfung zählt Varianten mit dem geerbten Titelbild des Hauptartikels und sucht ihr Ersatzbild auch dort, wie
+  der Feed selbst. Vorher standen rund 570 Varianten fälschlich als „ohne Titelbild" da. Die Liste nennt jeden Artikel
+  einmal, mit Namen in der Standardsprache.
+- `rc:shipping:check` räumt den Warenkorb weg, den es für die Berechnung anlegt.
+- Scheitert der Kontext eines Kanals, nennen Prüfung und Warmup den Grund.
+
+### Entfernt
+
+- Ungenutzter Code: `GoogleShippingFormatterService`, `ShippingPriceStore::invalidateAll()`,
+  `ShippingAddressProviderService::hasCountry()` und `getSupportedCountryCodes()`.
+
 ## [1.8.1] - 2026-10-15 — Worker rechnet nicht mit alten Werten
 
 > **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.

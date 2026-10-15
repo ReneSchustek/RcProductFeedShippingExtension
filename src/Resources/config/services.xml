@@ -84,6 +84,7 @@
             <argument type="service" id="sales_channel.repository"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
             <tag name="console.command"/>
         </service>
 

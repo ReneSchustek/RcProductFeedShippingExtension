@@ -45,11 +45,13 @@ Alle Einstellungen lassen sich global oder pro Verkaufskanal setzen.
 | Fallback-Versandkosten | Preis wenn Berechnung fehlschlägt | `4.95` |
 | Fallback pro Land | Länderspezifische Fallbacks | `DE:4.95,AT:9.90,CH:14.90` |
 | Wenn für ein Land keine Versandart greift | Ersatzwert eintragen (Standard) oder Land weglassen | |
-| Ausgeschlossene Versandarten | Keywords, kommasepariert | `Selbstabholung,Pickup` |
+| Ausgeschlossene Versandarten (Auswahl) | Versandarten aus der Liste wählen; maßgeblich, wenn gesetzt | |
+| Ausgeschlossene Versandarten (Wörter) | Rückfall: Teile des Namens, kommasepariert | `Selbstabholung,Pickup` |
+| Größeres Bild verwenden | Ist das Titelbild kleiner als 500 × 500, verlinkt der Feed das erste ausreichend große Bild desselben Artikels | |
 
 **Unterstützte Länder:** DE, AT, CH, BE, BG, CY, CZ, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK, GB, NO, IS, LI, US, CA, AU
 
-**Hinweis zu ausgeschlossenen Versandarten:** Das Plugin wählt immer die günstigste Versandart. Ohne dieses Feld würde Selbstabholung (0,00 €) gewinnen und Google würde den Feed ablehnen. Standard-Keywords sind `Selbstabholung`, `Abholung` und `Pickup`.
+**Hinweis zu ausgeschlossenen Versandarten:** Das Plugin wählt immer die günstigste Versandart. Ohne Ausschluss würde Selbstabholung (0,00 €) gewinnen und Google würde den Feed ablehnen. Am sichersten ist die Auswahl der Versandarten aus der Liste; sie hängt an der Kennung und überlebt jede Umbenennung. Die Wörter sind der Rückfall, Standard sind `Selbstabholung`, `Abholung` und `Pickup`.
 
 **Hinweis zu Produktvergleichs-Kanälen:** Google Shopping läuft in Shopware üblicherweise als eigener Verkaufskanal vom Typ "Produktvergleich". Dieser Kanaltyp hat keine eigenen Versandmethoden. In dem Fall muss hier die UUID eines Storefront-Kanals eingetragen werden, der die gewünschten Versandmethoden enthält.
 
@@ -58,6 +60,10 @@ Alle Einstellungen lassen sich global oder pro Verkaufskanal setzen.
 ## Feed-Template
 
 Das Plugin stellt die berechneten Versandkosten über eine Twig-Variable `rcShipping` zur Verfügung. Der Zugriff erfolgt mit `rcShipping.get(product.id, 'DE')`.
+
+Das Bild für `image_link` liefert `rcFeedImage.url(product)`: das Titelbild, oder bei eingeschalteter Einstellung „Größeres Bild verwenden" ein ausreichend großes Bild desselben Artikels (bei Varianten auch des Hauptartikels). Ohne Bild kommt `null`.
+
+Preise und Versandkosten tragen die Währung des Verkaufskanals: `{{ context.currency.isoCode }}`. Eine feste Angabe wie `EUR` wäre in einem Kanal mit anderer Währung falsch.
 
 ```twig
 {% for country in rcShipping.getCountries() %}
@@ -107,8 +113,9 @@ php bin/console rc:shipping:warmup
 ```
 
 **Der Lauf rechnet nur, was sich geändert hat.** Je Produkt entsteht ein Prüfwert über Gewicht,
-Abmessungen, Preis, Steuersatz, Versandkostenfreiheit und Aktiv-Merkmal, dazu über den Stand der
-Versandarten, ihrer Preismatrizen und der Regeln. Ist er unverändert, bleibt der gespeicherte Wert
+Abmessungen, Preis, Steuersatz, Versandkostenfreiheit und Aktiv-Merkmal, Bestellbarkeit,
+Kategorien, Tags, Eigenschaften und Hersteller, dazu über den Stand der Versandarten, ihrer Namen,
+Preismatrizen und der Regeln. Ist er unverändert, bleibt der gespeicherte Wert
 stehen; spätestens nach sieben Tagen wird trotzdem neu gerechnet. `--full` erzwingt eine
 vollständige Neuberechnung:
 
@@ -125,8 +132,8 @@ Artikel eine Warnung ins Protokoll.
 - Eine Änderung an einer Versandart oder einem ihrer Preise löscht nichts, sie zieht den nächsten
   Warmup vor (Subscriber). Bis dahin bleibt der bisherige, echte Preis stehen.
 - Ein Eintrag, der älter als 24 Stunden ist, gilt als nicht vorhanden. Das ist die
-  Rückfalllinie für Änderungen, die niemand meldet: Gewicht und Maße eines Artikels bestimmen
-  die Versandkosten mit.
+  Rückfalllinie, falls Warmup-Läufe ausfallen; jeder Lauf erneuert alle Einträge, auch die
+  unveränderten.
 - Ein `cache:clear` berührt die Tabelle **nicht** mehr.
 
 **Von Hand abräumen** (erzwingt eine vollständige Neuberechnung beim nächsten Warmup):
@@ -147,7 +154,11 @@ php bin/console rc:feed:image-check --liste    # die Artikel ohne ausreichendes 
 php bin/console rc:feed:image-check --nachmessen   # Stichprobe gegen die echten Dateien
 ```
 
-Der Befehl misst und meldet nur, am Feed ändert er nichts.
+Der Befehl misst und meldet nur, am Feed ändert er nichts. Varianten zählen mit dem Titelbild, das sie im Feed
+tatsächlich tragen, also bei geerbten Bildern mit dem des Hauptartikels.
+
+`rc:shipping:check` listet die Kombinationen, die den Ersatzwert tragen. Fehlende Werte rechnet die Prüfung und legt
+sie wie der Warmup ab.
 
 ---
 

@@ -24,7 +24,10 @@ use Symfony\Contracts\Service\ResetInterface;
  * ---------------------------
  * Gewicht und Abmessungen sind die offensichtlichen Größen. **Der Preis ist die übersehene:** Wo es
  * „versandkostenfrei ab X" gibt, ändert eine Preisänderung die Versandkosten, obwohl das Gewicht
- * gleich blieb. Dazu Steuersatz, das Kennzeichen für Versandkostenfreiheit und das Aktiv-Merkmal.
+ * gleich blieb. Dazu Steuersatz, das Kennzeichen für Versandkostenfreiheit und das Aktiv-Merkmal,
+ * ob sich der Artikel überhaupt bestellen lässt (Abverkauf ohne Bestand), und alles, worauf eine
+ * Versandregel schauen kann: Kategorien, Tags, Eigenschaften und Hersteller. Den Bestand selbst
+ * nimmt er nicht auf; er schwankt täglich und ändert die Versandkosten nicht.
  *
  * Varianten erben ihre Werte vom Elternartikel — steht dort `NULL`, gilt der Wert des Elternteils.
  * Ein Prüfwert, der das übergeht, hielte jede Variante für unverändert, sobald ihr eigenes Feld
@@ -55,7 +58,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * -----------------------------------------
  * Welche Versandarten der Feed nie nehmen darf, steht in der Plugin-Konfiguration, nicht in den
  * Versandtabellen. Ohne diese Werte im Stempel blieb eine geänderte Auswahl wirkungslos, bis ein
- * Lauf mit `--force` alles neu rechnete: Die Abholung für 0,00 € stand weiter im Speicher, obwohl
+ * Lauf mit `--full` alles neu rechnete: Die Abholung für 0,00 € stand weiter im Speicher, obwohl
  * sie längst ausgeschlossen war. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
  * rechnet der nächste Lauf alles neu — selten genug, dass die Unschärfe nicht zählt.
  */
@@ -69,6 +72,8 @@ class ShippingFingerprintService implements ResetInterface
      */
     private const CONFIGURATION_SOURCES = [
         'shipping_method' => true,
+        // Die Ausschlussliste arbeitet auf dem übersetzten Namen; eine Umbenennung muss den Stempel ändern.
+        'shipping_method_translation' => true,
         'shipping_method_price' => true,
         'rule_condition' => true,
         'rule' => false,
@@ -159,7 +164,12 @@ class ShippingFingerprintService implements ResetInterface
                             COALESCE(p.price, parent.price, ""),
                             LOWER(HEX(COALESCE(p.tax_id, parent.tax_id))),
                             COALESCE(p.shipping_free, parent.shipping_free, 0),
-                            COALESCE(p.active, parent.active, 0)
+                            COALESCE(p.active, parent.active, 0),
+                            COALESCE(p.is_closeout, parent.is_closeout, 0) = 1 AND p.available_stock <= 0,
+                            COALESCE(p.category_tree, parent.category_tree, ""),
+                            COALESCE(p.tag_ids, parent.tag_ids, ""),
+                            COALESCE(p.property_ids, parent.property_ids, ""),
+                            COALESCE(LOWER(HEX(COALESCE(p.product_manufacturer_id, parent.product_manufacturer_id))), "")
                         ) AS source
                  FROM `product` p
                  LEFT JOIN `product` parent

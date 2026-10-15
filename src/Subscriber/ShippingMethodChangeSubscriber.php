@@ -37,7 +37,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * Nicht erfasst: eine reine Umbenennung schreibt `shipping_method_translation`. Sie ändert keinen
  * Preis, verschiebt aber die Wirkung der Ausschlussliste, die auf dem übersetzten Namen arbeitet.
- * Wer eine Versandart umbenennt, muss `rc:shipping:warmup` von Hand anstoßen.
+ * Die Übersetzungen gehen in den Prüfwert ein; der nächste geplante Warmup rechnet deshalb neu. Wer
+ * nicht warten will, stößt `rc:shipping:warmup` von Hand an.
  */
 final class ShippingMethodChangeSubscriber implements EventSubscriberInterface
 {
