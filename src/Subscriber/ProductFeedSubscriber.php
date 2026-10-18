@@ -100,7 +100,7 @@ final class ProductFeedSubscriber implements EventSubscriberInterface
     /**
      * Schreibt am Ende des Feeds eine Zeile, wenn Produkte den Ersatzwert bekommen haben.
      *
-     * **Vorbehalt:** Shopware löst dieses Ereignis nur aus, wenn der Export eine Fuß-Vorlage hat
+     * Shopware löst dieses Ereignis nur aus, wenn der Export eine Fuß-Vorlage hat
      * (`ProductExportRenderer::renderFooter` steigt bei `null` vorher aus). Die Einzelwarnung je
      * Land in `ShippingContextProvider::get()` kommt unabhängig davon — die Zusammenfassung ist die
      * Zugabe, nicht die einzige Meldung.

@@ -211,7 +211,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: In der Auswahl steht eine Versandart, die gelöscht wurde.
-     * Warum: Die Auswahl speichert Kennungen; eine gelöschte Versandart bleibt darin stehen. Brach der Lauf daran ab,
+     * Warum: Die Auswahl speichert Kennungen; eine gelöschte Versandart bleibt darin stehen. Bräche der Lauf daran ab,
      *        stünde der ganze Feed auf Ersatzwerten.
      * Erwartet: es wird gerechnet, und das Protokoll nennt die Kennung genau einmal je Kanal.
      */
@@ -389,7 +389,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
         $cart ??= $this->buildCartWithWeight(1.0);
 
-        // Der Steuerzustand steht am **Warenkorb**, nicht am Kontext: Der Kern setzt ihn dort für
+        // Der Steuerzustand steht am Warenkorb, nicht am Kontext: Der Kern setzt ihn dort für
         // die Dauer der Berechnung und stellt den Kontext danach zurück. Ein Test, der ihn am
         // Kontext setzte, prüfte eine Quelle, die es so nicht gibt.
         $cart->setPrice(new CartPrice(
@@ -674,7 +674,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     }
 
     /**
-     * Was: Innerhalb **einer** Regel gibt es zwei passende Preise.
+     * Was: Innerhalb einer Regel gibt es zwei passende Preise.
      * Warum: Hier gewinnt sehr wohl der günstigere — auch das ist der Kern
      *        (`getMatchingPriceOfRule` sortiert aufsteigend und nimmt den ersten Treffer). Ohne
      *        diesen Test läse sich die Korrektur oben als „teuer gewinnt immer".

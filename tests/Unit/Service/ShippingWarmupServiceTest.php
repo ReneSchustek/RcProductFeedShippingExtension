@@ -83,9 +83,9 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Zwei Feed-Kanäle, die sich denselben Berechnungs-Kanal teilen.
-     * Warum: Genau das ist die Lage auf der Testkopie — Google Shopping und Headless rechnen beide
-     *        über den Storefront-Kanal. Ohne Merkliste liefe der Warmup zweimal über denselben
-     *        Bestand; bei 2739 Produkten sind das sechs Minuten für nichts.
+     * Warum: Google Shopping und Headless rechnen etwa beide über den Storefront-Kanal. Ohne
+     *        Merkliste liefe der Warmup zweimal über denselben Bestand, bei einigen tausend
+     *        Produkten minutenlang für nichts.
      * Erwartet: nur der erste Kanal rechnet, der zweite wird als übersprungen gemeldet.
      */
     public function testASharedCalculationChannelIsProcessedOnlyOnce(): void
@@ -111,10 +111,9 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Ein Kanal, für den sich kein Context bauen lässt.
-     * Warum: Produktvergleichs-Kanäle haben oft keine vollständige Sprachkonfiguration — auf
-     *        der Testkopie ist genau das der Fall. Ohne die Vorabprüfung erzeugte jedes einzelne
-     *        Produkt denselben Fehler; bei 2112 Produkten sind das 2112 Protokollzeilen für
-     *        einen einzigen Konfigurationsmangel.
+     * Warum: Produktvergleichs-Kanäle haben oft keine vollständige Sprachkonfiguration. Ohne die
+     *        Vorabprüfung erzeugte jedes einzelne Produkt denselben Fehler, eine Protokollzeile je
+     *        Produkt für einen einzigen Konfigurationsmangel.
      * Erwartet: kein einziger Rechenversuch, der Kanal steht mit Grund in der Auswertung.
      */
     public function testAChannelWithoutAUsableContextIsSkippedWholesale(): void
@@ -236,10 +235,10 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
-     * Warum: Auf der Testkopie ist das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
-     *        alles greift dort zu Recht keine. Rechnete der Warmup ihn durch, legte er 5223 Einträge
-     *        „keine Versandart" ab, die niemand liest. Sie stellten fünf Sechstel aller Meldungen
-     *        und schickten die Fehlersuche in die falsche Richtung.
+     * Warum: Ein Kanal wie „Headless" trägt oft nur einen Bruchteil der Versandarten, und für fast
+     *        alles greift dort zu Recht keine. Rechnete der Warmup ihn durch, legte er tausende
+     *        Einträge „keine Versandart" ab, die niemand liest. Sie stellten den Großteil aller
+     *        Meldungen und schickten die Fehlersuche in die falsche Richtung.
      * Erwartet: kein Rechenversuch, dafür eine Meldung mit Grund — in Konsole und Protokoll.
      */
     public function testAChannelNoFeedReadsIsSkippedWithAReason(): void
@@ -309,9 +308,10 @@ class ShippingWarmupServiceTest extends TestCase
      */
     /**
      * Was: Ein Produkt, dessen Prüfwert dem gespeicherten entspricht.
-     * Warum: Der eigentliche Zweck des Prüfwerts. Auf dem produktiven Shop entstanden so 21 172 Berechnungen an
-     *        einem Tag, bei einer einzigen Bestellung — dreimal täglich dasselbe Ergebnis.
-     * Erwartet: **keine** Berechnung, stattdessen ein Auffrischen des Zeitstempels.
+     * Warum: Dafür gibt es den Prüfwert. Ohne ihn rechnet der Warmup viermal täglich dasselbe
+     *        Ergebnis, bei einem großen Sortiment über 21 000 Berechnungen am Tag, auch an einem
+     *        Tag mit einer einzigen Bestellung.
+     * Erwartet: keine Berechnung, stattdessen ein Auffrischen des Zeitstempels.
      */
     public function testUnchangedCombinationIsNotRecalculated(): void
     {
@@ -340,7 +340,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Derselbe Fall, aber der gespeicherte Prüfwert weicht ab.
-     * Warum: Gewicht, Maße, **Preis** oder die Versandkonfiguration haben sich geändert — dann muss
+     * Warum: Gewicht, Maße, Preis oder die Versandkonfiguration haben sich geändert — dann muss
      *        gerechnet werden, sonst steht im Feed ein falscher Betrag.
      * Erwartet: eine Berechnung, und der neue Prüfwert wird mitgegeben.
      */

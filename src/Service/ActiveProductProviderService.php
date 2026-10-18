@@ -12,13 +12,14 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 
 /**
- * Liefert die Produkte, die im Shop sichtbar sind — **einschließlich Varianten, die ihr `active`
- * vom Elternartikel erben.**
+ * Liefert die Produkte, die im Shop sichtbar sind — einschließlich Varianten, die ihr `active`
+ * vom Elternartikel erben.
  *
  * Ein bloßes `EqualsFilter('active', true)` vergleicht die Spalte und sieht bei einer Variante mit
- * `active = NULL` nichts. Auf der Testkopie sind das 1970 von 2739 Produkten. Ein Warmup, der die
- * falschen Produkte wärmt, ist genauso wirkungslos wie gar keiner, meldet aber Erfolg — und eine
- * Diagnose, die dieselbe Verengung wiederholt, meldet ein Viertel der Wirklichkeit als Ganzes.
+ * `active = NULL` nichts, und in einem Sortiment mit Varianten sind das oft die meisten Produkte.
+ * Ein Warmup, der die falschen Produkte wärmt, ist genauso wirkungslos wie gar keiner, meldet aber
+ * Erfolg, und eine Diagnose, die dieselbe Verengung wiederholt, meldet einen Bruchteil der
+ * Wirklichkeit als Ganzes.
  *
  * Die Abfrage steht deshalb an genau einer Stelle: Warmup und Diagnose müssen dieselbe Menge sehen,
  * sonst widersprechen sich ihre Zahlen.

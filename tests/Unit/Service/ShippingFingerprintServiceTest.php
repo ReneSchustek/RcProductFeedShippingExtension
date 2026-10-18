@@ -46,7 +46,7 @@ class ShippingFingerprintServiceTest extends TestCase
 
     /**
      * Was: Zwei Läufe mit unterschiedlichem Stand der Versandkonfiguration.
-     * Warum: Ändert sich eine Versandart oder ihre Preismatrix, sind die Werte **aller** Produkte
+     * Warum: Ändert sich eine Versandart oder ihre Preismatrix, sind die Werte aller Produkte
      *        hinfällig. Der Stempel steckt deshalb in jedem einzelnen Prüfwert — sonst bliebe der
      *        Feed nach einer Preisanpassung so lange falsch, bis jedes Produkt zufällig altert.
      * Erwartet: derselbe Artikel bekommt einen anderen Prüfwert.

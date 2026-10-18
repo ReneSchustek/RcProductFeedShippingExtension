@@ -22,10 +22,10 @@ class ConfigurationService implements ResetInterface
     /**
      * Trennzeichen zwischen den Einträgen der länderspezifischen Ersatzwerte.
      *
-     * Die Hilfe der Einstellung nennt das Komma, auf der Testkopie steht dort aber
+     * Die Hilfe der Einstellung nennt das Komma, gepflegt wird aber auch
      * `DE:7.95;AT:14.95;CH:21.95`. Trennte nur das Komma, wäre die ganze Zeichenkette ein einziger
-     * Eintrag: `DE` träfe zufällig zu, AT und CH fielen still auf den globalen Wert zurück. 1040
-     * Kombinationen Speditionsware stünden so mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom.
+     * Eintrag: `DE` träfe zufällig zu, AT und CH fielen still auf den globalen Wert zurück.
+     * Speditionsware stünde so mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom.
      * Beide Zeichen zu akzeptieren kostet nichts und nimmt der Einstellung
      * ihre schärfste Falle.
      */
@@ -37,7 +37,7 @@ class ConfigurationService implements ResetInterface
     /**
      * Zuordnung Land → Ersatzwert, je Verkaufskanal einmal aufgebaut.
      *
-     * Nicht nur wegen der Arbeit: Ein unlesbarer Eintrag wird beim Aufbau **einmal** gemeldet.
+     * Nicht nur wegen der Arbeit: Ein unlesbarer Eintrag wird beim Aufbau einmal gemeldet.
      * Bei jedem Aufruf zu prüfen hieße, dieselbe Meldung tausendfach zu schreiben.
      *
      * @var array<string, array<string, float>>
@@ -135,7 +135,7 @@ class ConfigurationService implements ResetInterface
     /**
      * Liest die länderspezifischen Ersatzwerte und meldet, was sich nicht lesen lässt.
      *
-     * Ein Eintrag ohne Doppelpunkt oder ohne Zahl dahinter wird **verworfen und gemeldet**, nicht
+     * Ein Eintrag ohne Doppelpunkt oder ohne Zahl dahinter wird verworfen und gemeldet, nicht
      * als 0,00 € übernommen: `(float) 'abc'` wäre kostenloser Versand im Warenstrom, und das ist
      * die teuerste aller stillen Auslegungen.
      *
@@ -188,10 +188,10 @@ class ConfigurationService implements ResetInterface
     /**
      * Die Versandarten, die nie in den Feed dürfen, als Kennungen in Kleinschreibung.
      *
-     * Der Ausschluss hängt an der Kennung statt am Namen: Die Namensteile der älteren Einstellung
-     * scheiterten schon an der ersten Umbenennung — Trummers Abholung heißt „Selbstabholer", und
-     * keines der drei voreingestellten Wörter steckt darin. Die Abholung für 0,00 € gewann dadurch
-     * als günstigste Lieferung, und 2.254 von 2.265 Artikeln standen in Google mit kostenlosem Versand.
+     * Der Ausschluss hängt an der Kennung statt am Namen, denn ein Namensteil scheitert an der ersten
+     * Umbenennung: In „Selbstabholer" steckt keines der drei voreingestellten Wörter der veralteten
+     * Namens-Einstellung. Die Abholung für 0,00 € gewänne dann als günstigste Lieferung, und fast
+     * jeder Artikel stünde in Google mit kostenlosem Versand.
      *
      * @return array<int, string>
      */

@@ -16,8 +16,8 @@ use Symfony\Component\Console\Tester\CommandTester;
  * Das Kommando, das den Speicher von Hand füllt.
  *
  * Der Exitcode ist hier kein Beiwerk: Er entscheidet, ob ein Aufspiel-Skript oder ein Cronjob
- * merkt, dass der Warmup zwar durchlief, aber nichts gerechnet hat. Genau dieser Zustand bestand
- * monatelang, ohne dass ihn etwas gemeldet hätte.
+ * merkt, dass der Warmup zwar durchlief, aber nichts gerechnet hat. Ohne ihn bliebe dieser Zustand
+ * unbemerkt, weil nichts anderes ihn meldet.
  */
 class ShippingWarmupCommandTest extends TestCase
 {
@@ -53,8 +53,7 @@ class ShippingWarmupCommandTest extends TestCase
 
     /**
      * Was: Ein Lauf, der ausschließlich Ersatzwerte eingetragen hat.
-     * Warum: **Der wichtigste Test dieser Klasse.** Technisch lief alles durch — fachlich ist das
-     *        Ergebnis wertlos, weil der Feed danach für jeden Artikel denselben Betrag nennt. Ohne
+     * Warum: Technisch läuft alles durch, fachlich ist das Ergebnis aber wertlos, weil der Feed danach für jeden Artikel denselben Betrag nennt. Ohne
      *        Exitcode 1 sieht das für jedes Skript wie Erfolg aus.
      * Erwartet: Exitcode 1 und ein Hinweis, wo zu suchen ist.
      */

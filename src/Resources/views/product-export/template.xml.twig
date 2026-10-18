@@ -38,7 +38,7 @@
        `rcShipping.get(...)` dann eine RuntimeError und bräche den GANZEN Feed. `is defined` fängt das
        ab -> deaktiviertes Plugin lässt die g:shipping-Blöcke still weg (wie im Config-helpText versprochen). #}
     {% if rcShipping is defined %}
-    {# Der Preis wird **einmal** geholt und gemerkt. Jeder Aufruf von `get()` zählt im Plugin mit,
+    {# Der Preis wird einmal geholt und gemerkt. Jeder Aufruf von `get()` zählt im Plugin mit,
        und die Zusammenfassung am Feed-Ende meldet, wie viele Produkte den Ersatzwert bekommen
        haben. Ein zweiter Aufruf in der Bedingung verdoppelte diese Zahl — wer ihr nicht trauen
        kann, sieht einen stillen Ausfall nicht. Nebenbei halbiert es die Abfragen.

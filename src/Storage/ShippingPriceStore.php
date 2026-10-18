@@ -17,7 +17,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * ----------------------------------------
  * `cache.object` läge nahe, die Werte werden ja errechnet und haben eine Haltbarkeit. Ein
  * `cache:clear` leerte sie aber mit, und der Feed nennte danach bis zum nächsten Warmup für
- * **jeden** Artikel den Ersatzwert von 4,95 Euro. Bei einem Warmup-Takt von sechs Stunden
+ * jeden Artikel den Ersatzwert von 4,95 Euro. Bei einem Warmup-Takt von sechs Stunden
  * also bis zu sechs Stunden lang -- auch für Ware, deren Versand über 200 Euro kostet. Zu
  * niedrig angegebene Versandkosten sind bei Google ein Richtlinienverstoß.
  *
@@ -158,7 +158,7 @@ class ShippingPriceStore
     /**
      * Liest für einen Kanal, welcher Prüfwert je Produkt und Land gespeichert ist und wie alt er ist.
      *
-     * In **einer** Abfrage für den ganzen Kanal, nicht je Kombination: Der Warmup braucht den Stand
+     * In einer Abfrage für den ganzen Kanal, nicht je Kombination: Der Warmup braucht den Stand
      * aller mehreren tausend Kombinationen, bevor er die erste berechnet. Tausend Einzelabfragen
      * wären genau die Last, die dieser Weg vermeiden soll.
      *
@@ -202,7 +202,7 @@ class ShippingPriceStore
      * Frischt den Zeitstempel unveränderter Einträge auf, ohne sie neu zu berechnen.
      *
      * Notwendig, weil ein Eintrag nach {@see self::MAX_AGE_SECONDS} verfällt und der Feed danach den
-     * Ersatzwert nennen würde. **Übersprungen heißt nicht ungültig** — es heißt „nachgesehen, hat
+     * Ersatzwert nennen würde. Übersprungen heißt nicht ungültig — es heißt „nachgesehen, hat
      * sich nicht geändert".
      *
      * Ein Aufruf je Stapel statt je Eintrag: Bei mehreren tausend unveränderten Kombinationen ist

@@ -86,8 +86,8 @@ final class ShippingWarmupCommand extends Command
             $io->warning($hint);
         }
 
-        // Ein Lauf ohne eine einzige echte Berechnung sieht sonst aus wie ein Erfolg. Genau dieser
-        // Zustand bestand monatelang, ohne dass ihn etwas gemeldet hätte.
+        // Ein Lauf ohne eine einzige echte Berechnung sähe sonst aus wie ein Erfolg, und der
+        // Zustand bliebe unbemerkt, weil nichts anderes ihn meldet.
         if ($result->fallbacksOnly()) {
             $io->error(
                 'Kein einziger Preis wurde berechnet — alle Werte sind Ersatzwerte. '

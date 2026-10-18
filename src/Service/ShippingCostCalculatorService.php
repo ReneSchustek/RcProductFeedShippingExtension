@@ -81,8 +81,8 @@ class ShippingCostCalculatorService implements ResetInterface
      * Warenkorb berechnet, die Shopware-Regelauswertung läuft durch, und anschließend wird die
      * günstigste verfügbare Versandmethode des Kanals ermittelt.
      *
-     * `$useStoredValue = false` überspringt den Speicher und rechnet in jedem Fall neu. **Das ist
-     * der Weg des Warmups.** Mit Speicher-Kurzschluss füllte er nur Lücken, statt zu erneuern,
+     * `$useStoredValue = false` überspringt den Speicher und rechnet in jedem Fall neu. Das ist
+     * der Weg des Warmups. Mit Speicher-Kurzschluss füllte er nur Lücken, statt zu erneuern,
      * und ein Eintrag würde erst neu gerechnet, nachdem er verfallen ist. Bei einem Takt von sechs
      * Stunden und einer Haltbarkeit von 24 liefe der Feed dann täglich rund sechs Stunden lang
      * komplett auf dem Ersatzwert, also genau in dem Zustand, gegen den es diesen Speicher gibt.
@@ -130,7 +130,7 @@ class ShippingCostCalculatorService implements ResetInterface
             // Shopware entfernt die Position, wenn sie sich nicht kaufen lässt — bei Hauptartikeln
             // mit Varianten immer (`ProductCartProcessor::validateParents`), dazu bei Closeout ohne
             // Bestand und bei Unsichtbarkeit im Berechnungs-Kanal. Ohne diese Prüfung rechnete das
-            // Plugin danach mit einem **leeren** Warenkorb weiter: Gewicht, Preis und Menge sind
+            // Plugin danach mit einem leeren Warenkorb weiter: Gewicht, Preis und Menge sind
             // dann 0, und das billigste Preisband trifft immer. Ein 40-kg-Artikel bekäme so den
             // 0-5-kg-Preis — als gerechneter Wert, ohne Ersatzwert-Kennzeichnung und ohne Meldung.
             if (!$this->cartContainsProduct($cart, $productId)) {
@@ -173,7 +173,7 @@ class ShippingCostCalculatorService implements ResetInterface
             if ($shippingCost === null) {
                 // Mit den Kennwerten, an denen es gescheitert ist. Ohne sie steht im Protokoll nur
                 // „keine Versandart", und die Suche beginnt bei null: Die Verfügbarkeitsregeln
-                // hängen im Produktivshop fast alle an Gewicht, Länge und Warenwert der Position — wer
+                // hängen meist an Gewicht, Länge und Warenwert der Position — wer
                 // die Zahlen nicht sieht, kann nicht unterscheiden, ob die Regel zu eng ist oder
                 // die Position ihre Lieferangaben gar nicht mitbringt.
                 $this->logger->info('RcProductFeedShipping: keine Versandart für diese Kombination.', [
@@ -184,7 +184,7 @@ class ShippingCostCalculatorService implements ResetInterface
                     'weight' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_WEIGHT] ?? null,
                     'volume' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_VOLUME] ?? null,
                     // Die Maße der Position getrennt: Die Regeln der Versandarten prüfen die
-                    // **Länge** (`cartLineItemDimensionLength`), nicht das Volumen. Ein Volumen von
+                    // Länge (`cartLineItemDimensionLength`), nicht das Volumen. Ein Volumen von
                     // 0 sagt nur, dass Breite oder Höhe fehlen — über die Länge sagt es nichts.
                     'dimensions' => $this->describeDimensions($cart),
                     'matchedRules' => \count($context->getRuleIds()),
@@ -266,7 +266,7 @@ class ShippingCostCalculatorService implements ResetInterface
     }
 
     /**
-     * Liest ein bereits berechnetes Ergebnis aus dem Speicher — **ohne** zu rechnen.
+     * Liest ein bereits berechnetes Ergebnis aus dem Speicher — ohne zu rechnen.
      *
      * Der Weg für das Feed-Rendering. Er muss sich vom rechnenden `calculate()` unterscheiden, weil
      * die Berechnung innerhalb einer Twig-Vorlage nicht laufen kann: Shopware sperrt während des
@@ -388,14 +388,14 @@ class ShippingCostCalculatorService implements ResetInterface
      * Core-`DeliveryCalculator::matches()`. Das Minimum über alle Tiers gäbe z. B. einem 15-kg-Produkt
      * den 0–5-kg-Preis statt des 5–30-kg-Preises.
      *
-     * **Die Reihenfolge der Regeln entscheidet, nicht ihr Preis.** Der Kern geht die Regeln des
+     * Die Reihenfolge der Regeln entscheidet, nicht ihr Preis. Der Kern geht die Regeln des
      * Kontexts der Reihe nach durch — und die sind nach Priorität absteigend sortiert — und bricht
      * bei der ersten ab, die einen passenden Preis hat (`DeliveryCalculator`, Zeile 107-116;
      * `RuleLoader`, Zeile 38-40). Wer stattdessen den billigsten Preis über alle passenden Regeln
      * nimmt, weicht von der Kasse ab: Bei „Sperrgut" (hohe Priorität, 49,90 €) neben „Standardkunde"
      * (niedrige, 5,90 €) verlangt die Kasse 49,90 €, und der Feed nennte 5,90 €.
      *
-     * Innerhalb **einer** Regel gewinnt weiterhin der günstigste passende Preis — auch das ist der
+     * Innerhalb einer Regel gewinnt weiterhin der günstigste passende Preis — auch das ist der
      * Kern (`getMatchingPriceOfRule` sortiert aufsteigend und nimmt den ersten Treffer).
      *
      * @param array<int, string> $matchedRuleIds nach Regel-Priorität absteigend sortiert
@@ -554,17 +554,17 @@ class ShippingCostCalculatorService implements ResetInterface
     /**
      * Der Preis, den die Kasse für diesen Kontext ansetzen würde.
      *
-     * **Brutto ist nicht immer richtig.** Der Kern nimmt nur bei `TAX_STATE_GROSS` den
+     * Brutto ist nicht immer richtig. Der Kern nimmt nur bei `TAX_STATE_GROSS` den
      * Bruttopreis, sonst den Nettopreis (`DeliveryCalculator::getPriceForTaxState`, Zeile
      * 222-229). Für die Schweiz — eines der voreingestellten Länder — setzt der Kern über
      * `country.customerTax` regulär `TAX_STATE_FREE`. Ein fester Bruttopreis stünde dort im Feed,
      * während die Kasse netto abrechnet.
      *
-     * **Er steht im Warenkorb, nicht im Kontext.** `CartRuleLoader::validateTaxFree()` setzt den
-     * steuerfreien Zustand nur für die Dauer der Neuberechnung und **stellt ihn danach zurück**
+     * Er steht im Warenkorb, nicht im Kontext. `CartRuleLoader::validateTaxFree()` setzt den
+     * steuerfreien Zustand nur für die Dauer der Neuberechnung und stellt ihn danach zurück
      * (Kern 6.7.12.1, Zeile 325-345). Wer den Kontext hinterher fragt, bekommt wieder
-     * `TAX_STATE_GROSS` — gemessen auf der Testkopie bei `customerTax.enabled = true` für die
-     * Schweiz. Der berechnete Warenkorb trägt den tatsächlich verwendeten Zustand.
+     * `TAX_STATE_GROSS`, auch bei `customerTax.enabled = true` für die Schweiz. Der berechnete
+     * Warenkorb trägt den tatsächlich verwendeten Zustand.
      *
      * Der Währungsfaktor gilt nur für den Preis in der Standardwährung: Er ist der Umrechnungs-
      * kurs, mit dem ein nicht gepflegter Fremdwährungspreis abgeleitet wird. Ein eigens

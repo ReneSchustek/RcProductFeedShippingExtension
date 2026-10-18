@@ -94,7 +94,7 @@ if ($shopwareRoot !== null && class_exists(\Shopware\Core\TestBootstrapper::clas
         ->addCallingPlugin();  // RcProductFeedShippingExtension im Test-Kernel registrieren. Beim ersten Bootstrap installiert TestBootstrapper das Plugin automatisch (siehe `bootstrap()` -> `installPlugins()`); danach ist es aktiv und die services.xml wird geladen. `setForceInstallPlugins(true)` triggert einen uninstall->install-Zyklus, der den Plugin-eigenen uninstall()-Pfad durchläuft — der wiederum `database_connection` braucht (Service-Name-Konflikt im Test-Kernel) und nicht idempotent ist. Daher hier weglassen.
 
     // ProjectDir explizit auf das gefundene Shopware-Root setzen.
-    // Wichtig: `KernelFactory::getProjectDir()` liest `$_SERVER['PROJECT_ROOT']`
+    // `KernelFactory::getProjectDir()` liest `$_SERVER['PROJECT_ROOT']`
     // *vor* dem Reflection-Fallback (der sonst den Pfad der KernelFactory-Klasse
     // selbst nimmt — bei composer-installiertem vendor zeigt das auf den
     // Plugin-Pfad, nicht auf das Shopware-Root). `setProjectDir` auf dem

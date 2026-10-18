@@ -20,7 +20,7 @@ final class WarmupResult
     /**
      * Kombinationen, deren Prüfwert unverändert war und die deshalb nicht neu gerechnet wurden.
      *
-     * Sie sind **kein** Ausfall, sondern der Zweck der Übung: nachgesehen, nichts geändert, alter
+     * Sie sind kein Ausfall, sondern der Zweck der Übung: nachgesehen, nichts geändert, alter
      * Wert bleibt gültig. Ihr Zeitstempel wird aufgefrischt, damit der Eintrag nicht verfällt.
      */
     public int $unchanged = 0;

@@ -26,9 +26,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Fehlende Werte rechnet die Prüfung und legt sie wie der Warmup im Speicher ab; den Warenkorb, den sie dafür anlegt,
  * räumt sie am Ende wieder weg.
  *
- * **Dieselbe Kanalmenge wie der Warmup.** Zählte die Prüfung Kanäle mit, die kein Warenstrom
- * ausliest, stünden dort Zahlen ohne Bedeutung für den Warenstrom — genau daran ist die
- * Fehlersuche am 2026-08-19 zweimal vorbeigelaufen.
+ * Die Prüfung sieht dieselbe Kanalmenge wie der Warmup. Zählte sie Kanäle mit, die kein Warenstrom
+ * ausliest, stünden dort Zahlen ohne Bedeutung für den Warenstrom, und die Fehlersuche liefe an der
+ * eigentlichen Ursache vorbei.
  */
 #[AsCommand(name: 'rc:shipping:check', description: 'List products using fallback shipping costs')]
 final class ShippingCheckCommand extends AbstractShippingCommand

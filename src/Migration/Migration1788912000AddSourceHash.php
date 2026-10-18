@@ -10,8 +10,8 @@ use Shopware\Core\Framework\Migration\MigrationStep;
 /**
  * Ergänzt den Prüfwert, mit dem der Warmup erkennt, ob sich überhaupt etwas geändert hat.
  *
- * Ohne ihn rechnete jeder Lauf jede Kombination neu — auf dem produktiven Shop 21 172 Berechnungen
- * an einem Tag, bei einer Bestellung. Die Begründung steht in `Service\ShippingFingerprintService`.
+ * Ohne ihn rechnet jeder Lauf jede Kombination neu, viermal am Tag mit demselben Ergebnis. Die
+ * Begründung steht in `Service\ShippingFingerprintService`.
  *
  * `NULL` ist der richtige Vorgabewert: Bestehende Zeilen tragen keinen Prüfwert und werden beim
  * ersten Lauf nach der Umstellung neu gerechnet. Ein erfundener Wert würde sie als „unverändert"

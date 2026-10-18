@@ -11,15 +11,15 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 
 /**
  * Beantwortet die eine Frage, an der die Arbeitsmenge des Plugins hängt:
- * **Welche Verkaufskanäle liest überhaupt ein Warenstrom aus?**
+ * Welche Verkaufskanäle liest überhaupt ein Warenstrom aus?
  *
  * Das ist eine eigene Klasse wert, weil das Plugin standardmäßig in jedem Kanal eingeschaltet ist.
- * Wärmte der Warmup jeden aktiven Kanal mit eingeschaltetem Plugin vor, träfe das auf der Testkopie
- * den Kanal „Headless", der 20 statt 206 Versandarten trägt: 5223 Einträge „keine Versandart" für
- * einen Kanal, den kein Warenstrom ausliest. Sie stellten fünf Sechstel aller Meldungen und
- * schickten die Fehlersuche in die falsche Richtung.
+ * Wärmte der Warmup jeden aktiven Kanal mit eingeschaltetem Plugin vor, träfe das auch Kanäle wie
+ * „Headless", die kein Warenstrom ausliest und die oft nur einen Bruchteil der Versandarten tragen.
+ * Ihre Einträge „keine Versandart" stellten dann den Großteil aller Meldungen und schickten die
+ * Fehlersuche in die falsche Richtung.
  *
- * Maßgeblich ist der **Storefront-Kanal** des Produktexports, nicht sein Vergleichs-Kanal: Der Kern
+ * Maßgeblich ist der Storefront-Kanal des Produktexports, nicht sein Vergleichs-Kanal: Der Kern
  * baut den Rendering-Kontext aus `storefrontSalesChannelId` (`ProductExportGenerator`, 6.7.13.0),
  * und genau diesen Kanal bekommt der `ProductFeedSubscriber` zu sehen.
  */

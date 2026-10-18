@@ -115,8 +115,8 @@ class ShippingCheckCommandTest extends TestCase
 
     /**
      * Was: Ein Kanal, dessen Berechnungs-Kanal keinen Context liefert.
-     * Warum: Genau die Lage auf der Testkopie — der Google-Shopping-Kanal hat eine Sprache
-     *        zugewiesen, die es nicht gibt. Ohne deutlichen Hinweis sucht man den Fehler bei
+     * Warum: Ein Kanal kann eine Sprache zugewiesen haben, die es nicht gibt. Ohne deutlichen
+     *        Hinweis sucht man den Fehler bei
      *        den Versandarten statt bei der Kanalkonfiguration.
      * Erwartet: Warnung mit Kanalnamen, keine Berechnung.
      */
@@ -190,8 +190,8 @@ class ShippingCheckCommandTest extends TestCase
     /**
      * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
      * Warum: Die Prüfung muss dieselbe Menge sehen wie der Warmup. Zählte sie den Kanal „Headless"
-     *        mit, stünden dort Ersatzwerte, die im Warenstrom nie erscheinen — genau diese Zahlen
-     *        haben die Fehlersuche am 2026-08-19 zweimal fehlgeleitet.
+     *        mit, stünden dort Ersatzwerte, die im Warenstrom nie erscheinen, und die Fehlersuche
+     *        suchte am falschen Ort.
      * Erwartet: kein Rechenversuch, dafür ein Hinweis mit Grund.
      */
     public function testAChannelNoFeedReadsIsSkippedWithAReason(): void

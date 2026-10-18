@@ -101,11 +101,10 @@ Es holt die Länder ebenfalls über `rcShipping.getCountries()`. Ein neu eingetr
 Die berechneten Werte stehen in der Tabelle `rc_product_feed_shipping_price`, je Produkt, Land
 und Verkaufskanal.
 
-**Sie liegen bewusst nicht im Cache.** Bis Fassung 1.2.0 taten sie das, und ein
-`bin/console cache:clear` leerte sie mit. Bis zum nächsten Warmup nannte der Feed danach für
-jeden Artikel den Ersatzwert. Da der Warmup alle sechs Stunden läuft, konnte dieser Zustand
-sechs Stunden anhalten. Cache leeren gehört zu jedem Update und jedem Aufspielen, die Falle schnappte
-also planmäßig zu und nicht nur ausnahmsweise.
+**Sie liegen bewusst nicht im Cache.** Dort leerte ein `bin/console cache:clear` sie mit, und
+bis zum nächsten Warmup nennte der Feed für jeden Artikel den Ersatzwert. Da der Warmup alle sechs
+Stunden läuft, könnte dieser Zustand sechs Stunden anhalten. Cache leeren gehört zu jedem Update und
+jedem Aufspielen, die Falle schnappte also planmäßig zu und nicht nur ausnahmsweise.
 
 **Befüllen:**
 ```bash

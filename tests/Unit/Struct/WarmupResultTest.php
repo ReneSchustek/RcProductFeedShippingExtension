@@ -12,7 +12,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Struct\WarmupResult;
  *
  * Klein, aber nicht nebensächlich: An `fallbacksOnly()` hängt der Exitcode des Kommandos. Meldet
  * es fälschlich Erfolg, läuft die geplante Aufgabe still weiter, während der Feed für jeden
- * Artikel den Ersatzwert nennt — genau der Zustand, der monatelang unbemerkt blieb.
+ * Artikel den Ersatzwert nennt. Von außen bleibt dieser Zustand lange unbemerkt.
  */
 class WarmupResultTest extends TestCase
 {
@@ -68,9 +68,9 @@ class WarmupResultTest extends TestCase
 
     /**
      * Was: Ein einziger gerechneter Wert unter lauter Ersatzwerten.
-     * Warum: „Auffällig" heißt „gar nichts gerechnet", nicht „überwiegend Ersatzwerte". Auf
-     *        der Testkopie sind 1943 von 8217 Kombinationen Ersatzwerte, und das ist ein gesunder
-     *        Lauf — die Ware geht dorthin schlicht nicht.
+     * Warum: „Auffällig" heißt „gar nichts gerechnet", nicht „überwiegend Ersatzwerte". Auch ein
+     *        Lauf mit einem Viertel Ersatzwerten kann gesund sein, wenn die Ware dorthin schlicht
+     *        nicht geht.
      * Erwartet: nicht auffällig.
      */
     public function testASingleCalculatedValueClearsTheAlarm(): void

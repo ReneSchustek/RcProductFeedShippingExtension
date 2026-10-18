@@ -28,13 +28,11 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Der wichtigste Test der Klasse.
-     *
      * Rechnet der Provider aus der Vorlage heraus, scheitert er auf Shopware 6.7 bei jedem Produkt:
      * Twig sperrt während des Renderns interne Entity-Felder, und die Warenkorb-Regelauswertung
      * braucht mit `RuleEntity::payload` genau so eines. Der Ausfall bleibt unsichtbar,
-     * weil der Ersatzwert einspringt. Deshalb hier festgeschrieben: **`calculate()` wird nie
-     * aufgerufen.**
+     * weil der Ersatzwert einspringt. Deshalb hier festgeschrieben: `calculate()` wird nie
+     * aufgerufen.
      */
     public function testTheProviderNeverCalculatesItself(): void
     {
@@ -77,7 +75,7 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Fehlt der vorberechnete Wert, kommt der Ersatzwert — aber **nicht stillschweigend**.
+     * Fehlt der vorberechnete Wert, kommt der Ersatzwert — aber nicht stillschweigend.
      * Ein Notnagel, der niemandem auffällt, lässt einen Ausfall monatelang unentdeckt.
      */
     public function testWithoutPrecomputedValue_FallbackIsUsed_WithWarning(): void
@@ -353,12 +351,12 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Was: Ein Artikel, der sich nicht in den Warenkorb legen lässt — im Produktivshop sind das die
-     *      Hauptartikel mit Varianten.
+     * Was: Ein Artikel, der sich nicht in den Warenkorb legen lässt; das sind die Hauptartikel mit
+     *      Varianten.
      * Warum: Für ihn gibt es keinen Versandpreis. Jede Zahl wäre erfunden, und der Ersatzwert
      *        von 4,95 € ist bei einem Artikel, dessen Varianten 238 € Versand kosten, die
      *        schlechteste davon — zu niedrig angegebene Versandkosten sind bei Google ein
-     *        Richtlinienverstoß. Auf der Testkopie betrifft das 309 Artikel.
+     *        Richtlinienverstoß.
      * Erwartet: kein Block, unabhängig von der Einstellung.
      */
     public function testNotPurchasableProductEmitsNoPrice(): void

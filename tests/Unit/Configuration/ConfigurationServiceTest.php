@@ -113,9 +113,9 @@ class ConfigurationServiceTest extends TestCase
 
     /**
      * Was: Die Einträge sind mit Semikolon getrennt statt mit Komma.
-     * Warum: So steht es auf der Testkopie — `DE:7.95;AT:14.95;CH:21.95`. Trennte nur das Komma,
-     *        wäre die Zeichenkette ein einziger Eintrag: DE träfe zufällig zu, AT und CH fielen
-     *        still auf den globalen Ersatzwert zurück. 1040 Kombinationen Speditionsware stünden
+     * Warum: So wird die Einstellung auch gepflegt, etwa `DE:7.95;AT:14.95;CH:21.95`. Trennte nur
+     *        das Komma, wäre die Zeichenkette ein einziger Eintrag: DE träfe zufällig zu, AT und CH
+     *        fielen still auf den globalen Ersatzwert zurück. Speditionsware stünde
      *        mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom — zu niedrige Versandkosten sind
      *        bei Google ein Richtlinienverstoß.
      * Erwartet: Jedes Land bekommt seinen eigenen Betrag.
@@ -133,7 +133,7 @@ class ConfigurationServiceTest extends TestCase
     /**
      * Was: Ein Eintrag ohne Zahl hinter dem Doppelpunkt.
      * Warum: `(float) 'frei'` ist 0.0 — kostenloser Versand im Warenstrom, entstanden aus einem
-     *        Tippfehler. Der Eintrag muss verworfen **und gemeldet** werden, sonst bleibt der
+     *        Tippfehler. Der Eintrag muss verworfen und gemeldet werden, sonst bleibt der
      *        teuerste denkbare Wert die stille Auslegung.
      * Erwartet: der globale Ersatzwert, dazu genau eine Meldung.
      */

@@ -11,7 +11,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
  * aus dem konfigurierten Fallback stammt. Fallback-Ergebnisse werden ebenfalls
  * gecacht, damit fehlerhafte Berechnungen nicht bei jedem Export wiederholt werden.
  *
- * `fallbackReason` sagt **warum** — ohne diese Angabe lässt sich „der Shop versendet das dorthin
+ * `fallbackReason` sagt warum — ohne diese Angabe lässt sich „der Shop versendet das dorthin
  * nicht" nicht von „wir konnten gerade nicht rechnen" unterscheiden, und beides verlangt im Feed
  * gegensätzliches Verhalten.
  */

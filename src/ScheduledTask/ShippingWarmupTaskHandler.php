@@ -16,7 +16,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
  *
  * Läuft im Worker und damit außerhalb von Twig — nur dort ist die Berechnung überhaupt möglich.
  *
- * **Voraussetzung im Betrieb:** ein laufender `messenger:consume`-Worker und der
+ * Im Betrieb braucht die Aufgabe einen laufenden `messenger:consume`-Worker und den
  * `scheduled-task:run`-Dienst. Ohne beides bleibt die Aufgabe stehen, der Speicher läuft nach 24
  * Stunden ab, und der Feed fällt auf den Ersatzwert zurück — sichtbar an der Warnung
  * `feed_fallback_summary` im Protokoll.

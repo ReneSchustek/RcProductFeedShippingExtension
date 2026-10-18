@@ -15,14 +15,14 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Warum es ihn gibt
  * -----------------
- * Ohne ihn rechnet der Warmup bei jedem Lauf jede Kombination aus Produkt und Land neu, dreimal am
- * Tag mit demselben Ergebnis. Auf dem produktiven Shop sind das 21 172 Berechnungen an einem Tag,
- * bei einer einzigen Bestellung. **Google verlangt korrekte Werte im Feed, keine ständige
- * Neuberechnung.** Ist der Prüfwert unverändert, liefert eine Neuberechnung dasselbe Ergebnis.
+ * Ohne ihn rechnet der Warmup bei jedem Lauf jede Kombination aus Produkt und Land neu, viermal am
+ * Tag mit demselben Ergebnis. Bei einem großen Sortiment sind das über 21 000 Berechnungen am Tag,
+ * auch an einem Tag mit einer einzigen Bestellung. Google verlangt korrekte Werte im Feed, keine
+ * ständige Neuberechnung. Ist der Prüfwert unverändert, liefert eine Neuberechnung dasselbe Ergebnis.
  *
  * Was in den Prüfwert eingeht
  * ---------------------------
- * Gewicht und Abmessungen sind die offensichtlichen Größen. **Der Preis ist die übersehene:** Wo es
+ * Gewicht und Abmessungen sind die offensichtlichen Größen, leicht übersehen wird der Preis. Wo es
  * „versandkostenfrei ab X" gibt, ändert eine Preisänderung die Versandkosten, obwohl das Gewicht
  * gleich blieb. Dazu Steuersatz, das Kennzeichen für Versandkostenfreiheit und das Aktiv-Merkmal,
  * ob sich der Artikel überhaupt bestellen lässt (Abverkauf ohne Bestand), und alles, worauf eine
@@ -35,21 +35,21 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Die Versandkonfiguration steckt mit drin
  * ----------------------------------------
- * Ändert sich eine Versandart, ihre Preismatrix oder eine Regel, ist der Prüfwert **aller** Produkte
+ * Ändert sich eine Versandart, ihre Preismatrix oder eine Regel, ist der Prüfwert aller Produkte
  * hinfällig. Statt eines Sonderwegs geht der Stand der Konfiguration als Stempel in jeden einzelnen
  * Prüfwert ein: Ändert er sich, ändern sich alle Prüfwerte, und der nächste Lauf rechnet alles neu.
  *
- * **In den Stempel gehört auch die Anzahl der Zeilen.** Ein `MAX(updated_at)` allein merkt kein
+ * In den Stempel gehört auch die Anzahl der Zeilen. Ein `MAX(updated_at)` allein merkt kein
  * Löschen — wer eine Versandart entfernt, hinterlässt keinen neueren Zeitstempel, wohl aber eine
  * Zeile weniger.
  *
  * Warum `rule` nur gezählt und nicht datiert wird
  * -----------------------------------------------
  * Shopware kompiliert beim Berechnen eines Warenkorbs die Regel-Nutzlast und schreibt dabei
- * `rule.updated_at`. Zählte dieser Zeitstempel mit, **verschöbe jeder Lauf seinen eigenen Prüfwert**,
+ * `rule.updated_at`. Zählte dieser Zeitstempel mit, verschöbe jeder Lauf seinen eigenen Prüfwert,
  * und kein Eintrag könnte je unverändert sein.
  *
- * Von `rule` geht deshalb nur die **Anzahl** in den Stempel ein — sie merkt eine hinzugefügte oder
+ * Von `rule` geht deshalb nur die Anzahl in den Stempel ein — sie merkt eine hinzugefügte oder
  * gelöschte Regel. Eine inhaltliche Änderung fängt `rule_condition` ab: Dort stehen die Bedingungen
  * selbst, und diese Tabelle schreibt niemand nebenbei.
  *
@@ -66,7 +66,7 @@ class ShippingFingerprintService implements ResetInterface
     /**
      * Tabellen, deren Stand die Versandkosten aller Produkte bestimmt.
      *
-     * Der Wert sagt, ob der Zeitstempel mitzählt. Bei `rule` tut er das **nicht** — Shopware
+     * Der Wert sagt, ob der Zeitstempel mitzählt. Bei `rule` tut er das nicht — Shopware
      * schreibt ihn beim Berechnen selbst; die Begründung steht im Klassenkommentar.
      */
     private const CONFIGURATION_SOURCES = [

@@ -20,7 +20,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelCollection;
  * Füllt den Versandkosten-Speicher vorab — der einzige Ort, an dem tatsächlich gerechnet wird.
  *
  * Das ist kein Beiwerk, denn der Feed selbst rechnet nicht. Aus der Twig-Vorlage heraus scheitert
- * die Berechnung **immer**, weil Shopware während des Renderns interne Entity-Felder sperrt und die
+ * die Berechnung immer, weil Shopware während des Renderns interne Entity-Felder sperrt und die
  * Warenkorb-Regelauswertung genau so ein Feld braucht (`RuleEntity::payload`). Rechnen darf deshalb
  * nur, wer außerhalb von Twig läuft: dieses Kommando und die geplante Aufgabe.
  *
@@ -33,7 +33,7 @@ class ShippingWarmupService
      * Höchstalter, nach dem in jedem Fall neu gerechnet wird — auch bei gleichem Prüfwert.
      *
      * Sieben Tage. Ein wöchentlicher Vollauf an einem festen Tag erfüllte denselben Zweck, bündelte
-     * die Last aber auf diesen Tag; die Frist je Eintrag verteilt sie. **Sie ist das Sicherheitsnetz**
+     * die Last aber auf diesen Tag; die Frist je Eintrag verteilt sie. Sie ist das Sicherheitsnetz
      * für jede Änderung, die der Prüfwert nicht erfasst.
      */
     public const FULL_RECALCULATION_SECONDS = 604800;

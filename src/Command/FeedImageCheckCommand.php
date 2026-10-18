@@ -15,19 +15,19 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Zählt, wie viele Artikel Googles Mindestmaß für `image_link` verfehlen.
  *
- * **Ab dem 31.01.2027 verlangt das Merchant Center 500 × 500 Pixel**, beide Kanten. Wer darunter
- * liegt, wird nicht mehr genehmigt und erscheint nicht mehr bei Google.
+ * Ab dem 31.01.2027 verlangt das Merchant Center 500 × 500 Pixel, beide Kanten. Ein Artikel
+ * darunter wird nicht genehmigt und erscheint nicht bei Google.
  *
  * Der Befehl nennt drei Zahlen und trennt dabei die beiden Fälle, die verschiedene Lösungen
- * brauchen: Ein Artikel mit einem **anderen** ausreichend großen Bild ist eine Sache des Feeds; ein
+ * brauchen: Ein Artikel mit einem anderen ausreichend großen Bild ist eine Sache des Feeds; ein
  * Artikel ohne jedes ausreichende Bild braucht neues Material und keine Programmänderung.
  *
  * Mit `--liste` erscheinen die Artikel der zweiten Gruppe mit Nummer, Namen und heutigem Maß —
  * die Liste zum Abarbeiten.
  *
- * **`--nachmessen` lädt die Bilddateien wirklich** und vergleicht ihre Maße mit den Angaben der
+ * `--nachmessen` lädt die Bilddateien wirklich und vergleicht ihre Maße mit den Angaben der
  * Mediathek. Standardmäßig an einer Stichprobe: Die Angaben stammen aus Shopwares Analyse beim
- * Hochladen und sind fast immer richtig; sie **alle** nachzuladen kostet mehrere tausend Abrufe.
+ * Hochladen und sind fast immer richtig; sie alle nachzuladen kostet mehrere tausend Abrufe.
  * Weicht die Stichprobe ab, ist das ein eigener Befund — dann stimmt die Mediathek nicht.
  */
 #[AsCommand(

@@ -22,8 +22,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Warum hier nichts mehr gelöscht wird
  * ------------------------------------
  * Den Bestand wegzuwerfen läge nahe, nach dem Muster „der nächste Feed-Request rechnet neu". Das
- * trägt hier nicht: **Der Feed rechnet gar nicht, er liest nur.** Ein Löschen hieße, dass der Feed
- * bis zum nächsten geplanten Lauf — bis zu sechs Stunden — für **jedes** Produkt den Ersatzwert
+ * trägt hier nicht: Der Feed rechnet gar nicht, er liest nur. Ein Löschen hieße, dass der Feed
+ * bis zum nächsten geplanten Lauf — bis zu sechs Stunden — für jedes Produkt den Ersatzwert
  * von 4,95 Euro nennt, auch für Ware, deren Versand über 200 Euro kostet.
  *
  * Damit stellte eine gewöhnliche Handlung im Verwaltungsbereich genau den Zustand her, den der

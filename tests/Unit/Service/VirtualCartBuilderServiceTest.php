@@ -89,9 +89,9 @@ class VirtualCartBuilderServiceTest extends TestCase
 
     /**
      * Was: Zwei Warenkörbe nacheinander aus demselben Dienst.
-     * Warum: Shopware schreibt jeden berechneten Warenkorb weg. Trug jeder ein eigenes Token, ließ
-     *        der Warmup je Produkt und Land eine Zeile zurück — auf dem produktiven Shop 21 172 an
-     *        einem Tag, rund ein Gigabyte, dreißig Tage Aufbewahrung.
+     * Warum: Shopware schreibt jeden berechneten Warenkorb weg. Trüge jeder ein eigenes Token,
+     *        ließe der Warmup je Produkt und Land eine Zeile zurück, bei über 21 000 Berechnungen
+     *        am Tag rund ein Gigabyte bei dreißig Tagen Aufbewahrung.
      * Erwartet: dasselbe Token, also eine einzige Zeile für den ganzen Lauf.
      */
     public function testAllCartsOfOneProcessShareOneToken(): void

@@ -13,34 +13,21 @@ use Symfony\Contracts\Service\ResetInterface;
 /**
  * Findet für den Warenstrom das Produktbild, das Googles Mindestmaß erfüllt.
  *
- * Der Anlass
- * ----------
- * **Ab dem 31.01.2027 verlangt das Merchant Center für `image_link` mindestens 500 × 500 Pixel.**
- * Kleinere Bilder werden nicht mehr genehmigt, das Produkt erscheint nicht mehr.
+ * Ab dem 31.01.2027 verlangt das Merchant Center für `image_link` mindestens 500 × 500 Pixel; ein
+ * Produkt mit kleinerem Bild wird nicht genehmigt und erscheint nicht bei Google.
  *
- * Was die Messung auf dem Datenbestand ergab
- * ------------------------------------------
- * | | |
- * |---|--:|
- * | aktive Produkte mit Titelbild | 2 094 |
- * | Titelbild kleiner als 500 × 500 | **413** |
- * | davon mit einem **anderen** Bild ≥ 500 × 500 | **313** |
- * | ohne jedes ausreichende Bild | **100** |
+ * Übliche Export-Vorlagen verlinken `product.cover.media.url`, also das Original. Eine andere
+ * Vorschaufassung zu wählen hilft deshalb nicht, wohl aber ein anderes Bild desselben Artikels, und
+ * die meisten Artikel mit zu kleinem Titelbild haben eines. Die häufigsten zu kleinen Maße sind
+ * 400 × 400, 500 × 250, 500 × 333 und 480 × 400, also knapp daneben und nicht winzig.
  *
- * An einem zu klein gewählten Vorschaubild liegt es nicht, denn alle drei Export-Vorlagen des
- * Shops verlinken `product.cover.media.url`, also das **Original**.
- * Eine andere Vorschaufassung zu wählen hilft deshalb nicht; was hilft, ist ein **anderes Bild**
- * desselben Artikels. Die häufigsten zu kleinen Maße sind 400 × 400, 500 × 250, 500 × 333 und
- * 480 × 400 — knapp daneben, nicht winzig.
+ * Der Dienst wählt das erste Bild in der Reihenfolge des Artikels, das an beiden Kanten mindestens
+ * 500 px hat und keine Maßzeichnung ist, und bevorzugt dabei das Titelbild, wenn es die Vorgabe
+ * erfüllt. Gibt es kein solches Bild, liefert er `null`; dann bleibt es beim Titelbild, und der
+ * Artikel gehört auf die Liste für neues Material.
  *
- * Was dieser Dienst tut und was nicht
- * -----------------------------------
- * Er wählt das **erste Bild in der Reihenfolge des Artikels, das beide Kanten ≥ 500 px hat** und keine
- * Maßzeichnung ist, und bevorzugt dabei das Titelbild, wenn es die Vorgabe erfüllt. Gibt es kein solches Bild, liefert er
- * `null` — dann bleibt es beim Titelbild, und der Artikel gehört auf die Liste für neues Material.
- *
- * **Hochskaliert wird unter keinen Umständen.** Ein hochgerechnetes 400er-Bild bestünde Googles
- * Prüfung und stünde danach unscharf im Shop.
+ * Hochskaliert wird nie: Ein hochgerechnetes 400er-Bild bestünde Googles Prüfung und stünde danach
+ * unscharf im Shop.
  */
 class FeedImageService implements ResetInterface
 {
@@ -65,7 +52,7 @@ class FeedImageService implements ResetInterface
     /**
      * Die Adresse eines ausreichend großen Bildes, oder `null`, wenn der Artikel keines hat.
      *
-     * Beim ersten Aufruf wird der ganze Bestand in **einer** Abfrage geladen. Der Warenstrom rendert
+     * Beim ersten Aufruf wird der ganze Bestand in einer Abfrage geladen. Der Warenstrom rendert
      * mehrere tausend Artikel in einem Durchgang; eine Abfrage je Artikel wäre an dieser Stelle der
      * teuerste denkbare Weg.
      */

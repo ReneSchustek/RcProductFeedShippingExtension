@@ -60,7 +60,7 @@ class FeedImageServiceTest extends TestCase
 
     /**
      * Was: Ein Bild mit 800 x 400.
-     * Warum: Google verlangt **beide** Kanten mit mindestens 500 Pixeln. Eine breite Fassung
+     * Warum: Google verlangt beide Kanten mit mindestens 500 Pixeln. Eine breite Fassung
      *        erfüllt die Vorgabe nicht — und im Bestand sind 500 x 250 und 500 x 333 genau die
      *        zweit- und dritthäufigsten zu kleinen Maße.
      * Erwartet: nicht verwendet.

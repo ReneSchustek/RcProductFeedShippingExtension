@@ -14,15 +14,15 @@ use Shopware\Core\Framework\Struct\Struct;
  * Wird einmalig in den Feed-Vorlagen-Kontext gelegt und liefert dort die Versandkosten je Produkt
  * und Land. Die Vorlage ruft `rcShipping.get(product.id, 'DE')`.
  *
- * **Dieser Provider rechnet nicht.** Er liest ausschließlich vorberechnete Werte.
+ * Dieser Provider rechnet nicht. Er liest ausschließlich vorberechnete Werte.
  *
  * Warum: Shopware sperrt während des Twig-Renderns interne Entity-Felder. Der Schalter dafür
  * (`FieldVisibility::$isInTwigRenderingContext`) wird von `SwTwigFunction::getAttribute()` bei jedem
  * Attributzugriff auf ein `Struct` gesetzt — und dieser Provider ist ein `Struct`. Alles, was
  * innerhalb von `get()` passiert, läuft also unter dieser Sperre. Die Warenkorb-Regelauswertung
- * braucht mit `RuleEntity::payload` genau so ein gesperrtes Feld. Das Rechnen aus der Vorlage heraus
- * schlug deshalb bei **jedem** Produkt fehl und landete still im Ersatzwert: 6336 Ausnahmen je
- * Feed-Lauf, ohne dass am Feed etwas auffiel.
+ * braucht mit `RuleEntity::payload` genau so ein gesperrtes Feld. Rechnete der Provider aus der
+ * Vorlage heraus, schlüge das bei jedem Produkt fehl und landete still im Ersatzwert: eine Ausnahme
+ * je Produkt und Land, ohne dass am Feed etwas auffällt.
  *
  * Gefüllt wird der Speicher außerhalb von Twig — durch `rc:shipping:warmup` und die geplante
  * Aufgabe `rc_product_feed_shipping.warmup`.
@@ -98,11 +98,10 @@ final class ShippingContextProvider extends Struct
 
         if ($precomputed !== null) {
             // „Nicht bestellbar" heißt: Für diesen Artikel gibt es keinen Versandpreis, weil er
-            // sich nicht in einen Warenkorb legen lässt — im Produktivshop sind das die Hauptartikel
-            // mit Varianten. Jede Zahl, die hier stünde, wäre erfunden, und der Ersatzwert von
+            // sich nicht in einen Warenkorb legen lässt; das sind die Hauptartikel mit Varianten. Jede Zahl, die hier stünde, wäre erfunden, und der Ersatzwert von
             // 4,95 Euro wäre bei einem Artikel mit 238 Euro Versand die schlechteste davon.
             //
-            // Anders als das Weglassen bei „keine Versandart" hängt das an **keiner** Einstellung:
+            // Anders als das Weglassen bei „keine Versandart" hängt das an keiner Einstellung:
             // Dort entscheidet der Betreiber, ob Schweigen oder Ersatzwert die bessere Aussage
             // über sein Sortiment ist. Hier gibt es nichts zu entscheiden — wir wissen es nicht.
             if ($precomputed->fallbackReason === FallbackReason::NotPurchasable) {

@@ -88,7 +88,7 @@ final class ShippingMethodChangeSubscriberTest extends TestCase
 
     /**
      * Was: Irgendeine andere Entität wird geschrieben.
-     * Warum: Der Abonnent hört auf **jedes** Schreib-Ereignis im Shop. Griffe er zu weit, zöge
+     * Warum: Der Abonnent hört auf jedes Schreib-Ereignis im Shop. Griffe er zu weit, zöge
      *        jeder Produktimport einen Warmup nach sich.
      * Erwartet: nichts.
      */

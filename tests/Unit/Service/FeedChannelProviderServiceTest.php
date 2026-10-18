@@ -16,7 +16,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 /**
  * Die Antwort auf „welche Kanäle zählen" — die Größe, an der die halbe Arbeitsmenge hängt.
  *
- * Warum das getestet gehört: Der Produktexport trägt **zwei** Kanäle. Wer den falschen nimmt, wärmt
+ * Warum das getestet gehört: Der Produktexport trägt zwei Kanäle. Wer den falschen nimmt, wärmt
  * einen Kanal vor, den der Warenstrom nie ausliest, und liest zur Laufzeit einen, der nie gewärmt
  * wurde. Beides ist einzeln richtig und zusammen wirkungslos — und beides fällt erst am kalten
  * Warenstrom auf.
@@ -48,7 +48,7 @@ class FeedChannelProviderServiceTest extends TestCase
 
     /**
      * Was: Drei Exporte auf denselben Storefront-Kanal.
-     * Warum: Auf der Testkopie sind es genau drei — Produktivlauf, Rauchprobe und Vergleich. Der
+     * Warum: Üblich sind etwa Produktivlauf, Rauchprobe und Vergleich auf demselben Kanal. Der
      *        Aufrufer schlägt je Kombination nach; eine Liste mit Dubletten wäre die falsche Form.
      * Erwartet: eine Kennung, einmal.
      */
