@@ -1,4 +1,4 @@
-# Sicherheitsrichtlinie – RcProductFeedShippingExtension
+# Sicherheitsrichtlinie für RcProductFeedShippingExtension
 
 ## Unterstützte Versionen
 

@@ -7,7 +7,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
 /**
  * Warum ein Ergebnis der Ersatzwert ist und nicht ein gerechneter Preis.
  *
- * Die Fälle sahen im Code lange gleich aus — mit gegensätzlicher Bedeutung. „Keine Versandart"
+ * Die Fälle sahen im Code lange gleich aus, mit gegensätzlicher Bedeutung. „Keine Versandart"
  * ist ein Ergebnis: Der Shop versendet diese Ware nicht in dieses Land, sie geht nur auf
  * Anfrage. „Nicht vorberechnet" ist ein Betriebszustand: Der Speicher ist kalt, wir wissen
  * nichts. „Berechnung fehlgeschlagen" ist ein Fehler, der ins Protokoll gehört. „Nicht
@@ -24,7 +24,7 @@ enum FallbackReason: string
     case CalculationFailed = 'calculation_failed';
     case NotPurchasable = 'not_purchasable';
 
-    /** Für die Konsole — kurz genug für eine Tabellenspalte. */
+    /** Für die Konsole: kurz genug für eine Tabellenspalte. */
     public function label(): string
     {
         return match ($this) {

@@ -17,7 +17,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 /**
  * Die geplante Aufgabe, die den Speicher gefüllt hält.
  *
- * Sie läuft unbeobachtet im Worker. Was sie nicht ins Protokoll schreibt, sieht niemand — und
+ * Sie läuft unbeobachtet im Worker. Was sie nicht ins Protokoll schreibt, sieht niemand, und
  * genau darum geht es hier: Ein Lauf, der durchläuft und dabei ausschließlich Ersatzwerte
  * einträgt, ist kein erfolgreicher Lauf, sieht aber wie einer aus.
  */
@@ -35,7 +35,7 @@ class ShippingWarmupTaskHandlerTest extends TestCase
     /**
      * Was: Ein Lauf, der gerechnet hat.
      * Warum: Der Normalfall darf das Fehlerprotokoll nicht anfassen. Täte er es, wäre die Meldung
-     *        wertlos — vier Fehlermeldungen am Tag liest niemand mehr.
+     *        wertlos, denn vier Fehlermeldungen am Tag liest niemand mehr.
      * Erwartet: kein error().
      */
     public function testASuccessfulRunLogsNoError(): void

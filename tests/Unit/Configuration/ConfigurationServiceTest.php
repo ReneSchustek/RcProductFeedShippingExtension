@@ -116,7 +116,7 @@ class ConfigurationServiceTest extends TestCase
      * Warum: So wird die Einstellung auch gepflegt, etwa `DE:7.95;AT:14.95;CH:21.95`. Trennte nur
      *        das Komma, wäre die Zeichenkette ein einziger Eintrag: DE träfe zufällig zu, AT und CH
      *        fielen still auf den globalen Ersatzwert zurück. Speditionsware stünde
-     *        mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom — zu niedrige Versandkosten sind
+     *        mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom. Zu niedrige Versandkosten sind
      *        bei Google ein Richtlinienverstoß.
      * Erwartet: Jedes Land bekommt seinen eigenen Betrag.
      */
@@ -132,7 +132,7 @@ class ConfigurationServiceTest extends TestCase
 
     /**
      * Was: Ein Eintrag ohne Zahl hinter dem Doppelpunkt.
-     * Warum: `(float) 'frei'` ist 0.0 — kostenloser Versand im Warenstrom, entstanden aus einem
+     * Warum: `(float) 'frei'` ist 0.0: kostenloser Versand im Warenstrom, entstanden aus einem
      *        Tippfehler. Der Eintrag muss verworfen und gemeldet werden, sonst bleibt der
      *        teuerste denkbare Wert die stille Auslegung.
      * Erwartet: der globale Ersatzwert, dazu genau eine Meldung.
@@ -149,7 +149,7 @@ class ConfigurationServiceTest extends TestCase
 
     /**
      * Was: Zwei Abfragen auf denselben Kanal.
-     * Warum: Der Warmup fragt je Kombination — bei mehreren tausend Ersatzwerten stünde dieselbe
+     * Warum: Der Warmup fragt je Kombination; bei mehreren tausend Ersatzwerten stünde dieselbe
      *        Meldung tausendfach im Protokoll und die Zuordnung würde tausendfach neu gebaut.
      * Erwartet: eine einzige Meldung.
      */
@@ -165,10 +165,10 @@ class ConfigurationServiceTest extends TestCase
     }
 
     /**
-     * Was: Leere Einträge zwischen den Trennzeichen — `DE:4.95;;AT:9.90;`.
+     * Was: Leere Einträge zwischen den Trennzeichen (`DE:4.95;;AT:9.90;`).
      * Warum: Ein Semikolon am Ende oder ein doppeltes in der Mitte ist ein Tippfehler ohne
      *        Aussage. Würde er wie ein unlesbarer Eintrag gemeldet, stünde bei jedem Speichern
-     *        eine Warnung im Protokoll, die nichts bedeutet — und eine Warnung, die nichts
+     *        eine Warnung im Protokoll, die nichts bedeutet, und eine Warnung, die nichts
      *        bedeutet, liest bald niemand mehr.
      * Erwartet: beide Länder werden gelesen, keine Meldung.
      */

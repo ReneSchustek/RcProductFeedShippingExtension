@@ -12,7 +12,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  *
  * ShippingCostCalculatorService::injectShippingLocation() setzt shippingLocation und customer
  * per Reflection, weil SalesChannelContext keine public Setter dafür anbietet. Shopware
- * könnte diese Properties in einem Minor Release umbenennen — dieser Test schlägt dann
+ * könnte diese Properties in einem Minor Release umbenennen; dieser Test schlägt dann
  * sofort fehl und macht das Problem sichtbar, bevor Produktion bricht.
  */
 final class SalesChannelContextContractTest extends TestCase

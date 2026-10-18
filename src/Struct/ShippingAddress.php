@@ -7,7 +7,7 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
 /**
  * Referenzadresse eines Landes für die Versandkostenberechnung.
  *
- * Kein echter Empfänger — die Adresse dient ausschließlich dazu, Shopware eine
+ * Kein echter Empfänger. Die Adresse dient ausschließlich dazu, Shopware eine
  * gültige Lieferadresse zu geben, damit die Versandzonenregeln greifen.
  */
 final class ShippingAddress

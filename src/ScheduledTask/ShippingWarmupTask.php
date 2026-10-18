@@ -16,7 +16,7 @@ use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTask;
  *
  * Der Abstand ist bewusst deutlich kürzer als die Haltbarkeit der Einträge
  * (`ShippingPriceStore::MAX_AGE_SECONDS`, 24 Stunden). Bei gleichem Abstand entschiede die Reihenfolge
- * innerhalb einer Minute darüber, ob der Feed noch Werte findet — und ein einziger ausgefallener
+ * innerhalb einer Minute darüber, ob der Feed noch Werte findet, und ein einziger ausgefallener
  * Lauf risse ein Loch, das erst der übernächste wieder schließt.
  *
  * Dieser Abstand wirkt nur, weil jeder Lauf jeden Eintrag erneuert: Geänderte rechnet er neu,

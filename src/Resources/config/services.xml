@@ -53,7 +53,7 @@
             <argument type="service" id="logger"/>
         </service>
 
-        <!-- Eine Quelle für „welche Produkte zählen" — Warmup und Diagnose müssen dieselbe Menge
+        <!-- Eine Quelle für „welche Produkte zählen", denn Warmup und Diagnose müssen dieselbe Menge
              sehen, sonst widersprechen sich ihre Zahlen. -->
         <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService">
             <argument type="service" id="product.repository"/>

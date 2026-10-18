@@ -29,7 +29,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * Versandregel schauen kann: Kategorien, Tags, Eigenschaften und Hersteller. Den Bestand selbst
  * nimmt er nicht auf; er schwankt täglich und ändert die Versandkosten nicht.
  *
- * Varianten erben ihre Werte vom Elternartikel — steht dort `NULL`, gilt der Wert des Elternteils.
+ * Varianten erben ihre Werte vom Elternartikel: Steht dort `NULL`, gilt der Wert des Elternteils.
  * Ein Prüfwert, der das übergeht, hielte jede Variante für unverändert, sobald ihr eigenes Feld
  * leer ist.
  *
@@ -40,7 +40,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * Prüfwert ein: Ändert er sich, ändern sich alle Prüfwerte, und der nächste Lauf rechnet alles neu.
  *
  * In den Stempel gehört auch die Anzahl der Zeilen. Ein `MAX(updated_at)` allein merkt kein
- * Löschen — wer eine Versandart entfernt, hinterlässt keinen neueren Zeitstempel, wohl aber eine
+ * Löschen, denn wer eine Versandart entfernt, hinterlässt keinen neueren Zeitstempel, wohl aber eine
  * Zeile weniger.
  *
  * Warum `rule` nur gezählt und nicht datiert wird
@@ -49,7 +49,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * `rule.updated_at`. Zählte dieser Zeitstempel mit, verschöbe jeder Lauf seinen eigenen Prüfwert,
  * und kein Eintrag könnte je unverändert sein.
  *
- * Von `rule` geht deshalb nur die Anzahl in den Stempel ein — sie merkt eine hinzugefügte oder
+ * Von `rule` geht deshalb nur die Anzahl in den Stempel ein; sie merkt eine hinzugefügte oder
  * gelöschte Regel. Eine inhaltliche Änderung fängt `rule_condition` ab: Dort stehen die Bedingungen
  * selbst, und diese Tabelle schreibt niemand nebenbei.
  *
@@ -59,14 +59,14 @@ use Symfony\Contracts\Service\ResetInterface;
  * Versandtabellen. Ohne diese Werte im Stempel bliebe eine geänderte Auswahl wirkungslos, bis ein
  * Lauf mit `--full` alles neu rechnet, und eine ausgeschlossene Abholung für 0,00 € stünde weiter
  * im Speicher. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
- * rechnet der nächste Lauf alles neu — selten genug, dass die Unschärfe nicht zählt.
+ * rechnet der nächste Lauf alles neu, selten genug, dass die Unschärfe nicht zählt.
  */
 class ShippingFingerprintService implements ResetInterface
 {
     /**
      * Tabellen, deren Stand die Versandkosten aller Produkte bestimmt.
      *
-     * Der Wert sagt, ob der Zeitstempel mitzählt. Bei `rule` tut er das nicht — Shopware
+     * Der Wert sagt, ob der Zeitstempel mitzählt. Bei `rule` tut er das nicht. Shopware
      * schreibt ihn beim Berechnen selbst; die Begründung steht im Klassenkommentar.
      */
     private const CONFIGURATION_SOURCES = [
@@ -84,7 +84,7 @@ class ShippingFingerprintService implements ResetInterface
         'RcProductFeedShippingExtension.config.excludedShippingMethods',
     ];
 
-    /** Produkte je Abfrage — eine `IN`-Liste mit mehreren tausend Werten will niemand. */
+    /** Produkte je Abfrage, denn eine `IN`-Liste mit mehreren tausend Werten will niemand. */
     private const CHUNK_SIZE = 500;
 
     private ?string $configurationStamp = null;
@@ -135,7 +135,7 @@ class ShippingFingerprintService implements ResetInterface
     }
 
     /**
-     * Liefert je Produkt-Id den Prüfwert — in einer Abfrage je Stapel, nicht je Produkt.
+     * Liefert je Produkt-Id den Prüfwert, in einer Abfrage je Stapel, nicht je Produkt.
      *
      * @param array<int, string> $productIds
      *

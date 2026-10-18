@@ -26,7 +26,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * Wertes hält auch parallele Arbeiter auseinander.
  *
  * Diese eine Zeile räumt {@see self::removeTrace()} am Ende des Laufs weg. Der Dienst kennt sein
- * Token — ein Aufräumen von außen hätte diese Sicherheit nicht und träfe irgendwann einen echten
+ * Token. Ein Aufräumen von außen hätte diese Sicherheit nicht und träfe irgendwann einen echten
  * Kundenwarenkorb.
  */
 class VirtualCartBuilderService
@@ -51,7 +51,7 @@ class VirtualCartBuilderService
      * Löscht die Warenkorbzeile, die dieser Prozess hinterlassen hat.
      *
      * Wird am Ende eines Warmup-Laufs gerufen. Schlägt es fehl, ist das kein Grund, den Lauf als
-     * gescheitert zu melden — die Zeile läuft dann über Shopwares eigene Aufräumaufgabe aus.
+     * gescheitert zu melden; die Zeile läuft dann über Shopwares eigene Aufräumaufgabe aus.
      */
     public function removeTrace(): void
     {

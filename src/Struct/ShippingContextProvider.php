@@ -18,13 +18,13 @@ use Shopware\Core\Framework\Struct\Struct;
  *
  * Warum: Shopware sperrt während des Twig-Renderns interne Entity-Felder. Der Schalter dafür
  * (`FieldVisibility::$isInTwigRenderingContext`) wird von `SwTwigFunction::getAttribute()` bei jedem
- * Attributzugriff auf ein `Struct` gesetzt — und dieser Provider ist ein `Struct`. Alles, was
+ * Attributzugriff auf ein `Struct` gesetzt, und dieser Provider ist ein `Struct`. Alles, was
  * innerhalb von `get()` passiert, läuft also unter dieser Sperre. Die Warenkorb-Regelauswertung
  * braucht mit `RuleEntity::payload` genau so ein gesperrtes Feld. Rechnete der Provider aus der
  * Vorlage heraus, schlüge das bei jedem Produkt fehl und landete still im Ersatzwert: eine Ausnahme
  * je Produkt und Land, ohne dass am Feed etwas auffällt.
  *
- * Gefüllt wird der Speicher außerhalb von Twig — durch `rc:shipping:warmup` und die geplante
+ * Gefüllt wird der Speicher außerhalb von Twig, durch `rc:shipping:warmup` und die geplante
  * Aufgabe `rc_product_feed_shipping.warmup`.
  */
 final class ShippingContextProvider extends Struct
@@ -71,7 +71,7 @@ final class ShippingContextProvider extends Struct
      * Varianten), sodass es keinen Preis gibt; oder der Shop versendet diese Ware nicht in dieses
      * Land und die Einstellung verlangt Schweigen statt Ersatzwert.
      *
-     * Sonst kommt immer ein Preis — der vorberechnete oder, wenn keiner vorliegt, der eingestellte
+     * Sonst kommt immer ein Preis: der vorberechnete oder, wenn keiner vorliegt, der eingestellte
      * Ersatzwert. Letzteres wird gemeldet und nicht stillschweigend geliefert.
      */
     public function get(string $productId, string $countryIso): ?float
@@ -103,7 +103,7 @@ final class ShippingContextProvider extends Struct
             //
             // Anders als das Weglassen bei „keine Versandart" hängt das an keiner Einstellung:
             // Dort entscheidet der Betreiber, ob Schweigen oder Ersatzwert die bessere Aussage
-            // über sein Sortiment ist. Hier gibt es nichts zu entscheiden — wir wissen es nicht.
+            // über sein Sortiment ist. Hier gibt es nichts zu entscheiden; wir wissen es nicht.
             if ($precomputed->fallbackReason === FallbackReason::NotPurchasable) {
                 ++$this->notPurchasable;
 
@@ -163,7 +163,7 @@ final class ShippingContextProvider extends Struct
      * Entscheidet, ob der Feed für dieses Ergebnis lieber nichts sagt.
      *
      * Nur „keine Versandart" ist eine Aussage über das Sortiment. Ein kalter Speicher und eine
-     * fehlgeschlagene Berechnung sind Betriebszustände — sie als „wird dorthin nicht versendet"
+     * fehlgeschlagene Berechnung sind Betriebszustände. Sie als „wird dorthin nicht versendet"
      * auszugeben, wäre eine Falschaussage in die andere Richtung.
      */
     private function shouldOmit(ShippingCalculationResult $result): bool

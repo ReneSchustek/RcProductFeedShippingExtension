@@ -23,10 +23,10 @@ use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 
 /**
- * Der Warmup — der einzige Ort, an dem tatsächlich gerechnet wird.
+ * Der Warmup, der einzige Ort, an dem tatsächlich gerechnet wird.
  *
  * Der Feed rechnet nicht selbst, er liest nur vorberechnete Werte. Füllt der Warmup den Speicher nicht oder füllt
- * er ihn mit Ersatzwerten, liefert der Feed für jeden Artikel denselben Betrag — und niemand
+ * er ihn mit Ersatzwerten, liefert der Feed für jeden Artikel denselben Betrag, und niemand
  * merkt es, weil der Feed dabei vollständig aussieht.
  */
 class ShippingWarmupServiceTest extends TestCase
@@ -58,7 +58,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Zwei Produkte, drei Länder, ein Kanal.
-     * Warum: Der Grundfall. Jede Kombination muss genau einmal gerechnet werden — nicht weniger
+     * Warum: Der Grundfall. Jede Kombination muss genau einmal gerechnet werden, nicht weniger
      *        (Lücken im Feed) und nicht mehr (bei 8217 Kombinationen kostet jede Dopplung Minuten).
      * Erwartet: sechs Berechnungen, sechs gezählte Treffer.
      */
@@ -239,7 +239,7 @@ class ShippingWarmupServiceTest extends TestCase
      *        alles greift dort zu Recht keine. Rechnete der Warmup ihn durch, legte er tausende
      *        Einträge „keine Versandart" ab, die niemand liest. Sie stellten den Großteil aller
      *        Meldungen und schickten die Fehlersuche in die falsche Richtung.
-     * Erwartet: kein Rechenversuch, dafür eine Meldung mit Grund — in Konsole und Protokoll.
+     * Erwartet: kein Rechenversuch, dafür eine Meldung mit Grund (in Konsole und Protokoll).
      */
     public function testAChannelNoFeedReadsIsSkippedWithAReason(): void
     {
@@ -272,7 +272,7 @@ class ShippingWarmupServiceTest extends TestCase
     /**
      * Was: Die Vorabzählung für denselben Kanal.
      * Warum: Zählt sie einen Kanal mit, den der Lauf überspringt, bleibt der Fortschrittsbalken vor
-     *        dem Ende stehen — und das Kommando meldet einen Lauf, den es nie gab.
+     *        dem Ende stehen, und das Kommando meldet einen Lauf, den es nie gab.
      * Erwartet: null Kombinationen.
      */
     public function testTheCombinationCountIgnoresChannelsWithoutAFeed(): void
@@ -287,7 +287,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Die Vorabzählung für einen Kanal ohne konfigurierte Länder.
-     * Warum: Der Lauf überspringt ihn — die Zählung muss dasselbe tun. Zählte sie ihn mit, wäre
+     * Warum: Der Lauf überspringt ihn; die Zählung muss dasselbe tun. Zählte sie ihn mit, wäre
      *        der Fortschrittsbalken von Anfang an falsch geeicht und stünde am Ende still.
      * Erwartet: null Kombinationen.
      */
@@ -304,7 +304,7 @@ class ShippingWarmupServiceTest extends TestCase
     /**
      * @param array<string, string>   $salesChannels Kennung => Name
      * @param array<int, string>|null $readByAFeed   Kennungen, die ein Produktexport ausliest.
-     *                                               `null` heißt: alle — der Regelfall der Tests.
+     *                                               `null` heißt: alle (der Regelfall der Tests).
      */
     /**
      * Was: Ein Produkt, dessen Prüfwert dem gespeicherten entspricht.
@@ -340,7 +340,7 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Derselbe Fall, aber der gespeicherte Prüfwert weicht ab.
-     * Warum: Gewicht, Maße, Preis oder die Versandkonfiguration haben sich geändert — dann muss
+     * Warum: Gewicht, Maße, Preis oder die Versandkonfiguration haben sich geändert. Dann muss
      *        gerechnet werden, sonst steht im Feed ein falscher Betrag.
      * Erwartet: eine Berechnung, und der neue Prüfwert wird mitgegeben.
      */
@@ -371,7 +371,7 @@ class ShippingWarmupServiceTest extends TestCase
     /**
      * Was: Gleicher Prüfwert, aber der Eintrag ist älter als die Vollauf-Frist.
      * Warum: Das Sicherheitsnetz. Eine Änderung, die der Prüfwert nicht erfasst, darf höchstens
-     *        sieben Tage unbemerkt bleiben — sonst steht ein falscher Betrag beliebig lange im Feed.
+     *        sieben Tage unbemerkt bleiben, sonst steht ein falscher Betrag beliebig lange im Feed.
      * Erwartet: gerechnet, obwohl sich nichts geändert zu haben scheint.
      */
     public function testAnEntryOlderThanTheFullRecalculationIntervalIsRecalculated(): void
@@ -422,7 +422,7 @@ class ShippingWarmupServiceTest extends TestCase
      * Was: Ein abgeschlossener Lauf.
      * Warum: Shopware schreibt den Warenkorb beim Berechnen weg. Bleiben die Zeilen liegen, wächst
      *        die Datenbank um ein Gigabyte am Tag und die Warenkorb-Kennzahlen des Shops sind
-     *        unbrauchbar. Der Lauf räumt seine eigene Spur weg — von außen ginge das nicht sicher.
+     *        unbrauchbar. Der Lauf räumt seine eigene Spur weg; von außen ginge das nicht sicher.
      * Erwartet: genau ein Aufräumen am Ende.
      */
     public function testTheRunRemovesItsOwnCartTrace(): void

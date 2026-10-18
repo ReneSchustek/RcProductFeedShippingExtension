@@ -15,7 +15,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedImageService;
  * Die Tests halten die beiden Fälle auseinander, die verschiedene Lösungen brauchen: ein Artikel
  * mit einem anderen ausreichend großen Bild ist eine Sache des Feeds, ein Artikel ohne jedes
  * ausreichende Bild braucht neues Material. Wer beides zusammenwirft, verlinkt am Ende ein
- * hochskaliertes Bild — es bestünde Googles Prüfung und stünde unscharf im Shop.
+ * hochskaliertes Bild; es bestünde Googles Prüfung und stünde unscharf im Shop.
  */
 class FeedImageServiceTest extends TestCase
 {
@@ -28,7 +28,7 @@ class FeedImageServiceTest extends TestCase
 
     /**
      * Was: Ein Artikel, dessen Titelbild 400 x 400 misst und dessen zweites Bild 800 x 800.
-     * Warum: Der häufigste Fall im Bestand — 313 von 413 zu kleinen Titelbildern haben ein
+     * Warum: Der häufigste Fall im Bestand: 313 von 413 zu kleinen Titelbildern haben ein
      *        ausreichendes Geschwisterbild. Ohne diese Auswahl bräuchten sie alle neues Material.
      * Erwartet: das große Bild gewinnt.
      */
@@ -61,7 +61,7 @@ class FeedImageServiceTest extends TestCase
     /**
      * Was: Ein Bild mit 800 x 400.
      * Warum: Google verlangt beide Kanten mit mindestens 500 Pixeln. Eine breite Fassung
-     *        erfüllt die Vorgabe nicht — und im Bestand sind 500 x 250 und 500 x 333 genau die
+     *        erfüllt die Vorgabe nicht, und im Bestand sind 500 x 250 und 500 x 333 genau die
      *        zweit- und dritthäufigsten zu kleinen Maße.
      * Erwartet: nicht verwendet.
      */
@@ -78,7 +78,7 @@ class FeedImageServiceTest extends TestCase
      * Was: Ein Artikel, dessen Bilder alle zu klein sind.
      * Warum: Er braucht neues Material. Ein hochskaliertes Bild wäre der bequeme Ausweg und genau
      *        der Fehler, den diese Prüfung ausschließt.
-     * Erwartet: kein Ergebnis — und damit erscheint er in der Liste zum Abarbeiten.
+     * Erwartet: kein Ergebnis, und damit erscheint er in der Liste zum Abarbeiten.
      */
     public function testAProductWithoutAnySufficientImageGetsNothing(): void
     {
@@ -92,7 +92,7 @@ class FeedImageServiceTest extends TestCase
 
     /**
      * Was: Zwei ausreichend große Bilder, keines davon Titelbild.
-     * Warum: Dann gilt die Reihenfolge, die der Betreiber am Artikel gepflegt hat — nicht die
+     * Warum: Dann gilt die Reihenfolge, die der Betreiber am Artikel gepflegt hat, nicht die
      *        Reihenfolge, in der die Datenbank sie zufällig liefert.
      * Erwartet: das mit der kleineren Position.
      */
@@ -108,7 +108,7 @@ class FeedImageServiceTest extends TestCase
 
     /**
      * Was: Ein Bild ohne Pfad in der Mediathek.
-     * Warum: Eine leere Adresse im `image_link` macht den Feed ungültig — schlimmer als ein
+     * Warum: Eine leere Adresse im `image_link` macht den Feed ungültig, schlimmer als ein
      *        fehlendes Bild.
      * Erwartet: übersprungen.
      */

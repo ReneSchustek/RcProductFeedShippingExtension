@@ -35,7 +35,7 @@ class FeedChannelProviderService
     /**
      * Liefert die Kennungen der Kanäle, für die ein Produktexport Versandpreise abruft.
      *
-     * Als Menge (Kennung => true), weil die Aufrufer damit nur nachschlagen — bei einem Warmup über
+     * Als Menge (Kennung => true), weil die Aufrufer damit nur nachschlagen. Bei einem Warmup über
      * mehrere tausend Kombinationen ist `in_array` über eine Liste die falsche Zugriffsart.
      *
      * @return array<string, true>
@@ -43,8 +43,8 @@ class FeedChannelProviderService
     public function loadReadingChannelIds(Context $context): array
     {
         // Erst suchen, dann durchlaufen: Steht der Repository-Aufruf im Kopf der Schleife, meldet
-        // die Shopware-Regel für PHPStan eine Abfrage in der Schleife. Sie liegt sachlich falsch —
-        // der Kopf wird einmal ausgewertet —, aber die getrennte Zeile liest sich ohnehin besser.
+        // die Shopware-Regel für PHPStan eine Abfrage in der Schleife. Sie liegt sachlich falsch
+        // (der Kopf wird einmal ausgewertet), aber die getrennte Zeile liest sich ohnehin besser.
         $exports = $this->productExportRepository->search(new Criteria(), $context)->getEntities();
 
         $channelIds = [];

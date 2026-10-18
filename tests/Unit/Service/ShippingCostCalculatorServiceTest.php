@@ -521,7 +521,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     }
 
     /**
-     * Ein Warenkorb, aus dem Shopware die Position entfernt hat — so sieht er bei einem
+     * Ein Warenkorb, aus dem Shopware die Position entfernt hat. So sieht er bei einem
      * Hauptartikel mit Varianten, bei Closeout ohne Bestand und bei Unsichtbarkeit im
      * Berechnungs-Kanal aus.
      */
@@ -530,7 +530,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
         return new Cart('test');
     }
 
-    /** Ein Warenkorb mit Position, aber ohne zu versendende Ware — versandkostenfreie Position. */
+    /** Ein Warenkorb mit Position, aber ohne zu versendende Ware (versandkostenfreie Position). */
     private function buildShippingFreeCart(): Cart
     {
         $lineItem = new LineItem('li-1', LineItem::PRODUCT_LINE_ITEM_TYPE, self::PRODUCT_ID, 1);
@@ -562,7 +562,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     }
 
     /**
-     * Versandmethode mit zwei regelbasierten Preisen — für die Frage, welcher gewinnt.
+     * Versandmethode mit zwei regelbasierten Preisen, für die Frage, welcher gewinnt.
      *
      * @param array<int, array{0: string, 1: float}> $rulePrices Liste [ruleId, Preis]
      */
@@ -599,7 +599,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
      *        Gewicht und Preis 0, trifft das billigste Band und legt einen erfundenen Preis mit
      *        `isFallback = false` ab. Ein 40-kg-Artikel bekäme so den 0-5-kg-Preis, ohne Meldung,
      *        ohne Kennzeichnung.
-     * Erwartet: Ersatzwert mit der Begründung „nicht bestellbar" — nicht der billigste Tarif.
+     * Erwartet: Ersatzwert mit der Begründung „nicht bestellbar", nicht der billigste Tarif.
      */
     public function testProductRemovedFromCartYieldsFallbackInsteadOfCheapestTier(): void
     {
@@ -627,7 +627,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     /**
      * Was: Ein Warenkorb, in dem nur versandkostenfreie Ware liegt.
      * Warum: Mit lauter Kennwerten 0 träfe das billigste Band. Der Kern setzt
-     *        für diesen Fall 0,00 € an — das ist ein Ergebnis, kein Ersatzwert.
+     *        für diesen Fall 0,00 € an; das ist ein Ergebnis, kein Ersatzwert.
      * Erwartet: 0,00 € als gerechneter Wert.
      */
     public function testShippingFreeCartCostsNothingInsteadOfTheCheapestTier(): void
@@ -649,12 +649,12 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Zwei Regeln passen, mit unterschiedlichen Preisen.
-     * Warum: Der Kern geht die Regeln des Kontexts der Reihe nach durch — sie sind nach
-     *        Priorität absteigend sortiert — und bricht bei der ersten mit passendem Preis ab.
+     * Warum: Der Kern geht die Regeln des Kontexts der Reihe nach durch (sie sind nach
+     *        Priorität absteigend sortiert) und bricht bei der ersten mit passendem Preis ab.
      *        Der billigste über alle Regeln hinweg weicht davon ab: Bei „Sperrgut" (hohe
      *        Priorität, 49,90 €) neben „Standardkunde" (niedrige, 5,90 €) verlangt die Kasse
      *        49,90 €, und der Feed nennte 5,90 €.
-     * Erwartet: 49,90 € — der Preis der höher priorisierten Regel.
+     * Erwartet: 49,90 €, der Preis der höher priorisierten Regel.
      */
     public function testHigherPriorityRuleWinsEvenWhenItIsMoreExpensive(): void
     {
@@ -675,7 +675,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Innerhalb einer Regel gibt es zwei passende Preise.
-     * Warum: Hier gewinnt sehr wohl der günstigere — auch das ist der Kern
+     * Warum: Hier gewinnt sehr wohl der günstigere. Auch das ist der Kern
      *        (`getMatchingPriceOfRule` sortiert aufsteigend und nimmt den ersten Treffer). Ohne
      *        diesen Test läse sich die Korrektur oben als „teuer gewinnt immer".
      * Erwartet: der günstigere Preis derselben Regel.
@@ -697,9 +697,9 @@ class ShippingCostCalculatorServiceTest extends TestCase
     }
 
     /**
-     * Was: Ein Land ohne Steuer — etwa die Schweiz.
+     * Was: Ein Land ohne Steuer, etwa die Schweiz.
      * Warum: Der Kern nimmt bei `TAX_STATE_FREE` und `TAX_STATE_NET` den Nettopreis. Mit dem
-     *        Bruttopreis nennte der Feed für die Schweiz — ein voreingestelltes Land — einen
+     *        Bruttopreis nennte der Feed für die Schweiz (ein voreingestelltes Land) einen
      *        höheren Betrag, als die Kasse verlangt.
      * Erwartet: der Nettopreis.
      */

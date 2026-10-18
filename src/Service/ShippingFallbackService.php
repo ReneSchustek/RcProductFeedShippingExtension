@@ -22,7 +22,7 @@ class ShippingFallbackService
      *
      * Es wird zunächst nach einem länderspezifischen Fallback gesucht, dann auf den
      * globalen Fallback zurückgefallen. Das isFallback-Flag erlaubt dem Aufrufer,
-     * Fallback-Ergebnisse von echten Berechnungen zu unterscheiden — `$reason` sagt ihm zusätzlich,
+     * Fallback-Ergebnisse von echten Berechnungen zu unterscheiden; `$reason` sagt ihm zusätzlich,
      * ob der Shop dorthin nicht versendet oder ob nur gerade nichts vorlag.
      */
     public function getFallbackResult(

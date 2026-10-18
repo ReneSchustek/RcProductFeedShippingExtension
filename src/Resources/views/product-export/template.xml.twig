@@ -4,7 +4,7 @@
        Übersetzungszeile mit Inhalt hat. Der Rückfall über die Sprachkette liegt allein in
        `translated`. Shopwares mitgelieferte Google-Vorlage macht es genauso.
 
-       Ohne das läuft der Warenstrom weiter, liefert die richtige Zahl an Artikeln — und jeder
+       Ohne das läuft der Warenstrom weiter, liefert die richtige Zahl an Artikeln, und jeder
        trägt einen leeren Titel. Ein leeres g:title ist teurer als ein abgebrochener Lauf, weil
        ein Abbruch auffällt. #}
     <g:id>{{ product.id|e }}</g:id>
@@ -40,7 +40,7 @@
     {% if rcShipping is defined %}
     {# Der Preis wird einmal geholt und gemerkt. Jeder Aufruf von `get()` zählt im Plugin mit,
        und die Zusammenfassung am Feed-Ende meldet, wie viele Produkte den Ersatzwert bekommen
-       haben. Ein zweiter Aufruf in der Bedingung verdoppelte diese Zahl — wer ihr nicht trauen
+       haben. Ein zweiter Aufruf in der Bedingung verdoppelte diese Zahl. Wer ihr nicht trauen
        kann, sieht einen stillen Ausfall nicht. Nebenbei halbiert es die Abfragen.
 
        Die Länder kommen aus der Einstellung, nicht aus einer festen Liste im Template: Sonst

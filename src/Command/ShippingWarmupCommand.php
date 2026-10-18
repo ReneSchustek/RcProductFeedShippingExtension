@@ -15,7 +15,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Füllt den Versandkosten-Speicher für alle aktiven Produkte und Länder vorab.
  *
- * Der Feed rechnet nicht selbst — er kann es nicht, siehe `ShippingContextProvider`. Ohne einen
+ * Der Feed rechnet nicht selbst, er kann es nicht (siehe `ShippingContextProvider`). Ohne einen
  * vorherigen Warmup liefert er den Ersatzwert. Im Regelbetrieb erledigt das die geplante Aufgabe
  * `rc_product_feed_shipping.warmup`; dieses Kommando ist der Weg von Hand: nach der
  * Erstinstallation, nach Änderungen an Versandmethoden oder -regeln und nach einem vollständigen

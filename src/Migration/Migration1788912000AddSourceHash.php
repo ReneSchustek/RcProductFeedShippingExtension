@@ -17,7 +17,7 @@ use Shopware\Core\Framework\Migration\MigrationStep;
  * ersten Lauf nach der Umstellung neu gerechnet. Ein erfundener Wert würde sie als „unverändert"
  * ausgeben, obwohl niemand sie je verglichen hat.
  *
- * Forward-only — nach Veröffentlichung nicht mehr verändern.
+ * Forward-only: nach Veröffentlichung nicht mehr verändern.
  */
 final class Migration1788912000AddSourceHash extends MigrationStep
 {

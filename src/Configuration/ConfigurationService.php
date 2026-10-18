@@ -82,7 +82,7 @@ class ConfigurationService implements ResetInterface
      * In diesem Fall muss der Storefront-Kanal angegeben werden, dessen Versandregeln
      * für die Berechnung verwendet werden sollen.
      *
-     * Gibt null zurück wenn kein Kanal konfiguriert ist — der Aufrufer fällt dann
+     * Gibt null zurück wenn kein Kanal konfiguriert ist; der Aufrufer fällt dann
      * auf den Feed-Kanal zurück.
      */
     public function getCalculationSalesChannelId(string $salesChannelId): ?string
@@ -243,11 +243,11 @@ class ConfigurationService implements ResetInterface
     /**
      * Soll der Feed schweigen, wenn der Shop eine Ware nicht in ein Land versendet?
      *
-     * `true` heißt: kein `g:shipping`-Block für dieses Land — Google zieht dann die Einstellung des
+     * `true` heißt: kein `g:shipping`-Block für dieses Land. Google zieht dann die Einstellung des
      * Händlerkontos. Für Ware, die nur auf Anfrage geht, ist das die einzige wahre Aussage; ein
      * Ersatzwert sagt einen Versand zu, den es nicht gibt.
      *
-     * Standard ist `false` — eine bestehende Installation ändert ihr Verhalten nicht von selbst.
+     * Standard ist `false`. Eine bestehende Installation ändert ihr Verhalten nicht von selbst.
      */
     public function shouldOmitCountryWithoutShippingMethod(string $salesChannelId): bool
     {

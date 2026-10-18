@@ -17,20 +17,20 @@ use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory
 use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 
 /**
- * Füllt den Versandkosten-Speicher vorab — der einzige Ort, an dem tatsächlich gerechnet wird.
+ * Füllt den Versandkosten-Speicher vorab: der einzige Ort, an dem tatsächlich gerechnet wird.
  *
  * Das ist kein Beiwerk, denn der Feed selbst rechnet nicht. Aus der Twig-Vorlage heraus scheitert
  * die Berechnung immer, weil Shopware während des Renderns interne Entity-Felder sperrt und die
  * Warenkorb-Regelauswertung genau so ein Feld braucht (`RuleEntity::payload`). Rechnen darf deshalb
  * nur, wer außerhalb von Twig läuft: dieses Kommando und die geplante Aufgabe.
  *
- * Die Logik sitzt hier und nicht im Kommando, weil beide Aufrufer — Konsole und geplante Aufgabe —
+ * Die Logik sitzt hier und nicht im Kommando, weil beide Aufrufer (Konsole und geplante Aufgabe)
  * dasselbe tun müssen. Ein zweiter Abzug derselben Logik ginge beim ersten Umbau auseinander.
  */
 class ShippingWarmupService
 {
     /**
-     * Höchstalter, nach dem in jedem Fall neu gerechnet wird — auch bei gleichem Prüfwert.
+     * Höchstalter, nach dem in jedem Fall neu gerechnet wird, auch bei gleichem Prüfwert.
      *
      * Sieben Tage. Ein wöchentlicher Vollauf an einem festen Tag erfüllte denselben Zweck, bündelte
      * die Last aber auf diesen Tag; die Frist je Eintrag verteilt sie. Sie ist das Sicherheitsnetz
@@ -59,7 +59,7 @@ class ShippingWarmupService
      * Rechnet alle Kombinationen aus aktivem Produkt und konfiguriertem Land vor.
      *
      * @param callable(int):void|null $onProgress Wird nach jeder Kombination mit der Gesamtzahl
-     *                                                aufgerufen — für die Fortschrittsanzeige der Konsole.
+     *                                                aufgerufen, für die Fortschrittsanzeige der Konsole.
      *                                                Die geplante Aufgabe übergibt nichts.
      * @param callable(string):void|null $onMessage   Erklärende Zeilen für die Konsole. Was hier
      *                                                 durchläuft, steht für die geplante Aufgabe
@@ -71,7 +71,7 @@ class ShippingWarmupService
         $result = new WarmupResult();
 
         // Mehrere Feed-Kanäle können denselben Berechnungs-Kanal teilen. Ohne Merkliste liefe der
-        // Warmup für diesen Kanal mehrfach — bei mehreren tausend Produkten kein Detail.
+        // Warmup für diesen Kanal mehrfach; bei mehreren tausend Produkten kein Detail.
         $processedChannels = [];
         $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
 
@@ -142,7 +142,7 @@ class ShippingWarmupService
         }
 
         // Die Warenkorbzeile dieses Prozesses wieder abräumen. Sie entsteht zwangsläufig, weil
-        // Shopware den Warenkorb beim Berechnen wegschreibt — liegen bleiben muss sie deshalb nicht.
+        // Shopware den Warenkorb beim Berechnen wegschreibt. Liegen bleiben muss sie deshalb nicht.
         $this->cartBuilder->removeTrace();
 
         $this->logger->info('RcProductFeedShipping: Warmup abgeschlossen.', [
@@ -157,7 +157,7 @@ class ShippingWarmupService
     }
 
     /**
-     * Zählt vorab, wie viele Kombinationen anstehen — nur für die Fortschrittsanzeige.
+     * Zählt vorab, wie viele Kombinationen anstehen (nur für die Fortschrittsanzeige).
      */
     public function combinationCount(): int
     {
@@ -237,7 +237,7 @@ class ShippingWarmupService
                     continue;
                 }
 
-                // `useStoredValue: false` — der Warmup rechnet, immer. Mit Speicher-Kurzschluss
+                // `useStoredValue: false`: Der Warmup rechnet, immer. Mit Speicher-Kurzschluss
                 // füllte er nur Lücken: Ein gültiger Eintrag würde übersprungen und erst neu
                 // gerechnet, nachdem er verfallen ist. Zwischen dem Verfall und dem übernächsten
                 // Lauf lieferte der Feed für jedes Produkt den Ersatzwert.
@@ -259,12 +259,12 @@ class ShippingWarmupService
 
         // Die übersprungenen Einträge sind gültig, nur alt aussehend. Ohne dieses Auffrischen
         // verfielen sie nach `ShippingPriceStore::MAX_AGE_SECONDS`, und der Feed nennte für jedes
-        // unveränderte Produkt den Ersatzwert — die Ersparnis wäre teuer erkauft.
+        // unveränderte Produkt den Ersatzwert. Die Ersparnis wäre teuer erkauft.
         $this->priceStore->touch($toRefresh, $calcChannelId);
     }
 
     /**
-     * Meldet einen Kanal, den kein Produktexport ausliest — in der Konsole und im Protokoll.
+     * Meldet einen Kanal, den kein Produktexport ausliest, in der Konsole und im Protokoll.
      *
      * Beides, weil die geplante Aufgabe keine Konsole hat: Ohne Protokolleintrag bliebe unerklärt,
      * warum ein eingeschalteter Kanal keine Werte bekommt.

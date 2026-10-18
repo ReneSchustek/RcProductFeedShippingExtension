@@ -116,7 +116,7 @@ class ProductFeedSubscriberTest extends TestCase
     /**
      * Was: Die Anmeldung an den beiden Export-Ereignissen.
      * Warum: Steht dort ein falscher Name, meldet nichts einen Fehler. Das Plugin wäre
-     *        installiert, aktiv — und wirkungslos: Der Feed liefe weiter, nur ohne
+     *        installiert, aktiv und wirkungslos: Der Feed liefe weiter, nur ohne
      *        Versandblöcke. Ein Tippfehler hätte genau diese Wirkung.
      * Erwartet: beide Ereignisse mit ihren Methoden.
      */
@@ -130,7 +130,7 @@ class ProductFeedSubscriberTest extends TestCase
 
     /**
      * Was: Die Fußzeile am Ende des Feeds.
-     * Warum: Dort wird zusammengefasst, wie viele Produkte den Ersatzwert bekommen haben —
+     * Warum: Dort wird zusammengefasst, wie viele Produkte den Ersatzwert bekommen haben:
      *        die Stelle, an der ein stiller Ausfall überhaupt auffällt. Danach muss der
      *        Anbieter freigegeben werden, sonst trüge der nächste Export die Zählung des
      *        vorigen weiter.

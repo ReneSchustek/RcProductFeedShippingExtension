@@ -17,12 +17,12 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * Was der Speicher tut, wenn die Datenbank nicht antwortet.
  *
  * Der Speicher gibt ein Versprechen, das in seinem eigenen Kommentar steht: Ein Lesefehler
- * darf den Feed nicht reißen. Das ist keine Kleinigkeit — gäbe `get()` eine Ausnahme weiter,
+ * darf den Feed nicht reißen. Das ist keine Kleinigkeit: Gäbe `get()` eine Ausnahme weiter,
  * bräche der gesamte Export ab statt eines einzelnen Preises. Und zwar erst im Betrieb,
  * denn im Testlauf fällt keine Datenbank aus.
  *
  * Deshalb hier ein Doppelgänger für die Verbindung: Er ist der einzige Weg, den Ausfall
- * herbeizuführen. Der Gutfall bleibt beim Integrationstest gegen die echte Tabelle — dort
+ * herbeizuführen. Der Gutfall bleibt beim Integrationstest gegen die echte Tabelle, dort
  * gehört er hin.
  */
 class ShippingPriceStoreFailureTest extends TestCase
@@ -59,7 +59,7 @@ class ShippingPriceStoreFailureTest extends TestCase
 
     /**
      * Was: Schreiben bei ausgefallener Datenbank.
-     * Warum: Ein Schreibfehler kostet Geschwindigkeit, nicht Richtigkeit — der nächste Warmup
+     * Warum: Ein Schreibfehler kostet Geschwindigkeit, nicht Richtigkeit, denn der nächste Warmup
      *        versucht es erneut. Er darf den laufenden Warmup nicht abbrechen, sonst bleiben
      *        auch alle folgenden Kombinationen ungeschrieben.
      * Erwartet: kehrt zurück, mit Warnung.

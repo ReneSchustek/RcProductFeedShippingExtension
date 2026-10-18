@@ -25,7 +25,7 @@ use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
 /**
  * Das Diagnose-Kommando: Wo greift kein regulärer Versandpreis, und warum?
  *
- * Es ist der Weg, den man geht, wenn im Feed Ersatzwerte auftauchen — die Warnung des
+ * Es ist der Weg, den man geht, wenn im Feed Ersatzwerte auftauchen; die Warnung des
  * Warmup-Kommandos verweist ausdrücklich darauf. Ein Diagnosewerkzeug, das selbst falsch
  * zählt oder den falschen Exitcode liefert, schickt die Suche in die falsche Richtung.
  */
@@ -93,7 +93,7 @@ class ShippingCheckCommandTest extends TestCase
     /**
      * Was: Die Aufschlüsselung nach Grund.
      * Warum: „100 Ersatzwerte" allein sagt nichts. „Davon 100-mal keine Versandart" heißt: Der
-     *        Shop versendet dorthin nicht — kein Fehler. „Davon 100-mal nicht vorberechnet"
+     *        Shop versendet dorthin nicht. Kein Fehler. „Davon 100-mal nicht vorberechnet"
      *        heißt: Der Warmup läuft nicht. Zwei völlig verschiedene Suchen.
      * Erwartet: Jeder Grund erscheint mit seiner Anzahl.
      */
@@ -134,7 +134,7 @@ class ShippingCheckCommandTest extends TestCase
 
     /**
      * Was: Ein Kanal, in dem das Plugin abgeschaltet ist.
-     * Warum: Abschalten muss auch die Diagnose stilllegen — sonst meldet sie Ersatzwerte für
+     * Warum: Abschalten muss auch die Diagnose stilllegen, sonst meldet sie Ersatzwerte für
      *        einen Kanal, der die Werte gar nicht benutzt.
      * Erwartet: keine Berechnung, Exitcode 0.
      */
@@ -168,7 +168,7 @@ class ShippingCheckCommandTest extends TestCase
     /**
      * Was: Zwei Kanäle, die sich denselben Berechnungs-Kanal teilen.
      * Warum: Dieselbe Merkliste wie im Warmup. Ohne sie liefe die Prüfung zweimal über denselben
-     *        Bestand und nennte jede Kombination doppelt — die Gesamtzahl wäre das Doppelte des
+     *        Bestand und nennte jede Kombination doppelt. Die Gesamtzahl wäre das Doppelte des
      *        Wahren, und genau diese Zahl steht am Ende im Bericht.
      * Erwartet: nur ein Durchgang über die eine Kombination.
      */
@@ -220,7 +220,7 @@ class ShippingCheckCommandTest extends TestCase
     /**
      * @param array<string, string>   $channels    Kennung => Name
      * @param array<int, string>|null $readByAFeed Kennungen, die ein Produktexport ausliest.
-     *                                             `null` heißt: alle — der Regelfall der Tests.
+     *                                             `null` heißt: alle (der Regelfall der Tests).
      */
     private function givenSalesChannels(array $channels, ?array $readByAFeed = null): void
     {

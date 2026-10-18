@@ -94,7 +94,7 @@ final class ShippingCheckCommand extends AbstractShippingCommand
     }
 
     /**
-     * Wählt aus, welche Berechnungs-Kanäle geprüft werden — und meldet, was warum wegfällt.
+     * Wählt aus, welche Berechnungs-Kanäle geprüft werden, und meldet, was warum wegfällt.
      *
      * Eigene Methode, weil hier fünf voneinander unabhängige Gründe zum Überspringen führen.
      * Zusammen mit dem Sammeln und dem Ausgeben in einer Methode lag die Verzweigungszahl bei 17;
@@ -156,7 +156,7 @@ final class ShippingCheckCommand extends AbstractShippingCommand
     private function collectFallbacks(array $productIds, array $countries, string $calcChannelId): array
     {
         $rows = [];
-        /** @var array<string, int> $reasons Zählwerk je Grund — die Einzelzeilen sind zu viele zum Durchsehen */
+        /** @var array<string, int> $reasons Zählwerk je Grund, weil die Einzelzeilen zu viele zum Durchsehen sind */
         $reasons = [];
 
         foreach ($productIds as $productId) {

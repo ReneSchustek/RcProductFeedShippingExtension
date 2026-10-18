@@ -12,11 +12,11 @@ use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Die Deinstallation — der einzige Pfad im Plugin, der Daten löscht.
+ * Die Deinstallation, der einzige Pfad im Plugin, der Daten löscht.
  *
  * Er hängt an einer einzigen Bedingung: der Entscheidung des Nutzers, seine Daten zu behalten.
  * Läse man sie falsch herum, verlöre ein Update mit zwischenzeitlicher Deinstallation den
- * gesamten Bestand — und der erste Feed danach nennte für jeden Artikel den Ersatzwert.
+ * gesamten Bestand, und der erste Feed danach nennte für jeden Artikel den Ersatzwert.
  */
 class RcProductFeedShippingExtensionTest extends TestCase
 {
@@ -36,7 +36,7 @@ class RcProductFeedShippingExtensionTest extends TestCase
 
     /**
      * Was: Deinstallation ohne Datenerhalt.
-     * Warum: Dann soll die Tabelle weg — ihr Inhalt ist jederzeit neu berechenbar, und eine
+     * Warum: Dann soll die Tabelle weg; ihr Inhalt ist jederzeit neu berechenbar, und eine
      *        verwaiste Tabelle bliebe sonst für immer stehen.
      * Erwartet: genau ein DROP auf die Tabelle des Plugins.
      */
@@ -53,7 +53,7 @@ class RcProductFeedShippingExtensionTest extends TestCase
     /**
      * Was: Deinstallation ohne verfügbaren Datenbankdienst.
      * Warum: Beim Deinstallieren ist der Container nicht immer vollständig. Eine Ausnahme hier
-     *        ließe das Plugin halb deinstalliert zurück — der unangenehmste aller Zustände.
+     *        ließe das Plugin halb deinstalliert zurück: der unangenehmste aller Zustände.
      * Erwartet: kein Wurf.
      */
     public function testAMissingDatabaseServiceDoesNotBreakTheUninstall(): void

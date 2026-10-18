@@ -14,7 +14,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * Der Prüfwert entscheidet, ob überhaupt gerechnet wird.
  *
  * Was hier schiefgehen kann, geht leise schief: Ein Prüfwert, der eine Änderung nicht erfasst, hält
- * ein geändertes Produkt für unverändert — und im Feed steht wochenlang ein falscher Betrag, ohne
+ * ein geändertes Produkt für unverändert, und im Feed steht wochenlang ein falscher Betrag, ohne
  * dass irgendwo ein Fehler auftaucht. Deshalb prüfen diese Tests nicht, *dass* gehasht wird,
  * sondern *worüber*.
  */
@@ -47,7 +47,7 @@ class ShippingFingerprintServiceTest extends TestCase
     /**
      * Was: Zwei Läufe mit unterschiedlichem Stand der Versandkonfiguration.
      * Warum: Ändert sich eine Versandart oder ihre Preismatrix, sind die Werte aller Produkte
-     *        hinfällig. Der Stempel steckt deshalb in jedem einzelnen Prüfwert — sonst bliebe der
+     *        hinfällig. Der Stempel steckt deshalb in jedem einzelnen Prüfwert, sonst bliebe der
      *        Feed nach einer Preisanpassung so lange falsch, bis jedes Produkt zufällig altert.
      * Erwartet: derselbe Artikel bekommt einen anderen Prüfwert.
      */
@@ -63,7 +63,7 @@ class ShippingFingerprintServiceTest extends TestCase
     }
 
     /**
-     * Was: Eine gelöschte Versandart — gleicher Zeitstempel, eine Zeile weniger.
+     * Was: Eine gelöschte Versandart: gleicher Zeitstempel, eine Zeile weniger.
      * Warum: `MAX(updated_at)` merkt kein Löschen. Ohne die Anzahl im Stempel bliebe der Wegfall
      *        einer Versandart unsichtbar, und der Feed nennte weiter ihre Preise.
      * Erwartet: der Prüfwert ändert sich trotzdem.
@@ -133,7 +133,7 @@ class ShippingFingerprintServiceTest extends TestCase
     /**
      * Was: Ein Produkt, das die Abfrage nicht zurückliefert.
      * Warum: Zwischen dem Einlesen der Produktliste und dem Prüfwert kann ein Produkt gelöscht
-     *        worden sein. Ohne Prüfwert muss gerechnet werden — ein erfundener Wert hielte die
+     *        worden sein. Ohne Prüfwert muss gerechnet werden; ein erfundener Wert hielte die
      *        Kombination fälschlich für unverändert.
      * Erwartet: es fehlt einfach, statt einen Wert zu erfinden.
      */
@@ -154,7 +154,7 @@ class ShippingFingerprintServiceTest extends TestCase
      * Was: Die Regeltabelle wird während des Laufs geschrieben.
      * Warum: Shopware kompiliert beim Berechnen eines
      *        Warenkorbs die Regel-Nutzlast und schreibt dabei `rule.updated_at`. Zählte dieser
-     *        Zeitstempel mit, verschöbe der Lauf seinen eigenen Prüfwert — kein Eintrag wäre je
+     *        Zeitstempel mit, verschöbe der Lauf seinen eigenen Prüfwert. Kein Eintrag wäre je
      *        unverändert, und die ganze Ersparnis fiele lautlos aus.
      * Erwartet: ein neuer Zeitstempel in `rule` ändert den Stempel nicht.
      */

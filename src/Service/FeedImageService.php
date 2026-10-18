@@ -31,7 +31,7 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 class FeedImageService implements ResetInterface
 {
-    /** Googles Mindestmaß ab dem 31.01.2027 — beide Kanten, nicht die Fläche. */
+    /** Googles Mindestmaß ab dem 31.01.2027: beide Kanten, nicht die Fläche. */
     public const MINIMUM_EDGE = 500;
 
     /**
@@ -95,7 +95,7 @@ class FeedImageService implements ResetInterface
         foreach ($rows as $row) {
             $productId = (string) $row['product_id'];
 
-            // Das erste ausreichend große Bild gewinnt — die Sortierung stellt das Titelbild
+            // Das erste ausreichend große Bild gewinnt; die Sortierung stellt das Titelbild
             // voran, danach gilt die Reihenfolge, die der Betreiber am Artikel gepflegt hat.
             if (isset($resolved[$productId])) {
                 continue;
@@ -121,7 +121,7 @@ class FeedImageService implements ResetInterface
     }
 
     /**
-     * Die drei Zahlen der Bestandsaufnahme — je Artikel eine Einordnung.
+     * Die drei Zahlen der Bestandsaufnahme, je Artikel eine Einordnung.
      *
      * @return array{sufficient: int, tooSmall: int, withReplacement: int, withoutReplacement: int, withoutImage: int}
      */
@@ -176,7 +176,7 @@ class FeedImageService implements ResetInterface
     }
 
     /**
-     * Die Artikel, für die es kein ausreichend großes Bild gibt — die Liste zum Abarbeiten.
+     * Die Artikel, für die es kein ausreichend großes Bild gibt (die Liste zum Abarbeiten).
      *
      * @return array<int, array{productNumber: string, name: string, width: int, height: int}>
      */

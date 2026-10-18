@@ -107,8 +107,8 @@ class VirtualCartBuilderServiceTest extends TestCase
 
     /**
      * Was: Das Aufräumen am Ende eines Laufs.
-     * Warum: Der Dienst kennt sein Token. Ein Aufräumen von außen hätte diese Sicherheit nicht —
-     *        in der Tabelle `cart` sind alle Merkmalsspalten leer, es bliebe die Uhrzeit, und wer
+     * Warum: Der Dienst kennt sein Token. Ein Aufräumen von außen hätte diese Sicherheit nicht.
+     *        In der Tabelle `cart` sind alle Merkmalsspalten leer, es bliebe die Uhrzeit, und wer
      *        sich in der Minute irrt, löscht einen echten Kundenwarenkorb.
      * Erwartet: gelöscht wird genau nach dem eigenen Token.
      */
@@ -128,7 +128,7 @@ class VirtualCartBuilderServiceTest extends TestCase
     /**
      * Was: Die Datenbank verweigert das Aufräumen.
      * Warum: Eine liegengebliebene Zeile ist ein Schönheitsfehler, ein abgebrochener Warmup-Lauf
-     *        nicht — dann stünden im Feed Ersatzwerte.
+     *        nicht; dann stünden im Feed Ersatzwerte.
      * Erwartet: keine Ausnahme nach außen.
      */
     public function testAFailingCleanupDoesNotBreakTheRun(): void

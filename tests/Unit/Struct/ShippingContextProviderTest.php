@@ -75,7 +75,7 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Fehlt der vorberechnete Wert, kommt der Ersatzwert — aber nicht stillschweigend.
+     * Fehlt der vorberechnete Wert, kommt der Ersatzwert, aber nicht stillschweigend.
      * Ein Notnagel, der niemandem auffällt, lässt einen Ausfall monatelang unentdeckt.
      */
     public function testWithoutPrecomputedValue_FallbackIsUsed_WithWarning(): void
@@ -104,7 +104,7 @@ class ShippingContextProviderTest extends TestCase
 
     /**
      * Ein kalter Speicher betrifft alle Produkte gleichzeitig. Eine Zeile je Produkt und Land wären
-     * bei diesem Shop über 6000 gleichlautende Meldungen — die Warnung ginge im Rauschen unter.
+     * bei diesem Shop über 6000 gleichlautende Meldungen. Die Warnung ginge im Rauschen unter.
      */
     public function testTheWarningIsEmittedOncePerCountry(): void
     {
@@ -158,7 +158,7 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Ein vollständig warmer Lauf darf nichts melden — sonst gewöhnt man sich die Warnung ab.
+     * Ein vollständig warmer Lauf darf nichts melden, sonst gewöhnt man sich die Warnung ab.
      */
     public function testWithoutFallbacks_TheSummaryStaysSilent(): void
     {
@@ -228,7 +228,7 @@ class ShippingContextProviderTest extends TestCase
     /**
      * Der Kern der Sache: Gibt es für ein Land keine Versandart, darf der Feed keinen
      * Preis nennen. Ein weggelassener `g:shipping`-Block heißt bei Google „nimm die
-     * Kontoeinstellung" — für Ware, die nur auf Anfrage geht, ist das die einzige wahre Aussage.
+     * Kontoeinstellung". Für Ware, die nur auf Anfrage geht, ist das die einzige wahre Aussage.
      */
     public function testWithoutShippingMethod_NoPriceIsEmitted_WhenConfigured(): void
     {
@@ -248,7 +248,7 @@ class ShippingContextProviderTest extends TestCase
 
     /**
      * Die Gegenprobe, ohne die die Einstellung gefährlich wäre: Ein kalter Speicher weiß nicht,
-     * dass es keine Versandart gibt — er weiß gar nichts. Würde auch dieser Fall den Block
+     * dass es keine Versandart gibt; er weiß gar nichts. Würde auch dieser Fall den Block
      * weglassen, verlöre ein Feed nach jedem `cache:clear` schlagartig alle Versandangaben.
      */
     public function testColdCache_StillReturnsTheFallback(): void
@@ -264,7 +264,7 @@ class ShippingContextProviderTest extends TestCase
     }
 
     /**
-     * Eine fehlgeschlagene Berechnung ist kein Beleg dafür, dass nicht versendet wird — sie ist ein
+     * Eine fehlgeschlagene Berechnung ist kein Beleg dafür, dass nicht versendet wird. Sie ist ein
      * Betriebsfehler und steht als solcher im Protokoll. Den Block deshalb wegzulassen, würde einen
      * Fehler als Geschäftsregel ausgeben.
      */
@@ -355,7 +355,7 @@ class ShippingContextProviderTest extends TestCase
      *      Varianten.
      * Warum: Für ihn gibt es keinen Versandpreis. Jede Zahl wäre erfunden, und der Ersatzwert
      *        von 4,95 € ist bei einem Artikel, dessen Varianten 238 € Versand kosten, die
-     *        schlechteste davon — zu niedrig angegebene Versandkosten sind bei Google ein
+     *        schlechteste davon. Zu niedrig angegebene Versandkosten sind bei Google ein
      *        Richtlinienverstoß.
      * Erwartet: kein Block, unabhängig von der Einstellung.
      */
@@ -378,7 +378,7 @@ class ShippingContextProviderTest extends TestCase
     /**
      * Was: Dasselbe mit eingeschalteter Weglass-Einstellung.
      * Warum: Die Einstellung entscheidet, ob „der Shop versendet dorthin nicht" als Schweigen
-     *        oder als Ersatzwert im Feed steht — eine Aussage über das Sortiment. „Nicht
+     *        oder als Ersatzwert im Feed steht (eine Aussage über das Sortiment). „Nicht
      *        bestellbar" ist keine solche Aussage, sondern schlicht Unwissen. Die Einstellung
      *        darf daran nichts ändern, sonst hängt eine Richtigkeit an einem Häkchen.
      * Erwartet: ebenfalls kein Block.
@@ -401,7 +401,7 @@ class ShippingContextProviderTest extends TestCase
 
     /**
      * Was: Die Zusammenfassung nennt nicht bestellbare Artikel gesondert.
-     * Warum: Sonst verschwänden sie ganz — sie liefern keinen Block und keinen Ersatzwert. Ein
+     * Warum: Sonst verschwänden sie ganz, denn sie liefern keinen Block und keinen Ersatzwert. Ein
      *        Sortiment, das plötzlich zur Hälfte nicht bestellbar ist, wäre dann unsichtbar.
      * Erwartet: eine Meldung mit eigener Zahl.
      */

@@ -47,7 +47,7 @@ class ShippingFallbackServiceTest extends TestCase
 
     /**
      * Der Grund muss durchgereicht werden, sonst kann der Feed „wird dorthin nicht versendet" nicht
-     * von „gerade nichts vorberechnet" unterscheiden — und genau daran hängt, ob er schweigt.
+     * von „gerade nichts vorberechnet" unterscheiden, und genau daran hängt, ob er schweigt.
      */
     public function testTheReasonEndsUpInTheResult(): void
     {

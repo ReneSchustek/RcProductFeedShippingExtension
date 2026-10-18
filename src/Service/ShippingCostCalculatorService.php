@@ -42,7 +42,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * sucht dann die günstigste anwendbare Versandmethode des Kanals.
  *
  * Die Verfügbarkeitsregeln der Versandmethoden werden nach der Warenkorb-Berechnung
- * gegen die gematchten Rule-IDs des Kontexts geprüft — so werden Methoden, die für
+ * gegen die gematchten Rule-IDs des Kontexts geprüft. So werden Methoden, die für
  * dieses Produkt nicht gelten (z.B. Paketdienst wenn nur Spedition erlaubt ist),
  * korrekt herausgefiltert.
  */
@@ -51,10 +51,10 @@ class ShippingCostCalculatorService implements ResetInterface
     /** @var array<string, SalesChannelContext> In-Memory-Cache für Base-Contexts pro SalesChannel */
     private array $baseContextCache = [];
 
-    /** @var array<string, array<string, ShippingMethodEntity>> Aktive Versandmethoden (inkl. prices) pro SalesChannel — kanal-invariant, spart N+1 im Export/Warmup */
+    /** @var array<string, array<string, ShippingMethodEntity>> Aktive Versandmethoden (inkl. prices) pro SalesChannel (kanal-invariant, spart N+1 im Export/Warmup) */
     private array $shippingMethodsCache = [];
 
-    /** @var array<string, ?CountryEntity> Country-Entity pro ISO — export-invariant, spart N+1 */
+    /** @var array<string, ?CountryEntity> Country-Entity pro ISO (export-invariant, spart N+1) */
     private array $countryCache = [];
 
     /**
@@ -88,7 +88,7 @@ class ShippingCostCalculatorService implements ResetInterface
      * komplett auf dem Ersatzwert, also genau in dem Zustand, gegen den es diesen Speicher gibt.
      */
     /**
-     * Warum die letzte Auswahl leer ausging — nur für das Protokoll.
+     * Warum die letzte Auswahl leer ausging, nur für das Protokoll.
      *
      * @var array{excluded: int, ruleMissed: int, noPriceTier: int, total: int}
      */
@@ -113,7 +113,7 @@ class ShippingCostCalculatorService implements ResetInterface
             $context = $this->getOrCreateBaseContext($salesChannelId);
 
             // Das Zielland (inkl. PLZ) kommt ausschließlich über die Pseudo-Adresse.
-            // Wir übergeben kein COUNTRY_ID an die Context-Factory — das Land wird
+            // Wir übergeben kein COUNTRY_ID an die Context-Factory; das Land wird
             // nach der Context-Erstellung per Reflection in die ShippingLocation injiziert.
             // So evaluieren PLZ-basierte Regeln (customerShippingZipCode) korrekt,
             // ohne dass die Factory die Sprach-/Länderkonfiguration des Kanals validiert.
@@ -121,18 +121,18 @@ class ShippingCostCalculatorService implements ResetInterface
                 throw new \RuntimeException(sprintf('No reference address for country: %s', $countryIso));
             }
 
-            // Warenkorb berechnen — Shopware evaluiert dabei alle Cart-Regeln
+            // Warenkorb berechnen: Shopware evaluiert dabei alle Cart-Regeln
             // und schreibt die gematchten Rule-IDs in den Kontext. Der berechnete Warenkorb
             // liefert zusätzlich die Liefer-Kennwerte (Gewicht/Preis/Menge/Volumen), gegen die
             // die Preis-Tier-Bänder der Versandmethoden gematcht werden (wie im Core-DeliveryCalculator).
             $cart = $this->cartBuilder->buildCalculatedCart($productId, $context);
 
-            // Shopware entfernt die Position, wenn sie sich nicht kaufen lässt — bei Hauptartikeln
+            // Shopware entfernt die Position, wenn sie sich nicht kaufen lässt: bei Hauptartikeln
             // mit Varianten immer (`ProductCartProcessor::validateParents`), dazu bei Closeout ohne
             // Bestand und bei Unsichtbarkeit im Berechnungs-Kanal. Ohne diese Prüfung rechnete das
             // Plugin danach mit einem leeren Warenkorb weiter: Gewicht, Preis und Menge sind
             // dann 0, und das billigste Preisband trifft immer. Ein 40-kg-Artikel bekäme so den
-            // 0-5-kg-Preis — als gerechneter Wert, ohne Ersatzwert-Kennzeichnung und ohne Meldung.
+            // 0-5-kg-Preis, als gerechneter Wert, ohne Ersatzwert-Kennzeichnung und ohne Meldung.
             if (!$this->cartContainsProduct($cart, $productId)) {
                 return $this->storeFallback(
                     $productId,
@@ -147,7 +147,7 @@ class ShippingCostCalculatorService implements ResetInterface
             $deliveryValues = $this->extractDeliveryValues($cart);
 
             // Nichts zu versenden: rein digitale Ware oder ausschließlich versandkostenfreie
-            // Positionen. Der Kern setzt dafür 0,00 € an (`DeliveryCalculator`, Zeile 84-97) —
+            // Positionen. Der Kern setzt dafür 0,00 € an (`DeliveryCalculator`, Zeile 84-97);
             // das ist ein echtes Ergebnis und kein Ersatzwert.
             if ($deliveryValues === null) {
                 $result = new ShippingCalculationResult($productId, $countryIso, 0.0, $currencyIso, false);
@@ -167,13 +167,13 @@ class ShippingCostCalculatorService implements ResetInterface
                 $cart->getPrice()->getTaxStatus(),
             );
 
-            // Kein Preis gefunden — Fallback verwenden.
+            // Kein Preis gefunden: Fallback verwenden.
             // 0,00 € ist ein gültiges Ergebnis (z.B. Gratis-Versand-Aktion) und wird NICHT durch Fallback ersetzt.
             // Selbstabholung (0,00 €) ist bereits über die Ausschlussliste abgedeckt.
             if ($shippingCost === null) {
                 // Mit den Kennwerten, an denen es gescheitert ist. Ohne sie steht im Protokoll nur
                 // „keine Versandart", und die Suche beginnt bei null: Die Verfügbarkeitsregeln
-                // hängen meist an Gewicht, Länge und Warenwert der Position — wer
+                // hängen meist an Gewicht, Länge und Warenwert der Position. Wer
                 // die Zahlen nicht sieht, kann nicht unterscheiden, ob die Regel zu eng ist oder
                 // die Position ihre Lieferangaben gar nicht mitbringt.
                 $this->logger->info('RcProductFeedShipping: keine Versandart für diese Kombination.', [
@@ -185,7 +185,7 @@ class ShippingCostCalculatorService implements ResetInterface
                     'volume' => $deliveryValues[DeliveryCalculator::CALCULATION_BY_VOLUME] ?? null,
                     // Die Maße der Position getrennt: Die Regeln der Versandarten prüfen die
                     // Länge (`cartLineItemDimensionLength`), nicht das Volumen. Ein Volumen von
-                    // 0 sagt nur, dass Breite oder Höhe fehlen — über die Länge sagt es nichts.
+                    // 0 sagt nur, dass Breite oder Höhe fehlen; über die Länge sagt es nichts.
                     'dimensions' => $this->describeDimensions($cart),
                     'matchedRules' => \count($context->getRuleIds()),
                     'versandarten' => $this->lastSelectionTrace,
@@ -226,7 +226,7 @@ class ShippingCostCalculatorService implements ResetInterface
         }
     }
 
-    /** Ersatzwert bilden, ablegen und zurückgeben — an drei Stellen derselbe Ablauf. */
+    /** Ersatzwert bilden, ablegen und zurückgeben (an drei Stellen derselbe Ablauf). */
     private function storeFallback(
         string $productId,
         string $countryIso,
@@ -266,7 +266,7 @@ class ShippingCostCalculatorService implements ResetInterface
     }
 
     /**
-     * Liest ein bereits berechnetes Ergebnis aus dem Speicher — ohne zu rechnen.
+     * Liest ein bereits berechnetes Ergebnis aus dem Speicher, ohne zu rechnen.
      *
      * Der Weg für das Feed-Rendering. Er muss sich vom rechnenden `calculate()` unterscheiden, weil
      * die Berechnung innerhalb einer Twig-Vorlage nicht laufen kann: Shopware sperrt während des
@@ -274,7 +274,7 @@ class ShippingCostCalculatorService implements ResetInterface
      * `RuleEntity::payload` genau so eines. Der Aufruf endete deshalb ausnahmslos in einer Ausnahme
      * und still im Ersatzwert.
      *
-     * Gibt `null` zurück, wenn nichts vorliegt. Was dann passiert, entscheidet der Aufrufer — er
+     * Gibt `null` zurück, wenn nichts vorliegt. Was dann passiert, entscheidet der Aufrufer. Er
      * muss es melden, nicht verschlucken.
      */
     public function lookupCached(string $productId, string $countryIso, string $salesChannelId): ?ShippingCalculationResult
@@ -324,7 +324,7 @@ class ShippingCostCalculatorService implements ResetInterface
     ): ?float {
         $matchedRuleIds = $context->getRuleIds();
 
-        // Die aktiven Versandmethoden (inkl. prices) sind pro SalesChannel invariant — beim Export/
+        // Die aktiven Versandmethoden (inkl. prices) sind pro SalesChannel invariant. Beim Export/
         // Warmup über N Produkte x Länder wäre ein Neuladen je Produkt ein N+1. Einmal pro Kanal memoizen.
         if (!isset($this->shippingMethodsCache[$salesChannelId])) {
             $criteria = new Criteria();
@@ -346,7 +346,7 @@ class ShippingCostCalculatorService implements ResetInterface
 
         // Warum keine Versandart übrig blieb, lässt sich hinterher nicht mehr rekonstruieren:
         // Der Aufrufer sieht nur `null`. Die Zählung hält fest, an welcher der drei Hürden die
-        // Versandarten hängengeblieben sind — Ausschlussliste, Verfügbarkeitsregel oder Preisstaffel.
+        // Versandarten hängengeblieben sind: Ausschlussliste, Verfügbarkeitsregel oder Preisstaffel.
         $this->lastSelectionTrace = ['excluded' => 0, 'ruleMissed' => 0, 'noPriceTier' => 0, 'total' => \count($methods)];
 
         foreach ($methods as $method) {
@@ -384,18 +384,18 @@ class ShippingCostCalculatorService implements ResetInterface
      *
      * Ein Tier ist nur anwendbar, wenn (a) seine Verfügbarkeits-Regel (`ruleId`) zum Kontext passt UND
      * (b) sein Mengen-/Gewichts-/Preis-Band (`quantityStart`..`quantityEnd`, je `calculation`-Typ) den
-     * tatsächlichen Warenkorb-Kennwert enthält bzw. seine `calculationRuleId` matcht — analog zum
+     * tatsächlichen Warenkorb-Kennwert enthält bzw. seine `calculationRuleId` matcht, analog zum
      * Core-`DeliveryCalculator::matches()`. Das Minimum über alle Tiers gäbe z. B. einem 15-kg-Produkt
      * den 0–5-kg-Preis statt des 5–30-kg-Preises.
      *
      * Die Reihenfolge der Regeln entscheidet, nicht ihr Preis. Der Kern geht die Regeln des
-     * Kontexts der Reihe nach durch — und die sind nach Priorität absteigend sortiert — und bricht
+     * Kontexts der Reihe nach durch (und die sind nach Priorität absteigend sortiert) und bricht
      * bei der ersten ab, die einen passenden Preis hat (`DeliveryCalculator`, Zeile 107-116;
      * `RuleLoader`, Zeile 38-40). Wer stattdessen den billigsten Preis über alle passenden Regeln
      * nimmt, weicht von der Kasse ab: Bei „Sperrgut" (hohe Priorität, 49,90 €) neben „Standardkunde"
      * (niedrige, 5,90 €) verlangt die Kasse 49,90 €, und der Feed nennte 5,90 €.
      *
-     * Innerhalb einer Regel gewinnt weiterhin der günstigste passende Preis — auch das ist der
+     * Innerhalb einer Regel gewinnt weiterhin der günstigste passende Preis; auch das ist der
      * Kern (`getMatchingPriceOfRule` sortiert aufsteigend und nimmt den ersten Treffer).
      *
      * @param array<int, string> $matchedRuleIds nach Regel-Priorität absteigend sortiert
@@ -420,7 +420,7 @@ class ShippingCostCalculatorService implements ResetInterface
             }
         }
 
-        // Keine Regel hat gegriffen — jetzt erst der Standardpreis.
+        // Keine Regel hat gegriffen. Jetzt erst der Standardpreis.
         return $this->cheapestMatchingPrice($prices, null, $context, $matchedRuleIds, $deliveryValues, $taxStatus);
     }
 
@@ -464,7 +464,7 @@ class ShippingCostCalculatorService implements ResetInterface
     }
 
     /**
-     * Liest die für das Preis-Tier-Matching relevanten Kennwerte aus dem berechneten Warenkorb —
+     * Liest die für das Preis-Tier-Matching relevanten Kennwerte aus dem berechneten Warenkorb,
      * dieselben Werte, die der Core-DeliveryCalculator gegen die Bänder prüft.
      *
      * `null` heißt: Es ist nichts zu versenden. Das ist etwas anderes als „alle Kennwerte sind 0".
@@ -477,7 +477,7 @@ class ShippingCostCalculatorService implements ResetInterface
      * Die Maße der ersten Produktposition, wie sie im Warenkorb ankommen.
      *
      * Nur für das Protokoll: Wer wissen will, warum eine Regel auf `cartLineItemDimensionLength`
-     * nicht zutrifft, braucht die Länge — und die Auskunft, ob überhaupt Lieferangaben an der
+     * nicht zutrifft, braucht die Länge und die Auskunft, ob überhaupt Lieferangaben an der
      * Position hängen.
      */
     private function describeDimensions(Cart $cart): string
@@ -521,7 +521,7 @@ class ShippingCostCalculatorService implements ResetInterface
     }
 
     /**
-     * Prüft, ob ein Preis-Tier auf den Warenkorb anwendbar ist — Nachbildung von
+     * Prüft, ob ein Preis-Tier auf den Warenkorb anwendbar ist. Nachbildung von
      * Shopware\Core\Checkout\Cart\Delivery\DeliveryCalculator::matches(): entweder matcht die
      * calculationRuleId, oder der Kennwert des jeweiligen Calculation-Typs liegt im Band
      * [quantityStart, quantityEnd] (Start inklusiv, Ende inklusiv).
@@ -556,7 +556,7 @@ class ShippingCostCalculatorService implements ResetInterface
      *
      * Brutto ist nicht immer richtig. Der Kern nimmt nur bei `TAX_STATE_GROSS` den
      * Bruttopreis, sonst den Nettopreis (`DeliveryCalculator::getPriceForTaxState`, Zeile
-     * 222-229). Für die Schweiz — eines der voreingestellten Länder — setzt der Kern über
+     * 222-229). Für die Schweiz (eines der voreingestellten Länder) setzt der Kern über
      * `country.customerTax` regulär `TAX_STATE_FREE`. Ein fester Bruttopreis stünde dort im Feed,
      * während die Kasse netto abrechnet.
      *
@@ -610,7 +610,7 @@ class ShippingCostCalculatorService implements ResetInterface
         try {
             $referenceAddress = $this->addressProvider->getReferenceAddress($countryIso);
         } catch (CountryNotFoundException $e) {
-            // Erwarteter Fall: ISO-Code ohne hinterlegte Referenzadresse — Fallback ist regulärer Pfad.
+            // Erwarteter Fall: ISO-Code ohne hinterlegte Referenzadresse; Fallback ist regulärer Pfad.
             $this->logger->info('No reference address configured for country, using fallback', [
                 'countryIso' => $countryIso,
                 'metric' => 'reference_address_missing',
@@ -618,7 +618,7 @@ class ShippingCostCalculatorService implements ResetInterface
 
             return false;
         } catch (\Throwable $e) {
-            // Unerwarteter Fehler im AddressProvider (DB, IO) — separat loggen, damit Ops die Ursache sieht.
+            // Unerwarteter Fehler im AddressProvider (DB, IO): separat loggen, damit Ops die Ursache sieht.
             $this->logger->error('Unexpected error in address provider', [
                 'countryIso' => $countryIso,
                 'exception' => $e::class,
@@ -629,7 +629,7 @@ class ShippingCostCalculatorService implements ResetInterface
             return false;
         }
 
-        // Das Country-Entity je ISO ist während eines Exports konstant — einmal pro ISO memoizen (N+1).
+        // Das Country-Entity je ISO ist während eines Exports konstant. Einmal pro ISO memoizen (N+1).
         $isoKey = strtoupper($countryIso);
         if (!\array_key_exists($isoKey, $this->countryCache)) {
             $criteria = new Criteria();
@@ -691,7 +691,7 @@ class ShippingCostCalculatorService implements ResetInterface
     }
 
     /**
-     * Meldet ausgewählte Versandarten, die es nicht mehr gibt — einmal je Kanal und Lauf.
+     * Meldet ausgewählte Versandarten, die es nicht mehr gibt, einmal je Kanal und Lauf.
      *
      * Abbrechen wäre falsch: Eine gelöschte Versandart kann ohnehin nicht mehr gewinnen, der
      * Ausschluss hat sein Ziel also erreicht. Schweigen wäre ebenso falsch, denn wer die Auswahl

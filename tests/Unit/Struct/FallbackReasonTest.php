@@ -49,7 +49,7 @@ class FallbackReasonTest extends TestCase
     /**
      * Was: Ein Wert, den es nicht gibt.
      * Warum: Er kann aus einer älteren oder neueren Fassung stammen. Der Preis daneben bleibt
-     *        gültig — nur die Begründung geht verloren. Eine Ausnahme hier würde den ganzen Feed
+     *        gültig, nur die Begründung geht verloren. Eine Ausnahme hier würde den ganzen Feed
      *        reißen, weil eine einzelne unbekannte Zeile ihn abbräche.
      * Erwartet: null, keine Ausnahme.
      */
@@ -61,7 +61,7 @@ class FallbackReasonTest extends TestCase
 
     /**
      * Was: Die Beschriftung für die Konsole.
-     * Warum: Sie ist nutzersichtbarer Text und bleibt deutsch — im Gegensatz zu den abgelegten
+     * Warum: Sie ist nutzersichtbarer Text und bleibt deutsch, im Gegensatz zu den abgelegten
      *        Werten, die Code sind.
      * Erwartet: jeder Fall hat eine nichtleere deutsche Beschriftung.
      */

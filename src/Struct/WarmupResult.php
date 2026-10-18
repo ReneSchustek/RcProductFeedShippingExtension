@@ -54,7 +54,7 @@ final class WarmupResult
         return $this->calculated + $this->fallback;
     }
 
-    /** Alles, was der Lauf angesehen hat — gerechnet, ersetzt oder als unverändert erkannt. */
+    /** Alles, was der Lauf angesehen hat: gerechnet, ersetzt oder als unverändert erkannt. */
     public function inspected(): int
     {
         return $this->total() + $this->unchanged;
@@ -62,7 +62,7 @@ final class WarmupResult
 
     /**
      * Ein Lauf gilt als auffällig, wenn er nichts gerechnet hat, obwohl es etwas zu rechnen gab.
-     * Dann stimmt etwas Grundsätzliches — Berechnungs-Kanal, Versandmethoden oder Regeln.
+     * Dann stimmt etwas Grundsätzliches (Berechnungs-Kanal, Versandmethoden oder Regeln).
      */
     public function fallbacksOnly(): bool
     {

@@ -12,7 +12,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 
 /**
- * Liefert die Produkte, die im Shop sichtbar sind — einschließlich Varianten, die ihr `active`
+ * Liefert die Produkte, die im Shop sichtbar sind, einschließlich Varianten, die ihr `active`
  * vom Elternartikel erben.
  *
  * Ein bloßes `EqualsFilter('active', true)` vergleicht die Spalte und sieht bei einer Variante mit

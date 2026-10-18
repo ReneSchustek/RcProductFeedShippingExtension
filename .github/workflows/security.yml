@@ -1,6 +1,6 @@
 name: Sicherheit
 
-# Wöchentliches Abhängigkeits-Audit — unabhängig von Push und Pull Request.
+# Wöchentliches Abhängigkeits-Audit, unabhängig von Push und Pull Request.
 # Ein fertiges Plugin wird nicht mehr gepusht, Advisories erscheinen trotzdem.
 
 on:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Abhängigkeiten auflösen
         # Ohne committete Lock-Datei (Library-Konvention) löst install frisch auf
-        # und schreibt einen Lock in den Runner — audit braucht ihn.
+        # und schreibt einen Lock in den Runner, den audit braucht.
         # Mit Lock wird der gepinnte Stand geprüft. Ein Schritt für beide Fälle.
         #
         # --no-scripts: ein Audit liest den Lock, es braucht keine gebootete
@@ -40,5 +40,5 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: Bekannte Sicherheitslücken prüfen
-        # Abgekündigte Pakete werden nur berichtet — sie sind keine Lücke.
+        # Abgekündigte Pakete werden nur berichtet, denn sie sind keine Lücke.
         run: composer audit --no-interaction --abandoned=report

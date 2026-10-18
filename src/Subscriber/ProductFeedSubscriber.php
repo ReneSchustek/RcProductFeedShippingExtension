@@ -17,12 +17,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 /**
  * Injiziert einen ShippingContextProvider in den Feed-Template-Kontext.
  *
- * Das Event `ProductExportRenderBodyContextEvent` feuert einmalig vor der Produkt-Schleife —
+ * Das Event `ProductExportRenderBodyContextEvent` feuert einmalig vor der Produkt-Schleife;
  * zu diesem Zeitpunkt ist noch kein einzelnes Produkt im Kontext. Daher wird ein
  * Provider-Objekt in den Kontext gelegt, den das Template per `rcShipping.get(product.id, 'DE')`
  * für jedes Produkt einzeln aufrufen kann.
  *
- * Greift ausschließlich in den Feed-Export ein — niemals in den normalen Shop-Betrieb.
+ * Greift ausschließlich in den Feed-Export ein, niemals in den normalen Shop-Betrieb.
  */
 final class ProductFeedSubscriber implements EventSubscriberInterface
 {
@@ -102,7 +102,7 @@ final class ProductFeedSubscriber implements EventSubscriberInterface
      *
      * Shopware löst dieses Ereignis nur aus, wenn der Export eine Fuß-Vorlage hat
      * (`ProductExportRenderer::renderFooter` steigt bei `null` vorher aus). Die Einzelwarnung je
-     * Land in `ShippingContextProvider::get()` kommt unabhängig davon — die Zusammenfassung ist die
+     * Land in `ShippingContextProvider::get()` kommt unabhängig davon. Die Zusammenfassung ist die
      * Zugabe, nicht die einzige Meldung.
      */
     public function onProductExportFooter(ProductExportRenderFooterContextEvent $event): void

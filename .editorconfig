@@ -1,4 +1,4 @@
-# EditorConfig – https://editorconfig.org
+# EditorConfig (https://editorconfig.org)
 root = true
 
 # Alle Dateien
@@ -18,7 +18,7 @@ indent_size = 4
 [*.twig]
 indent_size = 4
 
-# YAML – Symfony Config
+# YAML: Symfony Config
 [*.{yml,yaml}]
 indent_size = 4
 

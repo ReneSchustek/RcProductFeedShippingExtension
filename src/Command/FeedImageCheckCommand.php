@@ -22,13 +22,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * brauchen: Ein Artikel mit einem anderen ausreichend großen Bild ist eine Sache des Feeds; ein
  * Artikel ohne jedes ausreichende Bild braucht neues Material und keine Programmänderung.
  *
- * Mit `--liste` erscheinen die Artikel der zweiten Gruppe mit Nummer, Namen und heutigem Maß —
+ * Mit `--liste` erscheinen die Artikel der zweiten Gruppe mit Nummer, Namen und heutigem Maß:
  * die Liste zum Abarbeiten.
  *
  * `--nachmessen` lädt die Bilddateien wirklich und vergleicht ihre Maße mit den Angaben der
  * Mediathek. Standardmäßig an einer Stichprobe: Die Angaben stammen aus Shopwares Analyse beim
  * Hochladen und sind fast immer richtig; sie alle nachzuladen kostet mehrere tausend Abrufe.
- * Weicht die Stichprobe ab, ist das ein eigener Befund — dann stimmt die Mediathek nicht.
+ * Weicht die Stichprobe ab, ist das ein eigener Befund. Dann stimmt die Mediathek nicht.
  */
 #[AsCommand(
     name: 'rc:feed:image-check',

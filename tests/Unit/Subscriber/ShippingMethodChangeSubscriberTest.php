@@ -19,7 +19,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 /**
- * Was beim Ändern einer Versandart passiert — und was ausdrücklich nicht.
+ * Was beim Ändern einer Versandart passiert, und was ausdrücklich nicht.
  *
  * Der Feed rechnet nicht selbst. Würfe der Abonnent den gesamten Bestand weg, stünde jedes
  * Produkt bis zum nächsten geplanten Lauf mit 4,95 Euro im Feed. Eine gewöhnliche Handlung im
@@ -48,7 +48,7 @@ final class ShippingMethodChangeSubscriberTest extends TestCase
     /**
      * Was: Eine Versandart wird gespeichert.
      * Warum: Die vorberechneten Preise können jetzt falsch sein. Sie deshalb wegzuwerfen wäre
-     *        aber der schlechtere Tausch — ein veralteter echter Preis liegt näher an der
+     *        aber der schlechtere Tausch: Ein veralteter echter Preis liegt näher an der
      *        Wahrheit als ein Ersatzwert für das gesamte Sortiment.
      * Erwartet: Der Warmup wird vorgezogen, nichts wird gelöscht.
      */
@@ -72,7 +72,7 @@ final class ShippingMethodChangeSubscriberTest extends TestCase
 
     /**
      * Was: Ein Versandpreis wird gespeichert.
-     * Warum: derselbe Anlass, anderer Auslöser — der Preis ist die häufigere Änderung.
+     * Warum: derselbe Anlass, anderer Auslöser; der Preis ist die häufigere Änderung.
      * Erwartet: ebenfalls ein vorgezogener Warmup.
      */
     public function testPriceChangeMovesTheWarmupForward(): void
@@ -122,8 +122,8 @@ final class ShippingMethodChangeSubscriberTest extends TestCase
     /**
      * Was: Die Aufgaben-Verwaltung ist nicht erreichbar.
      * Warum: Der Abonnent hängt am Speichern der Versandart. Reichte er die Ausnahme durch,
-     *        ließe sich im Verwaltungsbereich keine Versandart mehr speichern — wegen einer
-     *        Nebenwirkung eines Feed-Plugins.
+     *        ließe sich im Verwaltungsbereich keine Versandart mehr speichern (wegen einer
+     *        Nebenwirkung eines Feed-Plugins).
      * Erwartet: eine Warnung, keine Ausnahme.
      */
     public function testAnUnreachableTaskRepositoryDoesNotBreakTheSave(): void

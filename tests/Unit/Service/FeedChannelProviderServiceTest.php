@@ -14,11 +14,11 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 
 /**
- * Die Antwort auf „welche Kanäle zählen" — die Größe, an der die halbe Arbeitsmenge hängt.
+ * Die Antwort auf „welche Kanäle zählen", die Größe, an der die halbe Arbeitsmenge hängt.
  *
  * Warum das getestet gehört: Der Produktexport trägt zwei Kanäle. Wer den falschen nimmt, wärmt
  * einen Kanal vor, den der Warenstrom nie ausliest, und liest zur Laufzeit einen, der nie gewärmt
- * wurde. Beides ist einzeln richtig und zusammen wirkungslos — und beides fällt erst am kalten
+ * wurde. Beides ist einzeln richtig und zusammen wirkungslos, und beides fällt erst am kalten
  * Warenstrom auf.
  */
 class FeedChannelProviderServiceTest extends TestCase
@@ -33,7 +33,7 @@ class FeedChannelProviderServiceTest extends TestCase
     /**
      * Was: Ein Export mit Vergleichs-Kanal „Google Shopping" und Storefront-Kanal „Beispielshop".
      * Warum: Der Kern baut den Rendering-Kontext aus `storefrontSalesChannelId`
-     *        (`ProductExportGenerator`, 6.7.13.0) — genau diesen Kanal bekommt der Subscriber zu
+     *        (`ProductExportGenerator`, 6.7.13.0). Genau diesen Kanal bekommt der Subscriber zu
      *        sehen, und genau für ihn muss vorgewärmt sein.
      * Erwartet: der Storefront-Kanal, nicht der Vergleichs-Kanal.
      */

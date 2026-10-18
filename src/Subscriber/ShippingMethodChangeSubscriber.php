@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * ------------------------------------
  * Den Bestand wegzuwerfen läge nahe, nach dem Muster „der nächste Feed-Request rechnet neu". Das
  * trägt hier nicht: Der Feed rechnet gar nicht, er liest nur. Ein Löschen hieße, dass der Feed
- * bis zum nächsten geplanten Lauf — bis zu sechs Stunden — für jedes Produkt den Ersatzwert
+ * bis zum nächsten geplanten Lauf (bis zu sechs Stunden) für jedes Produkt den Ersatzwert
  * von 4,95 Euro nennt, auch für Ware, deren Versand über 200 Euro kostet.
  *
  * Damit stellte eine gewöhnliche Handlung im Verwaltungsbereich genau den Zustand her, den der
@@ -80,7 +80,7 @@ final class ShippingMethodChangeSubscriber implements EventSubscriberInterface
      * Zieht die geplante Aufgabe auf „jetzt" vor.
      *
      * Nur aus dem Zustand `scheduled` heraus: Läuft sie gerade oder wartet sie in der Warteschlange,
-     * würde ein Eingriff sie doppelt starten — und ein Warmup-Lauf ist teuer.
+     * würde ein Eingriff sie doppelt starten, und ein Warmup-Lauf ist teuer.
      */
     private function requestWarmup(): void
     {
@@ -99,14 +99,14 @@ final class ShippingMethodChangeSubscriber implements EventSubscriberInterface
 
             // Ausdrücklich UTC: Shopware legt Zeitstempel in UTC ab. Ohne Zeitzone käme die des
             // Servers zum Zug, und auf einem Server in Berlin läge die Planzeit im Sommer zwei
-            // Stunden in der Zukunft — der vorgezogene Lauf käme später als der reguläre.
+            // Stunden in der Zukunft; der vorgezogene Lauf käme später als der reguläre.
             $this->scheduledTaskRepository->update([[
                 'id' => $taskId,
                 'nextExecutionTime' => new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
             ]], $context);
         } catch (\Throwable $error) {
             // Das Speichern der Versandart darf daran nicht scheitern. Ohne die Anforderung greift
-            // der reguläre Takt — später, aber nicht falsch.
+            // der reguläre Takt: später, aber nicht falsch.
             $this->logger->warning('RcProductFeedShipping: Neuberechnung konnte nicht angefordert werden.', [
                 'context' => 'ruhrcoder_product_feed_shipping.warmup_requested',
                 'error' => $error->getMessage(),

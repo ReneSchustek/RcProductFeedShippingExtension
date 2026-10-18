@@ -53,7 +53,7 @@ class WarmupResultTest extends TestCase
 
     /**
      * Was: Ein Lauf, der ausschließlich Ersatzwerte einträgt.
-     * Warum: Das ist der Alarmfall — es gab etwas zu rechnen, gerechnet wurde nichts. Dann stimmt
+     * Warum: Das ist der Alarmfall: Es gab etwas zu rechnen, gerechnet wurde nichts. Dann stimmt
      *        etwas Grundsätzliches: Berechnungs-Kanal, Versandarten oder Regeln.
      * Erwartet: auffällig.
      */
@@ -85,7 +85,7 @@ class WarmupResultTest extends TestCase
 
     /**
      * Was: Ein leerer Lauf.
-     * Warum: Gab es nichts zu rechnen, ist das kein Fehler — etwa wenn kein Verkaufskanal das
+     * Warum: Gab es nichts zu rechnen, ist das kein Fehler, etwa wenn kein Verkaufskanal das
      *        Plugin aktiviert hat. Ein Alarm hier wäre ein Fehlalarm mit Exitcode 1.
      * Erwartet: nicht auffällig.
      */
@@ -114,7 +114,7 @@ class WarmupResultTest extends TestCase
     /**
      * Was: Unveränderte Kombinationen im Zählwerk.
      * Warum: Sie sind kein Ausfall, sondern der Zweck: nachgesehen, nichts geändert. Ein Lauf, der
-     *        nur auffrischt, hat nichts gerechnet — und ist trotzdem in Ordnung. Ohne eigenen
+     *        nur auffrischt, hat nichts gerechnet und ist trotzdem in Ordnung. Ohne eigenen
      *        Zähler sähe er aus wie ein Lauf, der nichts getan hat.
      * Erwartet: getrennte Zählung, und `inspected()` nennt die Summe.
      */
