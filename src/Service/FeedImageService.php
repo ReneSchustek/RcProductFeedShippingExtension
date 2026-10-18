@@ -18,8 +18,8 @@ use Symfony\Contracts\Service\ResetInterface;
  * **Ab dem 31.01.2027 verlangt das Merchant Center für `image_link` mindestens 500 × 500 Pixel.**
  * Kleinere Bilder werden nicht mehr genehmigt, das Produkt erscheint nicht mehr.
  *
- * Was die Messung auf dem Datenbestand ergab (09.09.2026)
- * -------------------------------------------------------
+ * Was die Messung auf dem Datenbestand ergab
+ * ------------------------------------------
  * | | |
  * |---|--:|
  * | aktive Produkte mit Titelbild | 2 094 |
@@ -27,8 +27,8 @@ use Symfony\Contracts\Service\ResetInterface;
  * | davon mit einem **anderen** Bild ≥ 500 × 500 | **313** |
  * | ohne jedes ausreichende Bild | **100** |
  *
- * **Vermutet war zuerst eine andere Ursache** — ein zu klein gewähltes Vorschaubild. Alle
- * drei Export-Vorlagen des Shops verlinken jedoch `product.cover.media.url`, also das **Original**.
+ * An einem zu klein gewählten Vorschaubild liegt es nicht, denn alle drei Export-Vorlagen des
+ * Shops verlinken `product.cover.media.url`, also das **Original**.
  * Eine andere Vorschaufassung zu wählen hilft deshalb nicht; was hilft, ist ein **anderes Bild**
  * desselben Artikels. Die häufigsten zu kleinen Maße sind 400 × 400, 500 × 250, 500 × 333 und
  * 480 × 400 — knapp daneben, nicht winzig.
@@ -48,9 +48,9 @@ class FeedImageService implements ResetInterface
     public const MINIMUM_EDGE = 500;
 
     /**
-     * Maßzeichnungen sind kein Hauptbild für Google (Renes Entscheidung, 13.10.2026). Nach der Bildregel des
-     * Hauses ist das zweite Bild eines Artikels meist das Maßbild; ohne diese Regel wären 306 der 327
-     * Ersatzbilder Zeichnungen gewesen. Erkannt wird am Dateinamen, das Material heißt durchgängig
+     * Maßzeichnungen sind kein Hauptbild für Google. Nach der Bildregel des Hauses ist das zweite
+     * Bild eines Artikels meist das Maßbild; ohne diese Regel wären 306 der 327 Ersatzbilder
+     * Zeichnungen. Erkannt wird am Dateinamen, das Material heißt durchgängig
      * „Zeichnung_…". Ein ausreichend großes Titelbild bleibt immer, auch wenn es so heißt.
      */
     private const DRAWING_MARKER = 'zeichnung';

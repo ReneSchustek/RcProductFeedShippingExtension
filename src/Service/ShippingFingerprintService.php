@@ -15,9 +15,9 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Warum es ihn gibt
  * -----------------
- * Der Warmup rechnete bisher bei jedem Lauf jede Kombination aus Produkt und Land neu — dreimal am
- * Tag dasselbe Ergebnis. Gemessen auf dem produktiven Shop: 21 172 Berechnungen an einem Tag, bei
- * einer einzigen Bestellung. **Google verlangt korrekte Werte im Feed, keine ständige
+ * Ohne ihn rechnet der Warmup bei jedem Lauf jede Kombination aus Produkt und Land neu, dreimal am
+ * Tag mit demselben Ergebnis. Auf dem produktiven Shop sind das 21 172 Berechnungen an einem Tag,
+ * bei einer einzigen Bestellung. **Google verlangt korrekte Werte im Feed, keine ständige
  * Neuberechnung.** Ist der Prüfwert unverändert, liefert eine Neuberechnung dasselbe Ergebnis.
  *
  * Was in den Prüfwert eingeht
@@ -45,10 +45,9 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Warum `rule` nur gezählt und nicht datiert wird
  * -----------------------------------------------
- * **Gemessen am 09.09.2026 auf der Testkopie:** Der erste Lauf nach der Umstellung rechnete alles neu,
- * der zweite ebenfalls — erst der dritte übersprang. Ursache war der Stempel selbst: Shopware
- * kompiliert beim Berechnen eines Warenkorbs die Regel-Nutzlast und schreibt dabei `rule.updated_at`.
- * **Der Lauf verschob damit seinen eigenen Prüfwert**, und kein Eintrag konnte je unverändert sein.
+ * Shopware kompiliert beim Berechnen eines Warenkorbs die Regel-Nutzlast und schreibt dabei
+ * `rule.updated_at`. Zählte dieser Zeitstempel mit, **verschöbe jeder Lauf seinen eigenen Prüfwert**,
+ * und kein Eintrag könnte je unverändert sein.
  *
  * Von `rule` geht deshalb nur die **Anzahl** in den Stempel ein — sie merkt eine hinzugefügte oder
  * gelöschte Regel. Eine inhaltliche Änderung fängt `rule_condition` ab: Dort stehen die Bedingungen
@@ -57,9 +56,9 @@ use Symfony\Contracts\Service\ResetInterface;
  * Auch der Ausschluss gehört in den Stempel
  * -----------------------------------------
  * Welche Versandarten der Feed nie nehmen darf, steht in der Plugin-Konfiguration, nicht in den
- * Versandtabellen. Ohne diese Werte im Stempel blieb eine geänderte Auswahl wirkungslos, bis ein
- * Lauf mit `--full` alles neu rechnete: Die Abholung für 0,00 € stand weiter im Speicher, obwohl
- * sie längst ausgeschlossen war. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
+ * Versandtabellen. Ohne diese Werte im Stempel bliebe eine geänderte Auswahl wirkungslos, bis ein
+ * Lauf mit `--full` alles neu rechnet, und eine ausgeschlossene Abholung für 0,00 € stünde weiter
+ * im Speicher. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
  * rechnet der nächste Lauf alles neu — selten genug, dass die Unschärfe nicht zählt.
  */
 class ShippingFingerprintService implements ResetInterface

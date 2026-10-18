@@ -28,7 +28,7 @@ class ActiveProductProviderServiceTest extends TestCase
     /**
      * Der Kern der Sache: Eine Variante erbt ihr `active` vom Elternartikel und hat in der eigenen
      * Spalte NULL. Ein bloßes `EqualsFilter('active', true)` sieht sie deshalb nicht — auf
-     * der Testkopie waren das 1970 von 2739 Produkten. Wer diesen Filter verengt, verkleinert
+     * der Testkopie sind das 1970 von 2739 Produkten. Wer diesen Filter verengt, verkleinert
      * stillschweigend die Datenbasis von Warmup und Diagnose.
      */
     public function testVariantenMitGeerbtemActiveWerdenMitgeladen(): void

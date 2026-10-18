@@ -15,26 +15,25 @@ use Shopware\Core\Framework\Uuid\Uuid;
  *
  * Warum eine eigene Tabelle und kein Cache
  * ----------------------------------------
- * Bis zum 2026-08-03 lagen diese Werte in `cache.object`. Das sah naheliegend aus -- sie
- * werden ja errechnet und haben eine Haltbarkeit. Es war trotzdem der falsche Ort: Ein
- * `cache:clear` leerte sie mit, und der Feed nannte danach bis zum nächsten Warmup für
+ * `cache.object` läge nahe, die Werte werden ja errechnet und haben eine Haltbarkeit. Ein
+ * `cache:clear` leerte sie aber mit, und der Feed nennte danach bis zum nächsten Warmup für
  * **jeden** Artikel den Ersatzwert von 4,95 Euro. Bei einem Warmup-Takt von sechs Stunden
  * also bis zu sechs Stunden lang -- auch für Ware, deren Versand über 200 Euro kostet. Zu
  * niedrig angegebene Versandkosten sind bei Google ein Richtlinienverstoß.
  *
  * `cache:clear` gehört zu jedem Plugin-Update, jeder Theme-Änderung und jedem Deployment.
- * Der Zustand trat damit planmäßig ein, nicht ausnahmsweise.
+ * Der Zustand träte damit planmäßig ein, nicht ausnahmsweise.
  *
- * Ein Cache darf jederzeit leer sein, ohne dass etwas Falsches herauskommt. Genau das war
- * hier nicht der Fall -- also sind es keine Cache-Einträge, sondern vorberechnete Stammdaten,
- * und die gehören in eine Tabelle.
+ * Ein Cache darf jederzeit leer sein, ohne dass etwas Falsches herauskommt. Das gilt hier
+ * nicht -- also sind es keine Cache-Einträge, sondern vorberechnete Stammdaten, und die
+ * gehören in eine Tabelle.
  *
- * Was der Wechsel nebenbei erledigt hat
- * -------------------------------------
- * Der Vorgänger speicherte ein serialisiertes `ShippingCalculationResult` und führte deshalb
- * eine Schema-Version im Schlüssel mit: Kam dem Struct ein Feld hinzu, war es in den alten
- * Daten nicht enthalten, und der erste Zugriff auf die getypte Eigenschaft war ein Fehler.
- * Mit ausgeschriebenen Spalten stellt sich die Frage nicht mehr.
+ * Warum ausgeschriebene Spalten
+ * -----------------------------
+ * Ein serialisiertes `ShippingCalculationResult` bräuchte eine Schema-Version im Schlüssel:
+ * Kommt dem Struct ein Feld hinzu, fehlt es in den gespeicherten Daten, und der erste Zugriff
+ * auf die getypte Eigenschaft ist ein Fehler. Mit ausgeschriebenen Spalten stellt sich die
+ * Frage nicht.
  */
 class ShippingPriceStore
 {

@@ -22,11 +22,11 @@ class ConfigurationService implements ResetInterface
     /**
      * Trennzeichen zwischen den Einträgen der länderspezifischen Ersatzwerte.
      *
-     * Die Hilfe der Einstellung nennt das Komma. Auf der Testkopie stand dort trotzdem
-     * `DE:7.95;AT:14.95;CH:21.95` — und weil nur am Komma getrennt wurde, war die ganze Zeichenkette
-     * ein einziger Eintrag: `DE` traf zufällig zu, AT und CH fielen still auf den globalen Wert
-     * zurück. 1040 Kombinationen Speditionsware standen dadurch mit 7,95 € statt 14,95 € bzw.
-     * 21,95 € im Warenstrom. Beide Zeichen zu akzeptieren kostet nichts und nimmt der Einstellung
+     * Die Hilfe der Einstellung nennt das Komma, auf der Testkopie steht dort aber
+     * `DE:7.95;AT:14.95;CH:21.95`. Trennte nur das Komma, wäre die ganze Zeichenkette ein einziger
+     * Eintrag: `DE` träfe zufällig zu, AT und CH fielen still auf den globalen Wert zurück. 1040
+     * Kombinationen Speditionsware stünden so mit 7,95 € statt 14,95 € bzw. 21,95 € im Warenstrom.
+     * Beide Zeichen zu akzeptieren kostet nichts und nimmt der Einstellung
      * ihre schärfste Falle.
      */
     private const ENTRY_SEPARATORS = '/[,;]/';

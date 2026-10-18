@@ -25,8 +25,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 /**
  * Der Warmup — der einzige Ort, an dem tatsächlich gerechnet wird.
  *
- * Warum das der wichtigste ungetestete Fleck war: Der Feed rechnet seit Fassung 1.1.0 nicht mehr
- * selbst, er liest nur noch vorberechnete Werte. Füllt der Warmup den Speicher nicht oder füllt
+ * Der Feed rechnet nicht selbst, er liest nur vorberechnete Werte. Füllt der Warmup den Speicher nicht oder füllt
  * er ihn mit Ersatzwerten, liefert der Feed für jeden Artikel denselben Betrag — und niemand
  * merkt es, weil der Feed dabei vollständig aussieht.
  */
@@ -237,11 +236,10 @@ class ShippingWarmupServiceTest extends TestCase
 
     /**
      * Was: Ein eingeschalteter Kanal, den kein Produktexport ausliest.
-     * Warum: Auf der Testkopie war das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
-     *        alles greift dort zu Recht keine. Der Warmup rechnete ihn trotzdem durch und legte
-     *        5223 Einträge „keine Versandart" ab, die niemand liest. Sie waren nicht nur nutzlos:
-     *        Sie stellten fünf Sechstel aller Meldungen und haben die Fehlersuche zweimal in die
-     *        falsche Richtung geschickt.
+     * Warum: Auf der Testkopie ist das der Kanal „Headless" — 20 statt 206 Versandarten, und für fast
+     *        alles greift dort zu Recht keine. Rechnete der Warmup ihn durch, legte er 5223 Einträge
+     *        „keine Versandart" ab, die niemand liest. Sie stellten fünf Sechstel aller Meldungen
+     *        und schickten die Fehlersuche in die falsche Richtung.
      * Erwartet: kein Rechenversuch, dafür eine Meldung mit Grund — in Konsole und Protokoll.
      */
     public function testAChannelNoFeedReadsIsSkippedWithAReason(): void

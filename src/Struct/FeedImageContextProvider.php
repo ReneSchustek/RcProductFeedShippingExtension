@@ -14,8 +14,8 @@ use Shopware\Core\Framework\Struct\Struct;
  * Die Adresse für `image_link` im Warenstrom.
  *
  * Die Vorlage ruft `rcFeedImage.url(product)` statt `product.cover.media.url`. Ist der Austausch in den
- * Einstellungen aus (Vorgabe), kommt genau das Titelbild heraus, also dasselbe wie vorher; eine Vorlage lässt
- * sich so umstellen, bevor der Austausch eingeschaltet wird.
+ * Einstellungen aus (Vorgabe), kommt genau das Titelbild heraus, also dasselbe wie mit
+ * `product.cover.media.url`; eine Vorlage lässt sich so umstellen, bevor der Austausch eingeschaltet wird.
  *
  * Ist er an und das Titelbild kleiner als 500 × 500, kommt das erste ausreichend große Bild desselben Artikels.
  * Eine Variante ohne eigene Bilder bekommt die ihres Hauptartikels, so wie Shopware sie auch im Shop zeigt.

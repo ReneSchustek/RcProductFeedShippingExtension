@@ -149,7 +149,7 @@ class FeedImageServiceTest extends TestCase
      */
     /**
      * Was: Titelbild 400 x 400, das zweite Bild ist eine große Maßzeichnung, das dritte ein großes Foto.
-     * Warum: Renes Entscheidung vom 13.10.: Eine Zeichnung ist kein Hauptbild für Google.
+     * Warum: Eine Zeichnung ist kein Hauptbild für Google.
      * Erwartet: das Foto, nicht die Zeichnung.
      */
     public function testSkipsDimensionDrawings(): void

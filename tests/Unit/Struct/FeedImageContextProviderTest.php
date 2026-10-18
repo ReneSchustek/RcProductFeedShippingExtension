@@ -22,8 +22,9 @@ final class FeedImageContextProviderTest extends TestCase
 {
     /**
      * Was: Austausch in den Einstellungen aus, Titelbild zu klein.
-     * Warum: Die Vorgabe darf den Feed nicht ändern; die Vorlage lässt sich vorher umstellen.
-     * Erwartet: das Titelbild, wie vorher.
+     * Warum: Die Vorgabe darf den Feed nicht ändern; die Vorlage lässt sich umstellen, bevor der
+     *        Austausch eingeschaltet wird.
+     * Erwartet: das Titelbild, wie mit `product.cover.media.url`.
      */
     public function testReturnsTheCoverWhenReplacementIsDisabled(): void
     {

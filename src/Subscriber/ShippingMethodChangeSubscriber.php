@@ -21,11 +21,10 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * Warum hier nichts mehr gelöscht wird
  * ------------------------------------
- * Bis zum 2026-08-03 warf dieser Abonnent den gesamten Bestand weg, begründet mit „der nächste
- * Feed-Request rechnet neu". Seit dem Umbau auf den Speicher stimmt das nicht mehr: **Der Feed
- * rechnet gar nicht mehr, er liest nur.** Ein Löschen hieß deshalb, dass der Feed bis zum nächsten
- * geplanten Lauf — bis zu sechs Stunden — für **jedes** Produkt den Ersatzwert von 4,95 Euro
- * nannte, auch für Ware, deren Versand über 200 Euro kostet.
+ * Den Bestand wegzuwerfen läge nahe, nach dem Muster „der nächste Feed-Request rechnet neu". Das
+ * trägt hier nicht: **Der Feed rechnet gar nicht, er liest nur.** Ein Löschen hieße, dass der Feed
+ * bis zum nächsten geplanten Lauf — bis zu sechs Stunden — für **jedes** Produkt den Ersatzwert
+ * von 4,95 Euro nennt, auch für Ware, deren Versand über 200 Euro kostet.
  *
  * Damit stellte eine gewöhnliche Handlung im Verwaltungsbereich genau den Zustand her, den der
  * Speicher verhindern soll. Zu niedrig angegebene Versandkosten sind bei Google ein

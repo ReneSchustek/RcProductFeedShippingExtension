@@ -78,7 +78,7 @@ class ShippingContextProviderTest extends TestCase
 
     /**
      * Fehlt der vorberechnete Wert, kommt der Ersatzwert — aber **nicht stillschweigend**.
-     * Ein Notnagel, der niemandem auffällt, war die Ursache dafür, dass der Ausfall monatelang unentdeckt blieb.
+     * Ein Notnagel, der niemandem auffällt, lässt einen Ausfall monatelang unentdeckt.
      */
     public function testWithoutPrecomputedValue_FallbackIsUsed_WithWarning(): void
     {
@@ -358,7 +358,7 @@ class ShippingContextProviderTest extends TestCase
      * Warum: Für ihn gibt es keinen Versandpreis. Jede Zahl wäre erfunden, und der Ersatzwert
      *        von 4,95 € ist bei einem Artikel, dessen Varianten 238 € Versand kosten, die
      *        schlechteste davon — zu niedrig angegebene Versandkosten sind bei Google ein
-     *        Richtlinienverstoß. Auf der Testkopie betraf das 309 Artikel.
+     *        Richtlinienverstoß. Auf der Testkopie betrifft das 309 Artikel.
      * Erwartet: kein Block, unabhängig von der Einstellung.
      */
     public function testNotPurchasableProductEmitsNoPrice(): void

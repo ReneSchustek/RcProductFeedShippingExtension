@@ -152,7 +152,7 @@ class ShippingFingerprintServiceTest extends TestCase
 
     /**
      * Was: Die Regeltabelle wird während des Laufs geschrieben.
-     * Warum: **Am 09.09.2026 auf der Testkopie gemessen.** Shopware kompiliert beim Berechnen eines
+     * Warum: Shopware kompiliert beim Berechnen eines
      *        Warenkorbs die Regel-Nutzlast und schreibt dabei `rule.updated_at`. Zählte dieser
      *        Zeitstempel mit, verschöbe der Lauf seinen eigenen Prüfwert — kein Eintrag wäre je
      *        unverändert, und die ganze Ersparnis fiele lautlos aus.

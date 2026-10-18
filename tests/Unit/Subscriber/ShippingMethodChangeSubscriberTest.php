@@ -19,13 +19,11 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 /**
- * Was beim Ändern einer Versandart passiert — und was ausdrücklich nicht mehr.
+ * Was beim Ändern einer Versandart passiert — und was ausdrücklich nicht.
  *
- * Bis zum 2026-08-03 warf dieser Abonnent den gesamten Bestand weg. Seit dem Umbau auf den
- * Speicher rechnet der Feed nicht mehr selbst; ein leerer Bestand hieß deshalb, dass jedes
- * Produkt bis zum nächsten geplanten Lauf mit 4,95 Euro im Feed stand. Eine gewöhnliche
- * Handlung im Verwaltungsbereich stellte damit genau den Zustand her, den der Speicher
- * verhindern soll.
+ * Der Feed rechnet nicht selbst. Würfe der Abonnent den gesamten Bestand weg, stünde jedes
+ * Produkt bis zum nächsten geplanten Lauf mit 4,95 Euro im Feed. Eine gewöhnliche Handlung im
+ * Verwaltungsbereich stellte damit genau den Zustand her, den der Speicher verhindern soll.
  */
 #[CoversClass(ShippingMethodChangeSubscriber::class)]
 final class ShippingMethodChangeSubscriberTest extends TestCase

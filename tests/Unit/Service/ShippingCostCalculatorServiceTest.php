@@ -289,7 +289,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     public function testHeavyProductGetsMatchingWeightTierNotCheapest(): void
     {
         // 15 kg -> muss den 5-30-kg-Tier (19,95) treffen, nicht den 0-5-kg-Tier (4,95).
-        // Genau das war der Bug: vorher wurde blind das Minimum über alle Tiers genommen.
+        // Das blinde Minimum über alle Tiers gäbe hier den 0-5-kg-Preis.
         $this->setUpCacheMiss();
         $this->setUpSuccessfulContext([], [], $this->buildCartWithWeight(15.0));
         $this->setUpShippingMethods([
@@ -325,7 +325,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
     public function testProductAboveAllTiersMatchesNoBandAndFallsBack(): void
     {
         // 40 kg liegt über allen definierten Bändern -> kein Tier matcht -> Methode liefert keinen
-        // Preis -> Fallback. (Früher hätte sie fälschlich 4,95 zurückgegeben.)
+        // Preis -> Fallback. Das billigste Band (4,95) wäre ein erfundener Preis.
         $this->setUpCacheMiss();
         $this->setUpSuccessfulContext([], [], $this->buildCartWithWeight(40.0));
         $this->setUpShippingMethods([
@@ -593,12 +593,12 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Der Artikel lässt sich nicht in den Warenkorb legen.
-     * Warum: **Der schwerste Fund.** Shopware entfernt Hauptartikel mit Varianten grundsätzlich
+     * Warum: Shopware entfernt Hauptartikel mit Varianten grundsätzlich
      *        (`ProductCartProcessor::validateParents`), dazu Closeout ohne Bestand und im
-     *        Berechnungs-Kanal unsichtbare Ware. Das Plugin rechnete danach mit einem leeren
-     *        Warenkorb weiter: Gewicht und Preis sind 0, also traf das billigste Band — und der
-     *        erfundene Preis wurde mit `isFallback = false` abgelegt und ausgeliefert. Ein
-     *        40-kg-Artikel bekam so den 0-5-kg-Preis, ohne Meldung, ohne Kennzeichnung.
+     *        Berechnungs-Kanal unsichtbare Ware. Wer mit dem leeren Warenkorb weiterrechnet, hat
+     *        Gewicht und Preis 0, trifft das billigste Band und legt einen erfundenen Preis mit
+     *        `isFallback = false` ab. Ein 40-kg-Artikel bekäme so den 0-5-kg-Preis, ohne Meldung,
+     *        ohne Kennzeichnung.
      * Erwartet: Ersatzwert mit der Begründung „nicht bestellbar" — nicht der billigste Tarif.
      */
     public function testProductRemovedFromCartYieldsFallbackInsteadOfCheapestTier(): void
@@ -626,7 +626,7 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Ein Warenkorb, in dem nur versandkostenfreie Ware liegt.
-     * Warum: Auch hier waren früher alle Kennwerte 0 und das billigste Band traf. Der Kern setzt
+     * Warum: Mit lauter Kennwerten 0 träfe das billigste Band. Der Kern setzt
      *        für diesen Fall 0,00 € an — das ist ein Ergebnis, kein Ersatzwert.
      * Erwartet: 0,00 € als gerechneter Wert.
      */
@@ -651,9 +651,9 @@ class ShippingCostCalculatorServiceTest extends TestCase
      * Was: Zwei Regeln passen, mit unterschiedlichen Preisen.
      * Warum: Der Kern geht die Regeln des Kontexts der Reihe nach durch — sie sind nach
      *        Priorität absteigend sortiert — und bricht bei der ersten mit passendem Preis ab.
-     *        Das Plugin nahm den billigsten über alle Regeln hinweg. Bei „Sperrgut" (hohe
-     *        Priorität, 49,90 €) neben „Standardkunde" (niedrige, 5,90 €) verlangte die Kasse
-     *        49,90 € und der Feed nannte 5,90 €.
+     *        Der billigste über alle Regeln hinweg weicht davon ab: Bei „Sperrgut" (hohe
+     *        Priorität, 49,90 €) neben „Standardkunde" (niedrige, 5,90 €) verlangt die Kasse
+     *        49,90 €, und der Feed nennte 5,90 €.
      * Erwartet: 49,90 € — der Preis der höher priorisierten Regel.
      */
     public function testHigherPriorityRuleWinsEvenWhenItIsMoreExpensive(): void
@@ -698,9 +698,9 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Ein Land ohne Steuer — etwa die Schweiz.
-     * Warum: Das Plugin nahm immer den Bruttopreis. Der Kern nimmt bei `TAX_STATE_FREE` und
-     *        `TAX_STATE_NET` den Nettopreis. Für die Schweiz — ein voreingestelltes Land —
-     *        nannte der Feed damit einen höheren Betrag, als die Kasse verlangt.
+     * Warum: Der Kern nimmt bei `TAX_STATE_FREE` und `TAX_STATE_NET` den Nettopreis. Mit dem
+     *        Bruttopreis nennte der Feed für die Schweiz — ein voreingestelltes Land — einen
+     *        höheren Betrag, als die Kasse verlangt.
      * Erwartet: der Nettopreis.
      */
     public function testTaxFreeCountryUsesTheNetPrice(): void
@@ -730,10 +730,10 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Der Warmup-Weg.
-     * Warum: **Der zweitschwerste Fund.** Rief der Warmup `calculate()` mit Speicher-Kurzschluss
-     *        auf, füllte er nur Lücken, statt zu erneuern — ein Eintrag wurde erst neu gerechnet,
-     *        nachdem er verfallen war. Bei sechs Stunden Takt und 24 Stunden Haltbarkeit lief der
-     *        Feed dadurch täglich rund sechs Stunden komplett auf dem Ersatzwert.
+     * Warum: Riefe der Warmup `calculate()` mit Speicher-Kurzschluss auf, füllte er nur Lücken,
+     *        statt zu erneuern, und ein Eintrag würde erst neu gerechnet, nachdem er verfallen
+     *        ist. Bei sechs Stunden Takt und 24 Stunden Haltbarkeit liefe der Feed dann täglich
+     *        rund sechs Stunden komplett auf dem Ersatzwert.
      * Erwartet: Es wird gerechnet, obwohl ein gültiger Wert im Speicher liegt.
      */
     public function testRecalculationIgnoresTheStoredValue(): void

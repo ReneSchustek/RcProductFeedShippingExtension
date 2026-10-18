@@ -10,7 +10,7 @@ use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTask;
 /**
  * Hält den Versandkosten-Speicher warm.
  *
- * Ohne diese Aufgabe ist das Plugin wirkungslos: Der Feed rechnet nicht mehr selbst (er kann es
+ * Ohne diese Aufgabe ist das Plugin wirkungslos: Der Feed rechnet nicht selbst (er kann es
  * nicht, siehe `ShippingContextProvider`), sondern liest nur vorberechnete Werte. Läuft niemand
  * vor, liefert der Feed den Ersatzwert.
  *

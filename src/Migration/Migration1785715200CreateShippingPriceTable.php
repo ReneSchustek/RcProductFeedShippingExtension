@@ -10,8 +10,8 @@ use Shopware\Core\Framework\Migration\MigrationStep;
 /**
  * Tabelle der vorberechneten Versandkosten je Produkt, Land und Verkaufskanal.
  *
- * Vorher lagen diese Werte in `cache.object` und verschwanden bei jedem `cache:clear` --
- * der Feed nannte danach bis zum nächsten Warmup für jeden Artikel den Ersatzwert. Die
+ * Eine eigene Tabelle, weil Werte in `cache.object` bei jedem `cache:clear` verschwänden; der
+ * Feed nennte danach bis zum nächsten Warmup für jeden Artikel den Ersatzwert. Die
  * Begründung steht ausführlich in `Storage\ShippingPriceStore`.
  *
  * Forward-only -- nach Veröffentlichung nicht mehr verändern.

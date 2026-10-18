@@ -18,12 +18,12 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * **Er wird gespeichert.** `CartCalculator::calculate()` geht über `CartRuleLoader::load()`, und das
  * schreibt den Warenkorb bei geändertem Datenstempel weg (Kern 6.7.12.1, Zeile 112-119).
  *
- * Das Token entsteht deshalb **einmal je Prozess** und nicht je Berechnung. Vorher trug jeder
- * Warenkorb ein eigenes `Uuid::randomHex()`, und damit hinterließ jede Kombination aus Produkt und
- * Land eine eigene Zeile: Auf dem produktiven Shop **21 172 Zeilen an einem Tag**, rund ein
- * Gigabyte Rohdaten, die dreißig Tage liegen blieben und die Warenkorb-Kennzahlen des Shops
- * unbrauchbar machten. Ein Token je Prozess macht daraus **eine** Zeile je Lauf; ein zufälliges
- * Token je Instanz statt eines festen Wertes hält auch parallele Arbeiter auseinander.
+ * Das Token entsteht deshalb **einmal je Prozess** und nicht je Berechnung. Trüge jeder Warenkorb
+ * ein eigenes `Uuid::randomHex()`, hinterließe jede Kombination aus Produkt und Land eine eigene
+ * Zeile: auf dem produktiven Shop **21 172 Zeilen an einem Tag**, rund ein Gigabyte Rohdaten, die
+ * dreißig Tage liegen blieben und die Warenkorb-Kennzahlen des Shops unbrauchbar machten. Ein Token
+ * je Prozess macht daraus **eine** Zeile je Lauf; ein zufälliges Token je Instanz statt eines festen
+ * Wertes hält auch parallele Arbeiter auseinander.
  *
  * Diese eine Zeile räumt {@see self::removeTrace()} am Ende des Laufs weg. Der Dienst kennt sein
  * Token — ein Aufräumen von außen hätte diese Sicherheit nicht und träfe irgendwann einen echten

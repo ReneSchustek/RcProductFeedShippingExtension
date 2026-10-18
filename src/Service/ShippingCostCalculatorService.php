@@ -82,11 +82,10 @@ class ShippingCostCalculatorService implements ResetInterface
      * günstigste verfügbare Versandmethode des Kanals ermittelt.
      *
      * `$useStoredValue = false` überspringt den Speicher und rechnet in jedem Fall neu. **Das ist
-     * der Weg des Warmups.** Vorher rief auch er die Methode mit Speicher-Kurzschluss auf und
-     * füllte damit nur Lücken, statt zu erneuern: Ein Eintrag wurde erst neu gerechnet, nachdem
-     * er verfallen war. Bei einem Takt von sechs Stunden und einer Haltbarkeit von 24 lief der
-     * Feed dadurch täglich rund sechs Stunden lang komplett auf dem Ersatzwert — der Zustand,
-     * gegen den es diesen Speicher gibt.
+     * der Weg des Warmups.** Mit Speicher-Kurzschluss füllte er nur Lücken, statt zu erneuern,
+     * und ein Eintrag würde erst neu gerechnet, nachdem er verfallen ist. Bei einem Takt von sechs
+     * Stunden und einer Haltbarkeit von 24 liefe der Feed dann täglich rund sechs Stunden lang
+     * komplett auf dem Ersatzwert, also genau in dem Zustand, gegen den es diesen Speicher gibt.
      */
     /**
      * Warum die letzte Auswahl leer ausging — nur für das Protokoll.
@@ -132,7 +131,7 @@ class ShippingCostCalculatorService implements ResetInterface
             // mit Varianten immer (`ProductCartProcessor::validateParents`), dazu bei Closeout ohne
             // Bestand und bei Unsichtbarkeit im Berechnungs-Kanal. Ohne diese Prüfung rechnete das
             // Plugin danach mit einem **leeren** Warenkorb weiter: Gewicht, Preis und Menge sind
-            // dann 0, und das billigste Preisband trifft immer. Ein 40-kg-Artikel bekam so den
+            // dann 0, und das billigste Preisband trifft immer. Ein 40-kg-Artikel bekäme so den
             // 0-5-kg-Preis — als gerechneter Wert, ohne Ersatzwert-Kennzeichnung und ohne Meldung.
             if (!$this->cartContainsProduct($cart, $productId)) {
                 return $this->storeFallback(
@@ -386,15 +385,15 @@ class ShippingCostCalculatorService implements ResetInterface
      * Ein Tier ist nur anwendbar, wenn (a) seine Verfügbarkeits-Regel (`ruleId`) zum Kontext passt UND
      * (b) sein Mengen-/Gewichts-/Preis-Band (`quantityStart`..`quantityEnd`, je `calculation`-Typ) den
      * tatsächlichen Warenkorb-Kennwert enthält bzw. seine `calculationRuleId` matcht — analog zum
-     * Core-`DeliveryCalculator::matches()`. Vorher wurde fälschlich das Minimum über ALLE Tiers genommen,
-     * wodurch z. B. ein 15-kg-Produkt den 0–5-kg-Preis (statt des 5–30-kg-Preises) im Feed erhielt.
+     * Core-`DeliveryCalculator::matches()`. Das Minimum über alle Tiers gäbe z. B. einem 15-kg-Produkt
+     * den 0–5-kg-Preis statt des 5–30-kg-Preises.
      *
      * **Die Reihenfolge der Regeln entscheidet, nicht ihr Preis.** Der Kern geht die Regeln des
      * Kontexts der Reihe nach durch — und die sind nach Priorität absteigend sortiert — und bricht
      * bei der ersten ab, die einen passenden Preis hat (`DeliveryCalculator`, Zeile 107-116;
-     * `RuleLoader`, Zeile 38-40). Das Plugin nahm dagegen den billigsten Preis über alle passenden
-     * Regeln hinweg. Bei „Sperrgut" (hohe Priorität, 49,90 €) neben „Standardkunde" (niedrige,
-     * 5,90 €) verlangte die Kasse 49,90 € und der Feed nannte 5,90 €.
+     * `RuleLoader`, Zeile 38-40). Wer stattdessen den billigsten Preis über alle passenden Regeln
+     * nimmt, weicht von der Kasse ab: Bei „Sperrgut" (hohe Priorität, 49,90 €) neben „Standardkunde"
+     * (niedrige, 5,90 €) verlangt die Kasse 49,90 €, und der Feed nennte 5,90 €.
      *
      * Innerhalb **einer** Regel gewinnt weiterhin der günstigste passende Preis — auch das ist der
      * Kern (`getMatchingPriceOfRule` sortiert aufsteigend und nimmt den ersten Treffer).
@@ -469,9 +468,8 @@ class ShippingCostCalculatorService implements ResetInterface
      * dieselben Werte, die der Core-DeliveryCalculator gegen die Bänder prüft.
      *
      * `null` heißt: Es ist nichts zu versenden. Das ist etwas anderes als „alle Kennwerte sind 0".
-     * Früher lieferte die Methode in diesem Fall lauter Nullen zurück, und weil jedes Preisband bei
-     * 0 beginnt, traf danach das billigste — ein erfundener Preis. Der Aufrufer setzt für `null`
-     * jetzt 0,00 € an, wie es der Kern auch tut.
+     * Lauter Nullen träfen das billigste Preisband, weil jedes bei 0 beginnt, und ergäben einen
+     * erfundenen Preis. Der Aufrufer setzt für `null` 0,00 € an, wie es der Kern auch tut.
      *
      * @return array<int, float>|null
      */
@@ -559,8 +557,8 @@ class ShippingCostCalculatorService implements ResetInterface
      * **Brutto ist nicht immer richtig.** Der Kern nimmt nur bei `TAX_STATE_GROSS` den
      * Bruttopreis, sonst den Nettopreis (`DeliveryCalculator::getPriceForTaxState`, Zeile
      * 222-229). Für die Schweiz — eines der voreingestellten Länder — setzt der Kern über
-     * `country.customerTax` regulär `TAX_STATE_FREE`; das Plugin nannte dort bisher den
-     * Bruttopreis, während die Kasse netto abrechnete.
+     * `country.customerTax` regulär `TAX_STATE_FREE`. Ein fester Bruttopreis stünde dort im Feed,
+     * während die Kasse netto abrechnet.
      *
      * **Er steht im Warenkorb, nicht im Kontext.** `CartRuleLoader::validateTaxFree()` setzt den
      * steuerfreien Zustand nur für die Dauer der Neuberechnung und **stellt ihn danach zurück**

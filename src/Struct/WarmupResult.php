@@ -8,8 +8,8 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Struct;
  * Zählwerk eines Warmup-Laufs.
  *
  * Der Unterschied zwischen `berechnet` und `ersatzwert` ist die eigentliche Aussage: Ein Lauf, der
- * durchläuft und dabei ausschließlich Ersatzwerte einträgt, ist kein erfolgreicher Lauf. Genau das
- * war lange der Zustand, ohne dass es irgendwo sichtbar wurde.
+ * durchläuft und dabei ausschließlich Ersatzwerte einträgt, ist kein erfolgreicher Lauf. Ohne die
+ * getrennte Zählung sähe er von außen genauso aus wie einer.
  */
 final class WarmupResult
 {

@@ -98,7 +98,7 @@ class ShippingWarmupTaskHandlerTest extends TestCase
      * Was: Der Takt der geplanten Aufgabe.
      * Warum: Er hängt am Höchstalter der gespeicherten Werte. Läuft die Aufgabe seltener als
      *        diese Frist, verfallen Einträge zwischen zwei Läufen und der Feed fällt auf den
-     *        Ersatzwert zurück — genau der Zustand, den Fassung 1.3.0 beseitigt hat.
+     *        Ersatzwert zurück, und genau dagegen gibt es den Speicher.
      * Erwartet: der Takt teilt das Höchstalter, mit Reserve.
      */
     public function testTheScheduleRunsOftenEnoughToBeatTheMaximumAge(): void
