@@ -149,8 +149,8 @@ Was der Bestand hergibt, sagt:
 
 ```bash
 php bin/console rc:feed:image-check            # die drei Zahlen
-php bin/console rc:feed:image-check --liste    # die Artikel ohne ausreichendes Bild
-php bin/console rc:feed:image-check --nachmessen   # Stichprobe gegen die echten Dateien
+php bin/console rc:feed:image-check --list      # die Artikel ohne ausreichendes Bild
+php bin/console rc:feed:image-check --verify       # Stichprobe gegen die echten Dateien
 ```
 
 Der Befehl misst und meldet nur, am Feed ändert er nichts. Varianten zählen mit dem Titelbild, das sie im Feed

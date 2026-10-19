@@ -14,6 +14,9 @@ use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingAddress;
  * sondern um reproduzierbare Versandzonenzuordnungen. Deutschland verwendet Kassel
  * statt Berlin, weil Berlin in Versandzone 1 liegt und damit günstigere Preise
  * liefern würde als die meisten anderen deutschen Postleitzahlen.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ShippingAddressProviderService
 {

@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedImageService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationContextBuilder;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService;
 use Symfony\Contracts\Service\ResetInterface;
@@ -17,6 +18,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * Prüft, dass die Dienste mit Zwischenspeicher zwischen zwei Nachrichten eines Workers geleert werden.
  */
 #[CoversClass(ShippingCostCalculatorService::class)]
+#[CoversClass(CalculationContextBuilder::class)]
 #[CoversClass(ShippingFingerprintService::class)]
 #[CoversClass(FeedImageService::class)]
 #[CoversClass(ConfigurationService::class)]
@@ -27,7 +29,8 @@ final class ResetBetweenMessagesTest extends TestCase
      */
     public static function services(): iterable
     {
-        yield 'Versandkosten' => [ShippingCostCalculatorService::class, 'countryCache', ['DE' => null], []];
+        yield 'Versandkosten' => [ShippingCostCalculatorService::class, 'shippingMethodsCache', ['kanal' => []], []];
+        yield 'Kontext je Land' => [CalculationContextBuilder::class, 'countryCache', ['DE' => null], []];
         yield 'Prüfwert' => [ShippingFingerprintService::class, 'configurationStamp', 'stale', null];
         yield 'Feedbilder' => [FeedImageService::class, 'resolved', ['product' => '/media/a.jpg'], null];
         yield 'Einstellungen' => [ConfigurationService::class, 'fallbackPerCountry', ['channel' => ['DE' => 4.9]], []];

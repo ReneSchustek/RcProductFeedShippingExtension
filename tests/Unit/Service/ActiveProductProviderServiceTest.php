@@ -31,7 +31,7 @@ class ActiveProductProviderServiceTest extends TestCase
      * Sortiment mit Varianten sind das oft die meisten Produkte. Wer diesen Filter verengt, verkleinert
      * stillschweigend die Datenbasis von Warmup und Diagnose.
      */
-    public function testVariantenMitGeerbtemActiveWerdenMitgeladen(): void
+    public function testVariantsInheritingActiveAreLoaded(): void
     {
         $criteria = $this->captureCriteria();
 
@@ -54,7 +54,7 @@ class ActiveProductProviderServiceTest extends TestCase
         ]), $queries[1]);
     }
 
-    public function testGefundeneIdsWerdenDurchgereicht(): void
+    public function testFoundIdsArePassedThrough(): void
     {
         $this->captureCriteria(['0af1', '0af2']);
 

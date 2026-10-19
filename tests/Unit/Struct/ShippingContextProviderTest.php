@@ -418,9 +418,9 @@ class ShippingContextProviderTest extends TestCase
 
         $this->logger->expects(self::once())
             ->method('warning')
-            ->with(self::anything(), self::callback(static function (array $kontext): bool {
-                self::assertSame(1, $kontext['notPurchasable']);
-                self::assertSame(0, $kontext['fallback']);
+            ->with(self::anything(), self::callback(static function (array $salesContext): bool {
+                self::assertSame(1, $salesContext['notPurchasable']);
+                self::assertSame(0, $salesContext['fallback']);
 
                 return true;
             }));

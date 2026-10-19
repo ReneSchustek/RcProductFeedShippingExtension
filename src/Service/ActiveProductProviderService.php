@@ -21,11 +21,19 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
  * Erfolg, und eine Diagnose, die dieselbe Verengung wiederholt, meldet einen Bruchteil der
  * Wirklichkeit als Ganzes.
  *
- * Die Abfrage steht deshalb an genau einer Stelle: Warmup und Diagnose müssen dieselbe Menge sehen,
- * sonst widersprechen sich ihre Zahlen.
+ * Die Regel steht deshalb an genau einer Stelle: Warmup und Diagnose müssen dieselbe Menge sehen,
+ * sonst widersprechen sich ihre Zahlen. Abfragen in SQL nutzen {@see self::SQL_ACTIVE_OR_INHERITED}.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ActiveProductProviderService
 {
+    /**
+     * Dieselbe Regel für Abfragen in SQL. Erwartet den Artikel als `p` und seinen Elternartikel als `parent`.
+     */
+    public const SQL_ACTIVE_OR_INHERITED = 'COALESCE(p.active, parent.active) = 1';
+
     /** @param EntityRepository<ProductCollection> $productRepository */
     public function __construct(private readonly EntityRepository $productRepository)
     {

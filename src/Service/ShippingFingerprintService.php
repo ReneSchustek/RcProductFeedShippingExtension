@@ -60,6 +60,9 @@ use Symfony\Contracts\Service\ResetInterface;
  * Lauf mit `--full` alles neu rechnet, und eine ausgeschlossene Abholung für 0,00 € stünde weiter
  * im Speicher. Eingelesen werden die Werte aller Kanäle; ändert sich einer,
  * rechnet der nächste Lauf alles neu, selten genug, dass die Unschärfe nicht zählt.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ShippingFingerprintService implements ResetInterface
 {

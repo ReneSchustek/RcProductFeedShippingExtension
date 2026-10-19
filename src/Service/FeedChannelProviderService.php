@@ -22,6 +22,9 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
  * Maßgeblich ist der Storefront-Kanal des Produktexports, nicht sein Vergleichs-Kanal: Der Kern
  * baut den Rendering-Kontext aus `storefrontSalesChannelId` (`ProductExportGenerator`, 6.7.13.0),
  * und genau diesen Kanal bekommt der `ProductFeedSubscriber` zu sehen.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class FeedChannelProviderService
 {

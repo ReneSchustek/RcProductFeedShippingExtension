@@ -8,51 +8,16 @@ use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Uuid\Uuid;
-use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
-use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractShippingCommand extends Command
 {
-    /**
-     * @param EntityRepository<SalesChannelCollection> $salesChannelRepository
-     */
     public function __construct(
         protected readonly ShippingCostCalculatorService $calculator,
         protected readonly ConfigurationService $configurationService,
-        protected readonly AbstractSalesChannelContextFactory $contextFactory,
-        protected readonly EntityRepository $salesChannelRepository,
         protected readonly ActiveProductProviderService $activeProductProvider,
     ) {
         parent::__construct();
-    }
-
-    /**
-     * Warum sich für den Kanal kein Kontext bauen lässt, oder `null`, wenn es geht. Häufigster Grund ist eine fehlende
-     * Sprachkonfiguration; der Aufrufer zeigt die Meldung an, statt nur „geht nicht“ zu sagen.
-     */
-    protected function contextError(string $salesChannelId): ?string
-    {
-        try {
-            $this->contextFactory->create(Uuid::randomHex(), $salesChannelId, []);
-
-            return null;
-        } catch (\Throwable $error) {
-            return $error->getMessage();
-        }
-    }
-
-    /** @return array<string, \Shopware\Core\System\SalesChannel\SalesChannelEntity> */
-    protected function loadActiveSalesChannels(Context $context): array
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('active', true));
-
-        return $this->salesChannelRepository->search($criteria, $context)->getEntities()->getElements();
     }
 
     /** @return array<int, string> */

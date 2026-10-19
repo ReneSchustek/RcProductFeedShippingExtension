@@ -39,9 +39,9 @@ final class WarmupResult
         ++$this->calculated;
     }
 
-    public function recordUnchanged(int $anzahl = 1): void
+    public function recordUnchanged(int $count = 1): void
     {
-        $this->unchanged += $anzahl;
+        $this->unchanged += $count;
     }
 
     public function channelSkipped(string $channelName, string $reason): void

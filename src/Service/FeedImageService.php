@@ -28,6 +28,9 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Hochskaliert wird nie: Ein hochgerechnetes 400er-Bild bestünde Googles Prüfung und stünde danach
  * unscharf im Shop.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class FeedImageService implements ResetInterface
 {
@@ -138,7 +141,7 @@ class FeedImageService implements ResetInterface
                     ON pm.id = COALESCE(p.product_media_id, parent.product_media_id) AND pm.version_id = p.version_id
              LEFT JOIN media m ON m.id = pm.media_id
              WHERE p.version_id = :version
-               AND COALESCE(p.active, parent.active) = 1',
+               AND ' . ActiveProductProviderService::SQL_ACTIVE_OR_INHERITED,
             ['version' => Uuid::fromHexToBytes(Defaults::LIVE_VERSION)]
         );
 
@@ -200,7 +203,7 @@ class FeedImageService implements ResetInterface
                     ON parent_translation.product_id = parent.id AND parent_translation.product_version_id = parent.version_id
                    AND parent_translation.language_id = :language
              WHERE p.version_id = :version
-               AND COALESCE(p.active, parent.active) = 1
+               AND ' . ActiveProductProviderService::SQL_ACTIVE_OR_INHERITED . '
                AND (
                    m.meta_data IS NULL
                    OR CAST(JSON_EXTRACT(m.meta_data, "$.width") AS UNSIGNED) < :minimumEdge

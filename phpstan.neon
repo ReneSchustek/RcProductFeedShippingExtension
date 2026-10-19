@@ -22,14 +22,4 @@ parameters:
             message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
             path: src/Service/ShippingWarmupService.php
 
-        # Läuft ohne Anfrage, zeitgesteuert beziehungsweise als Empfänger eines
-        # Ereignisses. Es gibt keinen Aufrufer, dessen Kontext zu übernehmen wäre.
-        -
-            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
-            path: src/Subscriber/ShippingMethodChangeSubscriber.php
 
-        # Läuft ohne Anfrage, zeitgesteuert beziehungsweise als Empfänger eines
-        # Ereignisses. Es gibt keinen Aufrufer, dessen Kontext zu übernehmen wäre.
-        -
-            message: '#Do not use Shopware\\Core\\Framework\\Context::createDefaultContext#'
-            path: src/Service/ShippingCostCalculatorService.php

@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\FallbackReason;
@@ -107,10 +108,10 @@ class ShippingCheckCommandTest extends TestCase
             new ShippingCalculationResult('p1', 'AT', 4.95, 'EUR', true, FallbackReason::NotPrecomputed),
         );
 
-        $anzeige = $this->execute()->getDisplay();
+        $display = $this->execute()->getDisplay();
 
-        self::assertStringContainsString(FallbackReason::NoShippingMethod->label(), $anzeige);
-        self::assertStringContainsString(FallbackReason::NotPrecomputed->label(), $anzeige);
+        self::assertStringContainsString(FallbackReason::NoShippingMethod->label(), $display);
+        self::assertStringContainsString(FallbackReason::NotPrecomputed->label(), $display);
     }
 
     /**
@@ -233,9 +234,9 @@ class ShippingCheckCommandTest extends TestCase
             $entities[$id] = $entity;
         }
 
-        $ergebnis = $this->createMock(EntitySearchResult::class);
-        $ergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
-        $this->salesChannelRepository->method('search')->willReturn($ergebnis);
+        $outcome = $this->createMock(EntitySearchResult::class);
+        $outcome->method('getEntities')->willReturn(new SalesChannelCollection($entities));
+        $this->salesChannelRepository->method('search')->willReturn($outcome);
 
         $this->feedChannelProvider->method('loadReadingChannelIds')
             ->willReturn(array_fill_keys($readByAFeed ?? array_keys($channels), true));
@@ -246,10 +247,8 @@ class ShippingCheckCommandTest extends TestCase
         $command = new ShippingCheckCommand(
             $this->calculator,
             $this->configurationService,
-            $this->contextFactory,
-            $this->salesChannelRepository,
             $this->activeProductProvider,
-            $this->feedChannelProvider,
+            new CalculationChannelProvider($this->configurationService, $this->contextFactory, $this->salesChannelRepository, $this->feedChannelProvider),
             $this->cartBuilder,
         );
 

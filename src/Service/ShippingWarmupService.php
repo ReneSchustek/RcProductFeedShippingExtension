@@ -5,16 +5,10 @@ declare(strict_types=1);
 namespace Ruhrcoder\RcProductFeedShippingExtension\Service;
 
 use Psr\Log\LoggerInterface;
-use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\CalculationChannelSelection;
 use Ruhrcoder\RcProductFeedShippingExtension\Struct\WarmupResult;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Uuid\Uuid;
-use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
-use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 
 /**
  * Füllt den Versandkosten-Speicher vorab: der einzige Ort, an dem tatsächlich gerechnet wird.
@@ -26,6 +20,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelCollection;
  *
  * Die Logik sitzt hier und nicht im Kommando, weil beide Aufrufer (Konsole und geplante Aufgabe)
  * dasselbe tun müssen. Ein zweiter Abzug derselben Logik ginge beim ersten Umbau auseinander.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ShippingWarmupService
 {
@@ -38,16 +35,10 @@ class ShippingWarmupService
      */
     public const FULL_RECALCULATION_SECONDS = 604800;
 
-    /**
-     * @param EntityRepository<SalesChannelCollection> $salesChannelRepository
-     */
     public function __construct(
         private readonly ShippingCostCalculatorService $calculator,
-        private readonly ConfigurationService $configurationService,
-        private readonly AbstractSalesChannelContextFactory $contextFactory,
-        private readonly EntityRepository $salesChannelRepository,
+        private readonly CalculationChannelProvider $channelProvider,
         private readonly ActiveProductProviderService $activeProductProvider,
-        private readonly FeedChannelProviderService $feedChannelProvider,
         private readonly VirtualCartBuilderService $cartBuilder,
         private readonly ShippingFingerprintService $fingerprintService,
         private readonly ShippingPriceStore $priceStore,
@@ -70,75 +61,21 @@ class ShippingWarmupService
         $context = Context::createDefaultContext();
         $result = new WarmupResult();
 
-        // Mehrere Feed-Kanäle können denselben Berechnungs-Kanal teilen. Ohne Merkliste liefe der
-        // Warmup für diesen Kanal mehrfach; bei mehreren tausend Produkten kein Detail.
-        $processedChannels = [];
-        $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
+        $selection = $this->channelProvider->select($context);
+        $this->reportSkipped($selection, $result, $onMessage);
 
-        foreach ($this->loadActiveSalesChannels($context) as $salesChannel) {
-            $feedChannelId = $salesChannel->getId();
-            $channelName = $salesChannel->getName() ?? $feedChannelId;
-
-            if (!$this->configurationService->isEnabled($feedChannelId)) {
-                continue;
-            }
-
-            if (!isset($readingChannels[$feedChannelId])) {
-                $this->reportUnreadChannel($channelName, $onMessage);
-                continue;
-            }
-
-            $countries = $this->configurationService->getCountries($feedChannelId);
-            if ($countries === []) {
-                continue;
-            }
-
-            $calcChannelId = $this->configurationService->getCalculationSalesChannelId($feedChannelId) ?? $feedChannelId;
-
-            if (isset($processedChannels[$calcChannelId])) {
-                $this->report($onMessage, sprintf(
-                    'Übersprungen: %s (Berechnungs-Kanal %s bereits verarbeitet)',
-                    $channelName,
-                    substr($calcChannelId, 0, 8),
-                ));
-                continue;
-            }
-
-            // Den Berechnungs-Kanal vorab prüfen: Schlägt die Context-Erstellung fehl (etwa wegen
-            // fehlender Sprachkonfiguration), überspringen wir den ganzen Kanal, statt für jedes
-            // Produkt einzeln denselben Fehler zu erzeugen.
-            $contextError = $this->contextError($calcChannelId);
-            if ($contextError !== null) {
-                $message = sprintf(
-                    'Berechnungs-Kanal %s kann keinen Context erstellen (%s) — Kanal "%s" übersprungen. '
-                    . 'In den Plugin-Einstellungen einen gültigen Storefront-Kanal als Berechnungs-Kanal hinterlegen.',
-                    substr($calcChannelId, 0, 8),
-                    $contextError,
-                    $channelName,
-                );
-
-                $result->channelSkipped($channelName, $message);
-                $this->logger->warning('RcProductFeedShipping: ' . $message, [
-                    'context' => 'ruhrcoder_product_feed_shipping.warmup',
-                    'metric' => 'warmup_channel_skipped',
-                ]);
-                $this->report($onMessage, $message);
-                continue;
-            }
-
-            $processedChannels[$calcChannelId] = true;
-
+        foreach ($selection->channels() as $calcChannelId => $channel) {
             $productIds = $this->activeProductProvider->loadActiveProductIds($context);
 
             $this->report($onMessage, sprintf(
                 '%s → Berechnungs-Kanal %s, %d Länder, %d Produkte',
-                $channelName,
+                $channel['name'],
                 substr($calcChannelId, 0, 8),
-                count($countries),
+                count($channel['countries']),
                 count($productIds),
             ));
 
-            $this->warmupChannel($productIds, $countries, $calcChannelId, $result, $onProgress, $force);
+            $this->warmupChannel($productIds, $channel['countries'], $calcChannelId, $result, $onProgress, $force);
         }
 
         // Die Warenkorbzeile dieses Prozesses wieder abräumen. Sie entsteht zwangsläufig, weil
@@ -164,32 +101,55 @@ class ShippingWarmupService
         $context = Context::createDefaultContext();
         $products = count($this->activeProductProvider->loadActiveProductIds($context));
         $total = 0;
-        $processedChannels = [];
-        $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
 
-        foreach ($this->loadActiveSalesChannels($context) as $salesChannel) {
-            $feedChannelId = $salesChannel->getId();
-
-            if (!$this->configurationService->isEnabled($feedChannelId) || !isset($readingChannels[$feedChannelId])) {
-                continue;
-            }
-
-            $countries = $this->configurationService->getCountries($feedChannelId);
-            if ($countries === []) {
-                continue;
-            }
-
-            $calcChannelId = $this->configurationService->getCalculationSalesChannelId($feedChannelId) ?? $feedChannelId;
-
-            if (isset($processedChannels[$calcChannelId]) || $this->contextError($calcChannelId) !== null) {
-                continue;
-            }
-
-            $processedChannels[$calcChannelId] = true;
-            $total += $products * count($countries);
+        foreach ($this->channelProvider->select($context)->channels() as $channel) {
+            $total += $products * count($channel['countries']);
         }
 
         return $total;
+    }
+
+    /**
+     * Meldet die weggefallenen Kanäle. Ein Kanal ohne baubaren Kontext ist ein Fehler der Einstellungen und kommt als
+     * Warnung ins Protokoll und ins Ergebnis; ein Kanal ohne Export oder ein doppelter ist erwartbar und nur Auskunft.
+     *
+     * @param callable(string):void|null $onMessage
+     */
+    private function reportSkipped(CalculationChannelSelection $selection, WarmupResult $result, ?callable $onMessage): void
+    {
+        foreach ($selection->skipped() as $skipped) {
+            match ($skipped['reason']) {
+                CalculationChannelSelection::SKIP_UNREAD => $this->reportUnreadChannel($skipped['name'], $onMessage),
+                CalculationChannelSelection::SKIP_DUPLICATE => $this->report($onMessage, sprintf(
+                    'Übersprungen: %s (Berechnungs-Kanal %s bereits verarbeitet)',
+                    $skipped['name'],
+                    substr($skipped['calcChannelId'], 0, 8),
+                )),
+                default => $this->reportMissingContext($skipped, $result, $onMessage),
+            };
+        }
+    }
+
+    /**
+     * @param array{name: string, reason: string, calcChannelId: string, detail: string} $skipped
+     * @param callable(string):void|null                                                 $onMessage
+     */
+    private function reportMissingContext(array $skipped, WarmupResult $result, ?callable $onMessage): void
+    {
+        $message = sprintf(
+            'Berechnungs-Kanal %s kann keinen Context erstellen (%s) — Kanal "%s" übersprungen. '
+            . 'In den Plugin-Einstellungen einen gültigen Storefront-Kanal als Berechnungs-Kanal hinterlegen.',
+            substr($skipped['calcChannelId'], 0, 8),
+            $skipped['detail'],
+            $skipped['name'],
+        );
+
+        $result->channelSkipped($skipped['name'], $message);
+        $this->logger->warning('RcProductFeedShipping: ' . $message, [
+            'context' => 'ruhrcoder_product_feed_shipping.warmup',
+            'metric' => 'warmup_channel_skipped',
+        ]);
+        $this->report($onMessage, $message);
     }
 
     /**
@@ -283,30 +243,6 @@ class ShippingWarmupService
             'context' => 'ruhrcoder_product_feed_shipping.warmup',
             'metric' => 'warmup_channel_without_feed',
         ]);
-    }
-
-    /**
-     * Warum sich für den Kanal kein Kontext bauen lässt, oder `null`, wenn es geht. Produktvergleichs-Kanäle haben oft
-     * keine vollständige Sprachkonfiguration; der Grund geht in die Meldung des übersprungenen Kanals.
-     */
-    private function contextError(string $salesChannelId): ?string
-    {
-        try {
-            $this->contextFactory->create(Uuid::randomHex(), $salesChannelId, []);
-
-            return null;
-        } catch (\Throwable $error) {
-            return $error->getMessage();
-        }
-    }
-
-    /** @return array<string, \Shopware\Core\System\SalesChannel\SalesChannelEntity> */
-    private function loadActiveSalesChannels(Context $context): array
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('active', true));
-
-        return $this->salesChannelRepository->search($criteria, $context)->getEntities()->getElements();
     }
 
     /** @param callable(string):void|null $onMessage */

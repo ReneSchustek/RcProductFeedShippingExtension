@@ -22,10 +22,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * brauchen: Ein Artikel mit einem anderen ausreichend großen Bild ist eine Sache des Feeds; ein
  * Artikel ohne jedes ausreichende Bild braucht neues Material und keine Programmänderung.
  *
- * Mit `--liste` erscheinen die Artikel der zweiten Gruppe mit Nummer, Namen und heutigem Maß:
+ * Mit `--list` erscheinen die Artikel der zweiten Gruppe mit Nummer, Namen und heutigem Maß:
  * die Liste zum Abarbeiten.
  *
- * `--nachmessen` lädt die Bilddateien wirklich und vergleicht ihre Maße mit den Angaben der
+ * `--verify` lädt die Bilddateien wirklich und vergleicht ihre Maße mit den Angaben der
  * Mediathek. Standardmäßig an einer Stichprobe: Die Angaben stammen aus Shopwares Analyse beim
  * Hochladen und sind fast immer richtig; sie alle nachzuladen kostet mehrere tausend Abrufe.
  * Weicht die Stichprobe ab, ist das ein eigener Befund. Dann stimmt die Mediathek nicht.
@@ -48,9 +48,9 @@ final class FeedImageCheckCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('liste', null, InputOption::VALUE_NONE, 'Die Artikel ohne ausreichendes Bild einzeln nennen');
-        $this->addOption('nachmessen', null, InputOption::VALUE_NONE, 'Bilddateien wirklich laden und gegen die Mediathek halten');
-        $this->addOption('stichprobe', null, InputOption::VALUE_REQUIRED, 'Wie viele Dateien nachgemessen werden', (string) self::SAMPLE_SIZE);
+        $this->addOption('list', null, InputOption::VALUE_NONE, 'Die Artikel ohne ausreichendes Bild einzeln nennen');
+        $this->addOption('verify', null, InputOption::VALUE_NONE, 'Bilddateien wirklich laden und gegen die Mediathek halten');
+        $this->addOption('sample', null, InputOption::VALUE_REQUIRED, 'Wie viele Dateien nachgemessen werden', (string) self::SAMPLE_SIZE);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -89,11 +89,11 @@ final class FeedImageCheckCommand extends Command
             ));
         }
 
-        if ($input->getOption('nachmessen')) {
-            $this->verifyFiles($io, (int) $input->getOption('stichprobe'));
+        if ($input->getOption('verify')) {
+            $this->verifyFiles($io, (int) $input->getOption('sample'));
         }
 
-        if ($input->getOption('liste')) {
+        if ($input->getOption('list')) {
             $this->printList($io);
         }
 

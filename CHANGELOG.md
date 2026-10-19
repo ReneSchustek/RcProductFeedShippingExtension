@@ -4,6 +4,29 @@ Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 
+## [1.10.0] - 2026-10-19 — Aufräumen nach der Regelprüfung
+
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+
+### Geändert
+
+- `rc:feed:image-check`: Die Optionen heißen jetzt `--list`, `--verify` und `--sample` (vorher `--liste`, `--nachmessen`,
+  `--stichprobe`). Aufrufe in eigenen Skripten anpassen.
+- Welche Kanäle vorgerechnet werden, entscheidet ein `CalculationChannelProvider` für Warmup, Fortschrittsanzeige und
+  `rc:shipping:check` gemeinsam; die drei Fassungen dieser Regel sind weg.
+- Der Rechner ist geteilt: Kontextaufbau mit Referenzadresse (`CalculationContextBuilder`) und Wahl der Preisstaffel
+  (`PriceTierSelector`) sind eigene Klassen.
+- Vorhandener Kontext wird durchgereicht statt neu erzeugt; die Bedingung „aktiv oder vom Elternartikel geerbt" steht
+  für Abfragen in SQL an einer Stelle.
+- Kommentare beschreiben den heutigen Code ohne Werkstattspuren; Bezeichner im Code und in den Tests englisch.
+- Klassen, die kein Test nachbildet, sind `final`; bei den übrigen steht der Grund am Klassenkommentar.
+
+### Tests
+
+- Neu: Bild-Subscriber, Bild-Kommando, Kanalauswahl, Kontextaufbau, Bildwahl-Einstellung; Integrationstests für
+  `loadState()` und `touch()` des Preisspeichers.
+
+
 ## [1.9.0] - 2026-10-15 — Währung, Prüfwert und Bildprüfung
 
 > **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
@@ -39,7 +62,7 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [1.8.0] - 2026-10-14: Versandarten über die Kennung ausschließen
 
-> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
 > Keine Migration. Danach in der Plugin-Konfiguration „Versandarten, die nie in den Feed dürfen" wählen
 > (Selbstabholung, Platzhalter-Versandart) und `rc:shipping:warmup` laufen lassen; die Änderung erkennt
 > der Lauf selbst, `--full` ist nicht nötig.
@@ -47,9 +70,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 ### Neu
 
 - **Auswahl „Versandarten, die nie in den Feed dürfen"**: Mehrfachauswahl der Versandarten, gespeichert
-  werden die Kennungen. Eine Umbenennung hebt den Ausschluss nicht auf. Auf Live hieß die Abholung
-  „Selbstabholer"; keiner der voreingestellten Namensteile steckte darin, und fast der ganze Feed trug
-  0,00 € Versand.
+  werden die Kennungen. Eine Umbenennung hebt den Ausschluss nicht auf. Heißt die Abholung etwa „Selbstabholer", steckt
+  keiner der voreingestellten Namensteile darin, und fast der ganze Feed trüge 0,00 € Versand.
 - **Die Vorberechnung erkennt eine geänderte Auswahl selbst**: Auswahl und Namensteile stehen im
   Stempel; nach einer Änderung rechnet der nächste Lauf alles neu.
 - **Gelöschte Versandart in der Auswahl**: Der Lauf rechnet weiter und protokolliert die Kennung einmal
@@ -62,7 +84,7 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [1.7.0] - 2026-10-13: Ein größeres Bild für Google, wenn das Titelbild zu klein ist
 
-> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
 > Keine Migration. Der Feed ändert sich erst, wenn die neue Einstellung eingeschaltet ist **und** die
 > Export-Vorlage `rcFeedImage.url(product)` statt `product.cover.media.url` verwendet.
 
@@ -77,19 +99,11 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
   Vorgabe aus. Ausgeschaltet liefert `rcFeedImage.url(product)` genau das Titelbild.
 - Die Referenzvorlage (`src/Resources/views/product-export/template.xml.twig`) verwendet `rcFeedImage.url(product)`.
 
-### Gemessen auf der Testkopie (13.10.2026)
-
-| | Artikel |
-|---|--:|
-| Titelbild zu klein | 426 |
-| davon mit einem anderen ausreichenden Foto (ohne Zeichnungen) | 18 |
-| davon ohne jedes ausreichende Foto | **408** |
-
-Mit Zeichnungen wären es 326 Ersatzbilder gewesen, 306 davon Maßzeichnungen.
+Maßzeichnungen gelten nicht als Ersatzbild: Als Hauptbild bei Google zeigten sie eine Skizze statt des Produkts.
 
 ## [1.6.0] - 2026-09-09: Der Warenstrom sagt, welche Bilder Google ab 2027 nicht mehr annimmt
 
-> **Ausrollen:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> **Deployment:** `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
 > Keine Migration, kein Eingriff in den Feed. Der neue Befehl misst und meldet, mehr nicht.
 
 ### Neu
@@ -124,15 +138,13 @@ Mit Zeichnungen wären es 326 Ersatzbilder gewesen, 306 davon Maßzeichnungen.
 
 ## [1.5.0] - 2026-09-09: Die Vorberechnung rechnet nur noch, was sich geändert hat
 
-> **Ausrollen (die Migration ist Pflicht, nicht Beiwerk):**
+> **Deployment (die Migration ist Pflicht, nicht Beiwerk):**
 > `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
 >
 > **Ohne sie schreibt der Speicher gar nichts mehr.** Die neue Spalte `source_hash` steht im
 > `INSERT`; fehlt sie, scheitert jeder Schreibvorgang. Der Speicher fängt Schreibfehler
 > bewusst ab und schreibt nur eine Warnung ins Protokoll. Der Feed nennte danach für **jeden**
-> Artikel den Ersatzwert, ohne dass etwas sichtbar bricht. (Beim Prüflauf am 09.09. genau so
-> passiert: In der Testdatenbank fehlte die Spalte, und vier Tests fielen mit „null ist nicht
-> null" durch, statt mit einer Fehlermeldung.)
+> Artikel den Ersatzwert, ohne dass etwas sichtbar bricht.
 >
 > Der erste Lauf danach rechnet noch einmal alles durch, denn die vorhandenen Einträge tragen keinen
 > Prüfwert, und ein erfundener wäre eine Lüge.
@@ -185,10 +197,9 @@ Mit Zeichnungen wären es 326 Ersatzbilder gewesen, 306 davon Maßzeichnungen.
 
 - **Warmup und `rc:shipping:check` arbeiten nur noch die Kanäle ab, die ein Produktexport
   ausliest.** Bisher war jeder aktive Kanal mit eingeschaltetem Plugin dabei, und eingeschaltet ist es
-  standardmäßig überall. Auf der Testkopie traf das den Kanal „Headless" mit 20 statt 206
-  Versandarten: **5223 Einträge „keine Versandart" für einen Kanal, den kein Warenstrom liest.**
-  Sie waren nicht nur nutzlos, sie stellten fünf Sechstel aller Meldungen und haben die
-  Fehlersuche zweimal in die falsche Richtung geschickt. Maßgeblich ist der Storefront-Kanal des
+  standardmäßig überall. Ein Kanal ohne Warenstrom, etwa ein Headless-Kanal mit wenigen Versandarten,
+  füllte so den Speicher mit Tausenden Einträgen „keine Versandart", die niemand liest und die jede
+  Fehlersuche in die falsche Richtung schicken. Maßgeblich ist der Storefront-Kanal des
   Produktexports, denn den bekommt auch der Subscriber zur Laufzeit zu sehen.
 - Ein übersprungener Kanal wird mit Grund gemeldet, in der Konsole und im Protokoll.
 
@@ -350,7 +361,7 @@ Mit Zeichnungen wären es 326 Ersatzbilder gewesen, 306 davon Maßzeichnungen.
 
 ## [1.1.1] - 2026-05-13
 
-> **Deployment:** Reines Test-/Validierungs-Update. Live-Shop benötigt nur `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
+> **Deployment:** Reines Test-/Validierungs-Update; im Shop genügt `php bin/console plugin:update RcProductFeedShippingExtension && php bin/console cache:clear`.
 
 ### Behoben
 - **ISO-Code-Validierung war für trailing Newlines löchrig.** `/^[a-zA-Z]{2,3}$/` matchte in PHP-PCRE `"DE\n"`, weil das `$`-Anker standardmäßig einen optionalen Newline am Ende toleriert. Mit `D`-Flag (`/.../D`) ist das jetzt streng: `"DE\n"` wird wie vorgesehen als ungültig erkannt und geloggt. Eine bestehende Datenanbieter-Test-Variante (`newline`) deckte den Bug auf, war aber bisher rot.

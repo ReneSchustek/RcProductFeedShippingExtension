@@ -66,7 +66,7 @@ final class ShippingMethodChangeSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $this->requestWarmup();
+        $this->requestWarmup($event->getContext());
 
         $this->logger->info('RcProductFeedShipping: Neuberechnung nach Methoden- oder Preisänderung angefordert.', [
             'context' => 'ruhrcoder_product_feed_shipping.warmup_requested',
@@ -82,11 +82,9 @@ final class ShippingMethodChangeSubscriber implements EventSubscriberInterface
      * Nur aus dem Zustand `scheduled` heraus: Läuft sie gerade oder wartet sie in der Warteschlange,
      * würde ein Eingriff sie doppelt starten, und ein Warmup-Lauf ist teuer.
      */
-    private function requestWarmup(): void
+    private function requestWarmup(Context $context): void
     {
         try {
-            $context = Context::createDefaultContext();
-
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsFilter('name', ShippingWarmupTask::getTaskName()));
             $criteria->addFilter(new EqualsFilter('status', ScheduledTaskDefinition::STATUS_SCHEDULED));

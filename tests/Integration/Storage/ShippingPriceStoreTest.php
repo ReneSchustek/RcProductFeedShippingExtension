@@ -108,7 +108,7 @@ class ShippingPriceStoreTest extends TestCase
     /**
      * Was: Ein zweiter Schreibvorgang auf dieselbe Kombination überschreibt statt zu doppeln.
      * Warum: Der Warmup läuft alle sechs Stunden über denselben Bestand. Ohne Überschreiben
-     *        wüchse die Tabelle bei 8217 Kombinationen um denselben Betrag pro Lauf, und das
+     *        wüchse die Tabelle bei mehreren tausend Kombinationen um denselben Betrag pro Lauf, und das
      *        Lesen bekäme irgendwann den ältesten statt den neuesten Wert.
      * Erwartet: Eine Zeile, der neue Wert.
      */
@@ -223,5 +223,44 @@ class ShippingPriceStoreTest extends TestCase
             'DELETE FROM rc_product_feed_shipping_price WHERE sales_channel_id = :salesChannelId',
             ['salesChannelId' => Uuid::fromHexToBytes($otherChannelId)]
         );
+    }
+
+    /**
+     * Was: Zwei Einträge mit und ohne Prüfwert, danach der Stand des Kanals.
+     * Warum: Der Warmup entscheidet am Stand, was er überspringt. Ein falscher Schlüssel oder ein verlorener Prüfwert
+     *        ließe ihn alles neu rechnen oder Veraltetes stehen lassen.
+     * Erwartet: je Produkt und Land ein Eintrag mit Prüfwert (oder `null`) und einem Alter von wenigen Sekunden.
+     */
+    public function testLoadStateReturnsHashAndAgePerCombination(): void
+    {
+        $productId = Uuid::randomHex();
+        $this->store->set($productId, 'de', $this->salesChannelId, new ShippingCalculationResult($productId, 'DE', 8.93, 'EUR', false), 'abc');
+        $this->store->set($productId, 'AT', $this->salesChannelId, new ShippingCalculationResult($productId, 'AT', 17.26, 'EUR', false));
+
+        $state = $this->store->loadState($this->salesChannelId);
+
+        self::assertSame('abc', $state[$productId . '|DE']['hash']);
+        self::assertNull($state[$productId . '|AT']['hash']);
+        self::assertLessThan(60, $state[$productId . '|DE']['age']);
+        self::assertSame([], $this->store->loadState(Uuid::randomHex()));
+    }
+
+    /**
+     * Was: Ein gealterter Eintrag wird aufgefrischt, ein anderer Kanal bleibt unberührt.
+     * Warum: Unveränderte Einträge verfielen sonst nach der Höchstdauer, und der Feed nennte den Ersatzwert.
+     * Erwartet: ein aufgefrischter Eintrag mit frischem Alter; leere Liste ändert nichts.
+     */
+    public function testTouchRefreshesOnlyTheGivenEntries(): void
+    {
+        $productId = Uuid::randomHex();
+        $this->store->set($productId, 'DE', $this->salesChannelId, new ShippingCalculationResult($productId, 'DE', 8.93, 'EUR', false), 'abc');
+        $this->connection->executeStatement(
+            'UPDATE rc_product_feed_shipping_price SET calculated_at = NOW() - INTERVAL 2 DAY WHERE sales_channel_id = :salesChannelId',
+            ['salesChannelId' => Uuid::fromHexToBytes($this->salesChannelId)]
+        );
+
+        self::assertSame(0, $this->store->touch([], $this->salesChannelId));
+        self::assertSame(1, $this->store->touch([['productId' => $productId, 'countryIso' => 'de']], $this->salesChannelId));
+        self::assertLessThan(60, $this->store->loadState($this->salesChannelId)[$productId . '|DE']['age']);
     }
 }

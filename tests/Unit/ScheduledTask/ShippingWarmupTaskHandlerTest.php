@@ -103,12 +103,12 @@ class ShippingWarmupTaskHandlerTest extends TestCase
      */
     public function testTheScheduleRunsOftenEnoughToBeatTheMaximumAge(): void
     {
-        $takt = ShippingWarmupTask::getDefaultInterval();
+        $interval = ShippingWarmupTask::getDefaultInterval();
 
-        self::assertGreaterThan(0, $takt);
+        self::assertGreaterThan(0, $interval);
         self::assertLessThanOrEqual(
             ShippingPriceStore::MAX_AGE_SECONDS / 2,
-            $takt,
+            $interval,
             'Der Warmup muss mindestens zweimal laufen, bevor ein Eintrag verfallen kann.'
         );
     }

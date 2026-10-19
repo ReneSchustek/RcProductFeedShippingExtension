@@ -10,6 +10,9 @@ use Ruhrcoder\RcProductFeedShippingExtension\Struct\ShippingCalculationResult;
 
 /**
  * Liefert einen konfigurierten Fallback-Preis wenn die Versandkostenberechnung fehlschlägt.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ShippingFallbackService
 {

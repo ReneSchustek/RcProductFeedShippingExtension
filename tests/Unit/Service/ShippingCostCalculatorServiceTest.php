@@ -10,6 +10,8 @@ use Psr\Log\LoggerInterface;
 use Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationContextBuilder;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\PriceTierSelector;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
@@ -81,9 +83,8 @@ class ShippingCostCalculatorServiceTest extends TestCase
             $this->fallbackService,
             $this->priceStore,
             $this->configurationService,
-            $this->contextFactory,
-            $this->addressProvider,
-            $this->countryRepository,
+            new CalculationContextBuilder($this->contextFactory, $this->addressProvider, $this->countryRepository, $this->logger),
+            new PriceTierSelector(),
             $this->shippingMethodRepository,
             $this->logger,
         );
@@ -187,8 +188,8 @@ class ShippingCostCalculatorServiceTest extends TestCase
 
     /**
      * Was: Die Abholung ist per Kennung ausgewählt und heißt „Selbstabholer".
-     * Warum: Kein voreingestellter Namensteil steckt in „Selbstabholer"; die Abholung für 0,00 € gewann deshalb auf
-     *        Live bei 2.254 von 2.265 Artikeln. Die Kennung übersteht jede Umbenennung.
+     * Warum: Kein voreingestellter Namensteil steckt in „Selbstabholer"; über den Namen erkannt, gewönne die
+     *        Abholung für 0,00 € bei fast jedem Artikel. Die Kennung übersteht jede Umbenennung.
      * Erwartet: der Paketversand gewinnt, obwohl die Namensliste leer ist.
      */
     public function testAMethodSelectedByIdIsSkippedWhateverItsName(): void
@@ -470,14 +471,14 @@ class ShippingCostCalculatorServiceTest extends TestCase
         $method->setAvailabilityRuleId(null);
 
         $prices = [];
-        foreach ($tiers as [$start, $end, $brutto]) {
+        foreach ($tiers as [$start, $end, $withTax]) {
             $priceEntity = new ShippingMethodPriceEntity();
             $priceEntity->setId(Uuid::randomHex());
             $priceEntity->setCalculation(DeliveryCalculator::CALCULATION_BY_WEIGHT);
             $priceEntity->setQuantityStart($start);
             $priceEntity->setQuantityEnd($end);
             $priceEntity->setCurrencyPrice(new PriceCollection([
-                new Price(self::CURRENCY_ID, $brutto, $brutto, false),
+                new Price(self::CURRENCY_ID, $withTax, $withTax, false),
             ]));
             $prices[] = $priceEntity;
         }

@@ -37,6 +37,26 @@ class ConfigurationServiceTest extends TestCase
         self::assertFalse($this->service->isEnabled('channel-id'));
     }
 
+    /**
+     * Was: Die Bildwahl für Google ohne gespeicherten Wert, eingeschaltet und mit einem Wert je Kanal.
+     * Warum: Ausgeschaltet muss der Feed genau das Titelbild liefern; ein Rückfall auf „an" tauschte ungefragt Bilder.
+     * Erwartet: ohne Wert aus, sonst der Wert des Kanals.
+     */
+    public function testFeedImageReplacementIsOffWithoutAValue(): void
+    {
+        $this->systemConfigService->method('get')->willReturnCallback(
+            static fn (string $key, ?string $salesChannelId): ?bool => match ($salesChannelId) {
+                'kanal-an' => true,
+                'kanal-aus' => false,
+                default => null,
+            }
+        );
+
+        self::assertFalse($this->service->isFeedImageReplacementEnabled(null));
+        self::assertTrue($this->service->isFeedImageReplacementEnabled('kanal-an'));
+        self::assertFalse($this->service->isFeedImageReplacementEnabled('kanal-aus'));
+    }
+
     public function testGetCountriesReturnsUppercaseIsoCodes(): void
     {
         $this->systemConfigService->method('getString')->willReturn('de,at,ch');

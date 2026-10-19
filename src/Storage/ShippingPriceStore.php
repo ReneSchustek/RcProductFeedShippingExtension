@@ -34,6 +34,9 @@ use Shopware\Core\Framework\Uuid\Uuid;
  * Kommt dem Struct ein Feld hinzu, fehlt es in den gespeicherten Daten, und der erste Zugriff
  * auf die getypte Eigenschaft ist ein Fehler. Mit ausgeschriebenen Spalten stellt sich die
  * Frage nicht.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ShippingPriceStore
 {

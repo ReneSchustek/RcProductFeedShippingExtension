@@ -46,12 +46,20 @@
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFallbackService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
-            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
-            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
-            <argument type="service" id="country.repository"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationContextBuilder"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\PriceTierSelector"/>
             <argument type="service" id="shipping_method.repository"/>
             <argument type="service" id="logger"/>
         </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationContextBuilder">
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingAddressProviderService"/>
+            <argument type="service" id="country.repository"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\PriceTierSelector"/>
 
         <!-- Eine Quelle für „welche Produkte zählen", denn Warmup und Diagnose müssen dieselbe Menge
              sehen, sonst widersprechen sich ihre Zahlen. -->
@@ -66,24 +74,26 @@
 
         <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingWarmupService">
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
-            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
-            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
-            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
-            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Storage\ShippingPriceStore"/>
             <argument type="service" id="logger"/>
         </service>
 
-        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
-            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider">
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory"/>
             <argument type="service" id="sales_channel.repository"/>
-            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService"/>
+        </service>
+
+        <service id="Ruhrcoder\RcProductFeedShippingExtension\Command\ShippingCheckCommand">
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService"/>
+            <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider"/>
             <argument type="service" id="Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService"/>
             <tag name="console.command"/>
         </service>

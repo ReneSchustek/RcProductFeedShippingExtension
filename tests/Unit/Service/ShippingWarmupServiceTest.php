@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingFingerprintService;
@@ -59,7 +60,7 @@ class ShippingWarmupServiceTest extends TestCase
     /**
      * Was: Zwei Produkte, drei Länder, ein Kanal.
      * Warum: Der Grundfall. Jede Kombination muss genau einmal gerechnet werden, nicht weniger
-     *        (Lücken im Feed) und nicht mehr (bei 8217 Kombinationen kostet jede Dopplung Minuten).
+     *        (Lücken im Feed) und nicht mehr (bei mehreren tausend Kombinationen kostet jede Dopplung Minuten).
      * Erwartet: sechs Berechnungen, sechs gezählte Treffer.
      */
     public function testEveryProductCountryCombinationIsCalculatedExactlyOnce(): void
@@ -208,12 +209,12 @@ class ShippingWarmupServiceTest extends TestCase
         $this->calculator->method('calculate')
             ->willReturn(new ShippingCalculationResult('p1', 'DE', 8.93, 'EUR', false));
 
-        $schritte = 0;
-        $this->createService()->warmup(static function () use (&$schritte): void {
-            ++$schritte;
+        $steps = 0;
+        $this->createService()->warmup(static function () use (&$steps): void {
+            ++$steps;
         });
 
-        self::assertSame(4, $schritte);
+        self::assertSame(4, $steps);
     }
 
     /**
@@ -250,10 +251,10 @@ class ShippingWarmupServiceTest extends TestCase
 
         $this->calculator->expects(self::never())->method('calculate');
 
-        $protokoll = [];
+        $logLines = [];
         $this->logger->method('info')->willReturnCallback(
-            static function (string|\Stringable $message) use (&$protokoll): void {
-                $protokoll[] = (string) $message;
+            static function (string|\Stringable $message) use (&$logLines): void {
+                $logLines[] = (string) $message;
             }
         );
 
@@ -262,11 +263,11 @@ class ShippingWarmupServiceTest extends TestCase
             $messages[] = $text;
         });
 
-        $hatGrund = static fn (string $text): bool => str_contains($text, 'kein Produktexport liest diesen Kanal aus');
+        $hasReason = static fn (string $text): bool => str_contains($text, 'kein Produktexport liest diesen Kanal aus');
 
         self::assertSame(0, $result->total());
-        self::assertNotEmpty(array_filter($messages, $hatGrund), 'Die Konsole nennt den Grund nicht.');
-        self::assertNotEmpty(array_filter($protokoll, $hatGrund), 'Das Protokoll nennt den Grund nicht.');
+        self::assertNotEmpty(array_filter($messages, $hasReason), 'Die Konsole nennt den Grund nicht.');
+        self::assertNotEmpty(array_filter($logLines, $hasReason), 'Das Protokoll nennt den Grund nicht.');
     }
 
     /**
@@ -451,9 +452,9 @@ class ShippingWarmupServiceTest extends TestCase
             $entities[$id] = $entity;
         }
 
-        $suchergebnis = $this->createMock(EntitySearchResult::class);
-        $suchergebnis->method('getEntities')->willReturn(new SalesChannelCollection($entities));
-        $this->salesChannelRepository->method('search')->willReturn($suchergebnis);
+        $searchResult = $this->createMock(EntitySearchResult::class);
+        $searchResult->method('getEntities')->willReturn(new SalesChannelCollection($entities));
+        $this->salesChannelRepository->method('search')->willReturn($searchResult);
 
         $this->feedChannelProvider->method('loadReadingChannelIds')
             ->willReturn(array_fill_keys($readByAFeed ?? array_keys($salesChannels), true));
@@ -463,11 +464,8 @@ class ShippingWarmupServiceTest extends TestCase
     {
         return new ShippingWarmupService(
             $this->calculator,
-            $this->configurationService,
-            $this->contextFactory,
-            $this->salesChannelRepository,
+            new CalculationChannelProvider($this->configurationService, $this->contextFactory, $this->salesChannelRepository, $this->feedChannelProvider),
             $this->activeProductProvider,
-            $this->feedChannelProvider,
             $this->cartBuilder,
             $this->fingerprintService,
             $this->priceStore,

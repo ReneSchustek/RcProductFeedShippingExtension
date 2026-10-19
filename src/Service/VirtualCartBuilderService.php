@@ -28,6 +28,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * Diese eine Zeile räumt {@see self::removeTrace()} am Ende des Laufs weg. Der Dienst kennt sein
  * Token. Ein Aufräumen von außen hätte diese Sicherheit nicht und träfe irgendwann einen echten
  * Kundenwarenkorb.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class VirtualCartBuilderService
 {

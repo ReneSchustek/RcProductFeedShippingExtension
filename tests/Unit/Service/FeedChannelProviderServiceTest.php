@@ -89,9 +89,9 @@ class FeedChannelProviderServiceTest extends TestCase
             $entities['export-' . $index] = $entity;
         }
 
-        $ergebnis = $this->createMock(EntitySearchResult::class);
-        $ergebnis->method('getEntities')->willReturn(new ProductExportCollection($entities));
-        $this->productExportRepository->method('search')->willReturn($ergebnis);
+        $outcome = $this->createMock(EntitySearchResult::class);
+        $outcome->method('getEntities')->willReturn(new ProductExportCollection($entities));
+        $this->productExportRepository->method('search')->willReturn($outcome);
     }
 
     private function createService(): FeedChannelProviderService

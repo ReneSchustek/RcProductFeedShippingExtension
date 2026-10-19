@@ -99,10 +99,10 @@ class VirtualCartBuilderServiceTest extends TestCase
         $context = $this->createMock(SalesChannelContext::class);
         $this->calculator->method('calculate')->willReturnArgument(0);
 
-        $erster = $this->service->buildCalculatedCart('produkt-1', $context);
-        $zweiter = $this->service->buildCalculatedCart('produkt-2', $context);
+        $firstRun = $this->service->buildCalculatedCart('produkt-1', $context);
+        $secondRun = $this->service->buildCalculatedCart('produkt-2', $context);
 
-        self::assertSame($erster->getToken(), $zweiter->getToken());
+        self::assertSame($firstRun->getToken(), $secondRun->getToken());
     }
 
     /**

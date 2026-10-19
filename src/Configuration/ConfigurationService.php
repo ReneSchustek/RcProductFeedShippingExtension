@@ -13,6 +13,9 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * Alle Werte sind pro Verkaufskanal überschreibbar. Ist kein verkanalspezifischer
  * Wert gesetzt, greift Shopware automatisch auf die globale Konfiguration zurück.
+ *
+ * Bewusst nicht `final`: Tests ersetzen diese Klasse durch ein Test-Double, und PHPUnit kann finale
+ * Klassen nicht nachbilden.
  */
 class ConfigurationService implements ResetInterface
 {

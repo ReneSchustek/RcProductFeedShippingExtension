@@ -23,7 +23,7 @@ use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTask;
  * unveränderte frischt er auf (`touch()`). Bliebe ein gültiger Eintrag liegen, verfiele er zwischen
  * zwei Läufen, und der Feed lieferte bis zum nächsten den Ersatzwert.
  */
-class ShippingWarmupTask extends ScheduledTask
+final class ShippingWarmupTask extends ScheduledTask
 {
     public static function getTaskName(): string
     {

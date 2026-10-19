@@ -150,10 +150,10 @@ class ProductFeedSubscriberTest extends TestCase
             new ShippingCalculationResult('product-id', 'DE', 4.95, 'EUR', true, FallbackReason::NotPrecomputed),
         );
 
-        $meldungen = [];
+        $notices = [];
         $this->logger->method('warning')->willReturnCallback(
-            static function (string $meldung) use (&$meldungen): void {
-                $meldungen[] = $meldung;
+            static function (string $notice) use (&$notices): void {
+                $notices[] = $notice;
             },
         );
 
@@ -171,11 +171,11 @@ class ProductFeedSubscriberTest extends TestCase
         // nächste Export die Zählung des vorigen weiter.
         $this->subscriber->onProductExportFooter($footerEvent);
 
-        $zusammenfassungen = array_filter(
-            $meldungen,
-            static fn (string $meldung): bool => str_contains($meldung, 'Ersatzwerten ausgeliefert'),
+        $summaries = array_filter(
+            $notices,
+            static fn (string $notice): bool => str_contains($notice, 'Ersatzwerten ausgeliefert'),
         );
 
-        self::assertCount(1, $zusammenfassungen);
+        self::assertCount(1, $summaries);
     }
 }

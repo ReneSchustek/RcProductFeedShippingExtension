@@ -28,11 +28,11 @@ final class Migration1788912000AddSourceHash extends MigrationStep
 
     public function update(Connection $connection): void
     {
-        $spalten = $connection->fetchAllAssociative(
+        $columns = $connection->fetchAllAssociative(
             'SHOW COLUMNS FROM `rc_product_feed_shipping_price` LIKE "source_hash"'
         );
 
-        if ($spalten !== []) {
+        if ($columns !== []) {
             return;
         }
 

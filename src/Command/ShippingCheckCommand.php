@@ -6,13 +6,11 @@ namespace Ruhrcoder\RcProductFeedShippingExtension\Command;
 
 use Ruhrcoder\RcProductFeedShippingExtension\Configuration\ConfigurationService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ActiveProductProviderService;
-use Ruhrcoder\RcProductFeedShippingExtension\Service\FeedChannelProviderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Service\CalculationChannelProvider;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\ShippingCostCalculatorService;
 use Ruhrcoder\RcProductFeedShippingExtension\Service\VirtualCartBuilderService;
+use Ruhrcoder\RcProductFeedShippingExtension\Struct\CalculationChannelSelection;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
-use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,25 +31,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'rc:shipping:check', description: 'List products using fallback shipping costs')]
 final class ShippingCheckCommand extends AbstractShippingCommand
 {
-    /**
-     * @param EntityRepository<SalesChannelCollection> $salesChannelRepository
-     */
     public function __construct(
         ShippingCostCalculatorService $calculator,
         ConfigurationService $configurationService,
-        AbstractSalesChannelContextFactory $contextFactory,
-        EntityRepository $salesChannelRepository,
         ActiveProductProviderService $activeProductProvider,
-        private readonly FeedChannelProviderService $feedChannelProvider,
+        private readonly CalculationChannelProvider $channelProvider,
         private readonly VirtualCartBuilderService $cartBuilder,
     ) {
-        parent::__construct(
-            $calculator,
-            $configurationService,
-            $contextFactory,
-            $salesChannelRepository,
-            $activeProductProvider,
-        );
+        parent::__construct($calculator, $configurationService, $activeProductProvider);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -94,55 +81,23 @@ final class ShippingCheckCommand extends AbstractShippingCommand
     }
 
     /**
-     * Wählt aus, welche Berechnungs-Kanäle geprüft werden, und meldet, was warum wegfällt.
-     *
-     * Eigene Methode, weil hier fünf voneinander unabhängige Gründe zum Überspringen führen.
-     * Zusammen mit dem Sammeln und dem Ausgeben in einer Methode lag die Verzweigungszahl bei 17;
-     * die Regel zieht die Grenze bei 15.
+     * Die Berechnungs-Kanäle der Prüfung; dieselben wie beim Warmup. Was wegfällt, steht mit Grund in der Konsole.
      *
      * @return array<string, array{name: string, countries: array<int, string>}> je Berechnungs-Kanal einmal
      */
     private function selectChannels(SymfonyStyle $io, Context $context): array
     {
-        $readingChannels = $this->feedChannelProvider->loadReadingChannelIds($context);
-        $jobs = [];
+        $selection = $this->channelProvider->select($context);
 
-        foreach ($this->loadActiveSalesChannels($context) as $salesChannel) {
-            $feedChannelId = $salesChannel->getId();
-            $name = $salesChannel->getName() ?? $feedChannelId;
-
-            if (!$this->configurationService->isEnabled($feedChannelId)) {
-                continue;
+        foreach ($selection->skipped() as $skipped) {
+            if ($skipped['reason'] === CalculationChannelSelection::SKIP_UNREAD) {
+                $io->writeln(sprintf('  Übersprungen: %s — kein Produktexport liest diesen Kanal aus.', $skipped['name']));
+            } elseif ($skipped['reason'] === CalculationChannelSelection::SKIP_NO_CONTEXT) {
+                $io->warning(sprintf('Kanal %s: Context-Erstellung fehlgeschlagen (%s). Berechnungs-Kanal prüfen.', $skipped['name'], $skipped['detail']));
             }
-
-            if (!isset($readingChannels[$feedChannelId])) {
-                $io->writeln(sprintf('  Übersprungen: %s — kein Produktexport liest diesen Kanal aus.', $name));
-                continue;
-            }
-
-            $countries = $this->configurationService->getCountries($feedChannelId);
-            if ($countries === []) {
-                continue;
-            }
-
-            $calcChannelId = $this->configurationService->getCalculationSalesChannelId($feedChannelId) ?? $feedChannelId;
-
-            // Mehrere Feed-Kanäle können denselben Berechnungs-Kanal teilen. Ohne Merkliste liefe
-            // die Prüfung zweimal über denselben Bestand und nennte jede Kombination doppelt.
-            if (isset($jobs[$calcChannelId])) {
-                continue;
-            }
-
-            $contextError = $this->contextError($calcChannelId);
-            if ($contextError !== null) {
-                $io->warning(sprintf('Kanal %s: Context-Erstellung fehlgeschlagen (%s). Berechnungs-Kanal prüfen.', $name, $contextError));
-                continue;
-            }
-
-            $jobs[$calcChannelId] = ['name' => $name, 'countries' => $countries];
         }
 
-        return $jobs;
+        return $selection->channels();
     }
 
     /**
