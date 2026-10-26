@@ -2,7 +2,7 @@
     "name": "ruhrcoder/rc-product-feed-shipping-extension",
     "description": "Extends Shopware product feeds with calculated shipping costs per country",
     "type": "shopware-platform-plugin",
-    "license": "MIT",
+    "license": "proprietary",
     "version": "1.10.0",
     "authors": [
         {
