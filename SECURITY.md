@@ -11,7 +11,7 @@
 
 Sicherheitslücken bitte **nicht** als öffentliches GitHub-Issue melden.
 
-**Kontakt:** Über das Repository-Kontaktformular oder direkt per E-Mail an ruhrcoder.de.
+**Kontakt:** per E-Mail an **info@ruhrcoder.de**.
 
 **Erwartete Reaktionszeit:** Innerhalb von 72 Stunden.
 
